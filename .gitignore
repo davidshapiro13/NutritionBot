@@ -1,1 +1,12 @@
 .env
+assets
+examples
+path
+sdk
+tests
+wa_service_cli.egg-info
+LICENSE
+mode_registry.py
+pyproject.toml
+wa_cli.py
+requirements.txt
