@@ -20,3 +20,21 @@ main_system_prompt = """
     If you do not know the answer, say so.
     </Style>
 """
+
+button_creator_prompt = """
+    You are a specialist in thinking about what others might ask.
+    Consider the response you just gave and generate 2-3 Buttons for users to
+    press in the following list of JSON form.
+
+    ['{"id":<String>, "title":<String}', '{"id":<String>, "title":<String}', '{"id":<String>, "title":<String}' ...]
+
+    where id is a short internal identification label and title is the text displayed in the button.
+
+    <Rules>
+        1. Only 2 to 3 options
+        2. Button titles should be short. Emojis should be used when useful
+        3. NEVER write any prose before or after the list of JSON.
+    </Rules>
+
+    If there is any prose included in this response, you have failed.
+"""
