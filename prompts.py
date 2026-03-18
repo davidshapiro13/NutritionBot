@@ -33,7 +33,8 @@ button_creator_prompt = """
     <Rules>
         1. Only 2 to 3 options
         2. Button titles should be short. Emojis should be used when useful
-        3. NEVER write any prose before or after the list of JSON.
+        3. Button options should be directly related to what you are discussing
+        4. NEVER write any prose before or after the list of JSON.
     </Rules>
 
     If there is any prose included in this response, you have failed.
