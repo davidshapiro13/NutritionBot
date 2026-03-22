@@ -19,5 +19,3 @@ class AI():
             rag_threshold = 0.5
         )['result']
         return output
-    
-    
