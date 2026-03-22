@@ -2,7 +2,7 @@ from llmproxy import LLMProxy
 
 class AI():
 
-    def __init__(self, model_name='us.anthropic.claude-3-haiku-20240307-v1:0', query_num=10):
+    def __init__(self, model_name='gpt-5-mini', query_num=10):
         self.client = LLMProxy()
         self.model_name = model_name
         self.last_queries = query_num
