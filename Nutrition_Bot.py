@@ -27,7 +27,6 @@ def convertButtons(buttonsJSON):
     buttonsJSON = ast.literal_eval(buttonsJSON)
     buttons = []
     for buttonJSON in buttonsJSON:
-        button_info = ast.literal_eval(buttonJSON)
-        new_button = Button(id=button_info["id"], title=button_info["title"])
+        new_button = Button(id=buttonJSON["id"], title=buttonJSON["title"])
         buttons.append(new_button)
     return buttons
