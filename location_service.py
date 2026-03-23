@@ -53,7 +53,9 @@ WIC_STORE_NAMES = {
     "dandea",
     "ferro",
     "fernandes",
-    "minute market",
+    "minute market"
+    "trader joe's",
+    "trader joes"
 }
 
 # Google Places Nearby Search endpoint
