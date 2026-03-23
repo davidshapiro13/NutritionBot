@@ -39,3 +39,8 @@ button_creator_prompt = """
 
     If there is any prose included in this response, you have failed.
 """
+
+invalid_json_prompt = """
+    This JSON has an error. Please fix it to be proper JSON structure. Never write json. Never include ```
+    Only respond with JSON starting and ending with curly braces.
+"""

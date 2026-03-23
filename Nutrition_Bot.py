@@ -1,5 +1,5 @@
 from AI import AI
-from prompts import main_system_prompt, button_creator_prompt
+from prompts import main_system_prompt, button_creator_prompt, invalid_json_prompt
 import random
 import ast
 model = AI()
@@ -24,9 +24,16 @@ async def handle_event(event: BaseEvent):
     )
 
 def convertButtons(buttonsJSON):
-    buttonsJSON = ast.literal_eval(buttonsJSON)
+    not_proper_json = True
+    while not_proper_json:
+        try:
+            buttons_info = ast.literal_eval(buttonsJSON)
+            not_proper_json = False
+        except:
+            buttonsJSON = model.ask(invalid_json_prompt, str(buttonsJSON), "fix json")
     buttons = []
-    for buttonJSON in buttonsJSON:
+
+    for buttonJSON in buttons_info:
         new_button = Button(id=buttonJSON["id"], title=buttonJSON["title"])
         buttons.append(new_button)
     return buttons
