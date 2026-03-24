@@ -169,6 +169,8 @@ def _maybe_add_wic_nudge(response: str, buttons: list[Button], context: str, ses
     return response, _merge_buttons(buttons, wic_button)
 
 
+
+
 # ══════════════════════════════════════════════════════════════════════════════
 # AGENT CLASS
 # ══════════════════════════════════════════════════════════════════════════════
@@ -216,6 +218,15 @@ class NutritionAgent:
         if intent in ("food_safety", "wic_food"):
             response = _rag.query_rag(user_message, session_id=session, user_id=user_id)
             buttons  = _generate_buttons(response, session)
+            try:
+                results = _web_search.search(user_message, max_results=3)
+                if results:
+                    search_text = "\n\nSources:\n" + "\n".join([f"- {r['title']}: {r['link']}" for r in results])
+                    response = f"{response}\n{search_text}"
+            except Exception as e:
+                # Fail gracefully if API fails
+                response = f"{response}\n\n(Note: Could not fetch web results at this time.)"
+
 
         elif intent == "nutrition_advice":
             response = _ai.ask(main_system_prompt, user_message, session)

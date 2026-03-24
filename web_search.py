@@ -35,10 +35,6 @@ from user_memory import UserMemory
 import ast
 import re
 
-API_KEY = "AIzaSyCe4rPiVAletMXtPwckbasCEzsnj8v2ov8"
-CSE_ID = "a60e8ac6d9d7b47ce"
-URL = "https://cse.google.com/cse?cx=a60e8ac6d9d7b47ce"
-
 VALID_LINKS = {
 "https://www.nutrition.gov/", 
 "https://www.cancer.gov/", 
@@ -69,7 +65,7 @@ class WebSearch:
             items = response.json().get("items", [])
             return [{"title": i["title"], "link": i["link"], "snippet": i["snippet"]} for i in items]
         
-        
+
 
 
         
