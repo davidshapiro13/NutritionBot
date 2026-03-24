@@ -35,6 +35,12 @@ from user_memory import UserMemory
 import ast
 import re
 
+load_dotenv(dotenv_path=Path(__file__).parent / ".env")
+
+API_KEY = os.getenv("API_KEY")
+CSE_ID = os.getenv("CSE_ID")
+URL = os.getenv("URL")
+
 VALID_LINKS = {
 "https://www.nutrition.gov/", 
 "https://www.cancer.gov/", 
