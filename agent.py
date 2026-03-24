@@ -207,7 +207,7 @@ class NutritionAgent:
                 next_field = missing[0]
                 _onboarding_state[user_id] = {"field": next_field, "profile": state["profile"]}
                 prompt = self._onboarding_prompt(next_field)
-                return prompt, []
+                return prompt, _make_buttons(WELCOME_BUTTONS)
             # All required fields collected
             _mem.save_profile(user_id, state["profile"])
             del _onboarding_state[user_id]
@@ -220,7 +220,7 @@ class NutritionAgent:
             next_field = missing[0]
             _onboarding_state[user_id] = {"field": next_field, "profile": profile}
             prompt = self._onboarding_prompt(next_field)
-            return prompt, []
+            return prompt, _make_buttons(WELCOME_BUTTONS)
 
         # Normal flow
         if _is_greeting(user_message):
