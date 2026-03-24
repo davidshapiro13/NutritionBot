@@ -1,39 +1,47 @@
-from AI import AI
-from prompts import main_system_prompt, button_creator_prompt, invalid_json_prompt
-import random
-import ast
-model = AI()
+from agent import NutritionAgent
+from prompts import WELCOME_MESSAGE, WELCOME_BUTTONS
 
-from wa_service_sdk import BaseEvent, TextEvent, InteractiveEvent, create_message, create_buttoned_message, Button
+from wa_service_sdk import (
+    BaseEvent,
+    TextEvent,
+    InteractiveEvent,
+    LocationEvent,
+    create_buttoned_message,
+    Button,
+)
 
-#Temporary
-session_id = "Session" + str(random.random())
+_agent = NutritionAgent()
+
+
+def _make_buttons(buttons_data: list[dict]) -> list[Button]:
+    return [Button(id=b["id"], title=b["title"]) for b in buttons_data]
+
 
 async def handle_event(event: BaseEvent):
-    if isinstance(event, InteractiveEvent):
-        user_input = event.interaction_title
     if isinstance(event, TextEvent):
-        user_input = event.text
-    response = model.ask(main_system_prompt, user_input, session_id)
-    buttonsJSON = model.ask(button_creator_prompt, response, session_id)
-    buttons = convertButtons(buttonsJSON)
+        text, buttons = _agent.run(event.text, event.user_id)
+
+    elif isinstance(event, InteractiveEvent):
+        text, buttons = _agent.run_tool(
+            event.interaction_id,
+            event.user_id,
+            interaction_title=event.interaction_title,
+        )
+
+    elif isinstance(event, LocationEvent):
+        text, buttons = _agent.run_location(
+            event.latitude, event.longitude, event.user_id
+        )
+
+    else:
+        text = WELCOME_MESSAGE
+        buttons = _make_buttons(WELCOME_BUTTONS)
+
+    if len(text) > 1024:
+        text = text[:1020] + "…"
+
     return create_buttoned_message(
-            user_id=event.user_id,
-            text=response,
-            buttons=buttons,
+        user_id=event.user_id,
+        text=text,
+        buttons=buttons,
     )
-
-def convertButtons(buttonsJSON):
-    not_proper_json = True
-    while not_proper_json:
-        try:
-            buttons_info = ast.literal_eval(buttonsJSON)
-            not_proper_json = False
-        except:
-            buttonsJSON = model.ask(invalid_json_prompt, str(buttonsJSON), "fix json")
-    buttons = []
-
-    for buttonJSON in buttons_info:
-        new_button = Button(id=buttonJSON["id"], title=buttonJSON["title"])
-        buttons.append(new_button)
-    return buttons

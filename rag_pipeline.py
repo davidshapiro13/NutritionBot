@@ -198,60 +198,23 @@ class RAGPipeline:
 
         return "\n\n".join(sections)
 
-    # ── Scope check (guardrail pre-filter) ───────────────────────────────────
-
-    def is_in_scope(self, question: str) -> bool:
-        """
-        Ask the LLM whether the question is within the bot's scope BEFORE
-        running the full RAG pipeline.
-
-        Returns True if in scope, False if the question should be refused.
-        This is more reliable than relying on the main LLM to self-police.
-        """
-        check_prompt = (
-            f'Question: "{question}"\n\n'
-            f"Is this question about human nutrition, human food safety, "
-            f"human diet, WIC-approved foods, or how long human food lasts?\n\n"
-            f"Answer with exactly one word: YES or NO."
-        )
-        llm = LLMProxy()
-        result = llm.generate(
-            model="us.anthropic.claude-3-haiku-20240307-v1:0",
-            system="You are a strict topic classifier. Answer only YES or NO.",
-            query=check_prompt,
-            session_id="scope-check",
-            rag_usage=False,
-            lastk=0,
-        ).get("result", "YES").strip().upper()
-
-        return result.startswith("YES")
-
     # ── Full RAG answer ───────────────────────────────────────────────────────
 
     def query_rag(self, question: str, session_id: str = "rag-demo", user_id: str = None) -> str:
         """
         Full RAG query:
-          1. Scope check — refuse immediately if out of scope
-          2. Retrieve public KB + user memory context
-          3. Generate answer via LLMProxy
-          4. Auto-extract and save any new user facts from the question
+          1. Retrieve public KB + user memory context
+          2. Generate answer via LLMProxy
+          3. Auto-extract and save any new user facts from the question
 
         Args:
             question   : user question
             session_id : LLMProxy session for conversation history
-            user_id    : optional; enables user memory track
+            user_id    : optional; enables user memory tracking
 
         Returns:
             LLM answer string
         """
-        # Step 1: pre-filter — hard stop for out-of-scope questions
-        if not self.is_in_scope(question):
-            return (
-                "I'm only able to help with human nutrition and food safety topics — "
-                "such as healthy eating, WIC-approved foods, food storage times, and diet advice. "
-                "Is there something food-related I can help you with?"
-            )
-
         context = self.get_context(question, user_id=user_id)
 
         query_with_context = question
