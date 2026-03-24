@@ -24,6 +24,7 @@ Usage (from Nutrition_Bot.py):
     text, buttons = agent.run_location(lat, lng, user_id)
 """
 
+
 from AI import AI
 from rag_pipeline import RAGPipeline
 from prompts import (
@@ -40,14 +41,20 @@ from prompts import (
     LOCATION_PROMPT,
 )
 from wa_service_sdk import Button
+from user_memory import UserMemory
 
 import ast
 import re
+
 
 # ── Shared instances (loaded once at startup) ─────────────────────────────────
 _ai  = AI()
 _rag = RAGPipeline()
 _rag.build_public_index()
+_mem = UserMemory(embed_model=None)
+
+# Onboarding state: {user_id: {"field": ..., "profile": {...}}}
+_onboarding_state = {}
 
 # Tracks whether a user last requested WIC-only or all stores before sharing location
 _pending_store_type: dict[str, str] = {}
@@ -165,10 +172,40 @@ def _maybe_add_wic_nudge(response: str, buttons: list[Button], context: str, ses
 # AGENT CLASS
 # ══════════════════════════════════════════════════════════════════════════════
 
+
+REQUIRED_PROFILE_FIELDS = ["name", "age_group", "main_goal"]
+
 class NutritionAgent:
 
     def run(self, user_message: str, user_id: str) -> tuple[str, list[Button]]:
-        """Handle a free-text message from the user."""
+        """Handle a free-text message from the user, with onboarding if needed."""
+        # Onboarding state machine
+        state = _onboarding_state.get(user_id)
+        if state:
+            # Continue onboarding: save last answer, ask next
+            last_field = state["field"]
+            state["profile"][last_field] = user_message.strip()
+            missing = [f for f in REQUIRED_PROFILE_FIELDS if not state["profile"].get(f)]
+            if missing:
+                next_field = missing[0]
+                _onboarding_state[user_id] = {"field": next_field, "profile": state["profile"]}
+                prompt = self._onboarding_prompt(next_field)
+                return prompt, []
+            # All required fields collected
+            _mem.save_profile(user_id, state["profile"])
+            del _onboarding_state[user_id]
+            return "Thank you! Your profile is saved. How can I help you today?", _make_buttons(WELCOME_BUTTONS)
+
+        # Check if onboarding is needed
+        profile = self._get_profile(user_id)
+        missing = [f for f in REQUIRED_PROFILE_FIELDS if not profile.get(f)]
+        if missing:
+            next_field = missing[0]
+            _onboarding_state[user_id] = {"field": next_field, "profile": profile}
+            prompt = self._onboarding_prompt(next_field)
+            return prompt, []
+
+        # Normal flow
         if _is_greeting(user_message):
             return WELCOME_MESSAGE, _make_buttons(WELCOME_BUTTONS)
 
@@ -199,6 +236,24 @@ class NutritionAgent:
             buttons  = _make_buttons(WELCOME_BUTTONS)
 
         return response, buttons
+
+    def _get_profile(self, user_id: str) -> dict:
+        """Parse user profile from memory file."""
+        raw = _mem.load_all(user_id)
+        profile = {}
+        for line in raw.splitlines():
+            if ":" in line:
+                k, v = line.split(":", 1)
+                profile[k.strip()] = v.strip()
+        return profile
+
+    def _onboarding_prompt(self, field: str) -> str:
+        prompts = {
+            "name": "Hi! To personalize your experience, what's your name?",
+            "age_group": "What is your age group? (child, adult, or elder)",
+            "main_goal": "What is your main health or nutrition goal?",
+        }
+        return prompts.get(field, f"Please provide your {field}.")
 
     def run_tool(
         self,

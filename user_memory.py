@@ -235,3 +235,28 @@ class UserMemory:
             self.save(user_id, memory)
             print(f"  [Memory saved]\n{memory}")
         return memory
+<<<<<<< HEAD
+
+    def save_profile(self, user_id: str, profile: dict[str, str]) -> None:
+        """
+        Save an explicit onboarding profile to user memory.
+
+        Args:
+            user_id: unique user key
+            profile: dictionary of keys matching user memory fields
+        """
+        valid_keys = {
+            "name",
+            "age_group",
+            "gender",
+            "asking_for",
+            "health_conditions",
+            "allergies",
+            "medications",
+            "main_goal",
+        }
+        for field, value in profile.items():
+            if field in valid_keys and value and str(value).strip():
+                self.save(user_id, f"{field}: {str(value).strip()}")
+=======
+>>>>>>> origin/main
