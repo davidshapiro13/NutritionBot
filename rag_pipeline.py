@@ -164,30 +164,35 @@ class RAGPipeline:
         print(f"Public KB: {len(docs)} file(s), {len(self._pub_chunks)} chunks indexed.")
         return len(self._pub_chunks)
 
-    def get_public_context(self, query: str, top_k: int = 5) -> str:
-        """Retrieve relevant passages from the public knowledge base."""
+    # Distance threshold: chunks further than this are considered irrelevant
+    RELEVANCE_THRESHOLD = 1.0
+
+    def get_public_context(self, query: str, top_k: int = 2) -> tuple[str, bool]:
+        """
+        Retrieve relevant passages from the public knowledge base.
+        Returns (context_string, has_relevant) where has_relevant is False
+        when no chunks pass the distance threshold.
+        """
         if self._pub_index is None or self._pub_index.ntotal == 0:
-            return ""
+            return "", False
         results = _retrieve(query, self._model, self._pub_index, self._pub_chunks, top_k)
-        return "\n\n".join(f"[{r['source']}]\n{r['text']}" for r in results)
+        relevant = [r for r in results if r["distance"] < self.RELEVANCE_THRESHOLD]
+        if not relevant:
+            return "", False
+        context = "\n\n".join(f"[Source: {r['source']}]\n{r['text']}" for r in relevant)
+        return context, True
 
     # ── Combined context ──────────────────────────────────────────────────────
 
-    def get_context(self, query: str, user_id: str = None) -> str:
+    def get_context(self, query: str, user_id: str = None) -> tuple[str, bool]:
         """
-        Combine public KB context and user memory context into one string
-        ready to inject into a prompt.
-
-        Args:
-            query   : the user's current message
-            user_id : if provided, also retrieves personal memory
-
-        Returns:
-            Combined context string, or "" if both are empty.
+        Combine public KB context and user memory context.
+        Returns (context_string, has_relevant_kb) where has_relevant_kb
+        indicates whether the public KB had relevant results.
         """
         sections = []
 
-        pub = self.get_public_context(query)
+        pub, has_relevant = self.get_public_context(query)
         if pub:
             sections.append(f"[Public Knowledge Base]\n{pub}")
 
@@ -196,16 +201,17 @@ class RAGPipeline:
             if usr:
                 sections.append(f"[User Memory]\n{usr}")
 
-        return "\n\n".join(sections)
+        return "\n\n".join(sections), has_relevant
 
     # ── Full RAG answer ───────────────────────────────────────────────────────
 
     def query_rag(self, question: str, session_id: str = "rag-demo", user_id: str = None) -> str:
         """
         Full RAG query:
-          1. Retrieve public KB + user memory context
-          2. Generate answer via LLMProxy
-          3. Auto-extract and save any new user facts from the question
+          1. Retrieve public KB + user memory context with relevance filtering
+          2. If no relevant KB context found, fall back to direct LLM answer
+          3. Otherwise generate answer grounded in retrieved sources
+          4. Auto-extract and save any new user facts from the question
 
         Args:
             question   : user question
@@ -215,17 +221,48 @@ class RAGPipeline:
         Returns:
             LLM answer string
         """
-        context = self.get_context(question, user_id=user_id)
-
-        query_with_context = question
-        if context:
-            query_with_context = (
-                f"Use the following context to help answer the question.\n\n"
-                f"CONTEXT:\n{context}\n\n"
-                f"QUESTION:\n{question}"
-            )
+        context, has_relevant = self.get_context(question, user_id=user_id)
 
         llm = LLMProxy()
+
+        length_instruction = (
+            "Keep your answer under 500 characters. "
+            "3-5 sentences max. Plain text only, no bullet points or markdown."
+        )
+
+        if not has_relevant:
+            # No relevant KB chunks — try web search fallback
+            web_context = ""
+            try:
+                from web_search import WebSearch
+                results = WebSearch().search(question, max_results=3)
+                snippets = [
+                    f"[{r['title']}]\n{r['snippet']}"
+                    for r in results if r.get("snippet")
+                ]
+                web_context = "\n\n".join(snippets)
+            except Exception:
+                pass
+
+            if web_context:
+                query_with_context = (
+                    f"{length_instruction}\n\n"
+                    f"Answer using the web sources below.\n\n"
+                    f"SOURCES:\n{web_context}\n\n"
+                    f"QUESTION:\n{question}"
+                )
+            else:
+                query_with_context = f"{length_instruction}\n\nQUESTION:\n{question}"
+        else:
+            query_with_context = (
+                f"{length_instruction}\n\n"
+                f"USER QUESTION: {question}\n\n"
+                f"RULE: Answer ONLY the question above. "
+                f"The sources may contain information about many food types — ignore everything except what directly answers the question. "
+                f"Do NOT mention leftovers, dairy, chicken, or any other food category unless the user specifically asked about it.\n\n"
+                f"SOURCES:\n{context}"
+            )
+
         response = llm.generate(
             model="us.anthropic.claude-3-haiku-20240307-v1:0",
             system=main_system_prompt,
@@ -235,6 +272,19 @@ class RAGPipeline:
             lastk=10,
         )
         answer = response.get("result", str(response))
+
+        # If still over 500 chars, ask LLM to condense it
+        if len(answer) > 500:
+            condense_response = llm.generate(
+                model="us.anthropic.claude-3-haiku-20240307-v1:0",
+                system="You are a text editor. Condense the given text to under 500 characters while keeping all key facts accurate. Plain text only, no markdown.",
+                query=f"Condense this to under 500 characters:\n\n{answer}",
+                session_id=session_id + "_condense",
+                rag_usage=False,
+                lastk=0,
+            )
+            condensed = condense_response.get("result", answer)
+            answer = condensed if len(condensed) <= 500 else condensed[:496] + "…"
 
         # Auto-extract structured user facts and save to memory
         if user_id:

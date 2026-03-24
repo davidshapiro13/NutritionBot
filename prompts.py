@@ -8,15 +8,14 @@ You are an intent classifier for a nutrition assistant chatbot.
 Classify the user's message into exactly one of these intents:
 - food_safety      : questions about food storage, expiration, foodborne illness, or whether food is safe to eat
 - nutrition_advice : questions about healthy eating, meal ideas, diet changes, budget meals, child nutrition, or pregnancy nutrition
-- wic_food         : questions about what specific foods, brands, or products are approved or covered by WIC
 - find_stores      : user wants nearby grocery stores, WIC information, or other food-related resources
 - out_of_scope     : anything unrelated to food, nutrition, food safety, or food-related resources
 
-Reply with ONLY the intent label, nothing else.
+If the user is typing a question, classify it into one of the intents.
 """
 
 main_system_prompt = """
-You are a nutrition assistant serving people in Somerville and Medford, Massachusetts.
+You are a nutrition assistant serving people in Massachusetts.
 
 <What you help with>
 1. Healthy eating and diet changes
@@ -36,9 +35,11 @@ You are a nutrition assistant serving people in Somerville and Medford, Massachu
 </Guardrails>
 
 <Style>
-Keep answers short, warm, and practical.
-Use plain language.
-When helpful, ask one brief follow-up question.
+Keep answers SHORT — 4 to 5 sentences maximum.
+Use plain language. No bullet lists unless absolutely necessary.
+If you need to list items, limit to 3.
+End with at most one brief follow-up question.
+Never repeat information already given.
 </Style>
 """
 
@@ -69,14 +70,14 @@ WELCOME_BUTTONS = [
 ]
 
 FOOD_SAFETY_BUTTONS = [
-    {"id": "meat_storage",    "title": "🥩 Meat & Chicken"},
-    {"id": "dairy_storage",   "title": "🥛 Dairy & Leftovers"},
-    {"id": "ask_freely",      "title": "🤔 Ask My Question"},
+    {"id": "meat_storage",    "title": "🥩 Meat "},
+    {"id": "dairy_storage",   "title": "🥛 Dairy "},
+    {"id": "ask_freely",      "title": "🤔 Ask Question"},
 ]
 
 NUTRITION_BUTTONS = [
-    {"id": "for_myself",       "title": "🙋 For Myself"},
-    {"id": "for_child",        "title": "👶 For My Child"},
+    {"id": "for_myself",      "title": "🙋 For Myself"},
+    {"id": "for_child",       "title": "👶 For My Child"},
     {"id": "special_nutrition","title": "✨ Special Case"},
 ]
 
@@ -105,14 +106,34 @@ Write only the bridge message. No labels, no explanations, no extra text.
 # ── Fixed Messages ─────────────────────────────────────────────────────────────
 
 WELCOME_MESSAGE = (
-    "👋 Hi! I'm your nutrition assistant. I can help you:\n"
+    "👋 Hi! I'm here to help you and your family eat well, stay safe, "
+    "and make the most of local food resources.\n\n"
+    "I can help you:\n"
     "• Eat healthier on a budget\n"
     "• Figure out if food is safe to eat\n"
-    "• Find WIC and nearby food resources\n\n"
+    "• Care for yourself or your family with practical nutrition guidance\n"
+    "• Make the most of WIC and nearby food resources\n\n"
     "What would you like help with today?"
+)
+
+WIC_INFO_MESSAGE = (
+    "WIC (Women, Infants, and Children) is a free program that provides "
+    "food, nutrition education, and healthcare referrals to eligible families.\n\n"
+    "You may qualify if you are pregnant, recently gave birth, breastfeeding, "
+    "or have a child under 5 — and meet income guidelines."
+)
+
+WIC_NUDGE_MESSAGE = (
+    "It looks like you might benefit from WIC support. "
+    "Would you like to learn more or find a WIC store near you?"
 )
 
 LOCATION_PROMPT = (
     "Please share your location so I can find stores near you. 📍\n"
     "Tap the 📎 attachment icon → Location."
+)
+
+OUT_OF_SCOPE_MESSAGE = (
+    "I'm only able to help with food, nutrition, and food safety topics. "
+    "Is there something food-related I can help you with?"
 )

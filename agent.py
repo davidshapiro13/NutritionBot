@@ -125,7 +125,12 @@ def _is_greeting(text: str) -> bool:
         "good morning", "good afternoon", "good evening",
         "start", "menu", "help",
     }
-    return normalized in greetings
+    if normalized in greetings:
+        return True
+    # Mode-switch messages from WhatsApp platform
+    if normalized.startswith("@") or "switch to" in normalized or "nutritionbot" in normalized:
+        return True
+    return False
 
 
 def _merge_buttons(primary: list[Button], extra: list[Button], limit: int = 3) -> list[Button]:
@@ -168,20 +173,17 @@ def _maybe_add_wic_nudge(response: str, buttons: list[Button], context: str, ses
     wic_button = [Button(id="wic_info", title="💡 WIC Help")]
     return response, _merge_buttons(buttons, wic_button)
 
-_web_search = WebSearch(
-    api_key = os.getenv("API_KEY"),
-    cse_id = os.getenv("CSE_ID"),
-    websites = os.getenv("VALID_LINKS")
-)
+_web_search = WebSearch()
 
 def _add_web_search(response: str, query: str) -> str:
-        try:
-            results = _web_search.search(query, max_results=3)
-            if results:
-                search_text = "\n\nSources:\n" + "\n".join([f"- {r['title']}: {r['link']}" for r in results])
-                response = f"{response}\n{search_text}"
-        except Exception as e:
-            response = f"{response}\n\n(Note: Could not fetch web results at this time.)"
+    try:
+        results = _web_search.search(query, max_results=3)
+        if results:
+            search_text = "\n\nSources:\n" + "\n".join([f"- {r['title']}: {r['link']}" for r in results])
+            response = f"{response}\n{search_text}"
+    except Exception:
+        pass
+    return response
 
 # ══════════════════════════════════════════════════════════════════════════════
 # AGENT CLASS
@@ -331,8 +333,8 @@ class NutritionAgent:
                 "for_myself":        "Give me practical healthy eating advice for an adult.",
                 "for_child":         "Give me practical healthy eating advice for a young child under 5.",
                 "special_nutrition": "Ask what special nutrition situation the user wants help with, such as pregnancy, allergies, diabetes, or dietary restrictions.",
-                "meat_storage":      "How long can I safely keep meat or chicken, and how should I store it?",
-                "dairy_storage":     "How long can I safely keep dairy products or leftovers, and how should I store them?",
+                "meat_storage":      "How long can I safely keep meat , and how should I store it?",
+                "dairy_storage":     "How long can I safely keep dairy products , and how should I store them?",
                 "ask_freely":        "Help me ask a food safety question in my own words.",
                 "wic_apply":         "How do I apply for WIC benefits in Massachusetts?",
             }

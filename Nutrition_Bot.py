@@ -6,6 +6,7 @@ from wa_service_sdk import (
     TextEvent,
     InteractiveEvent,
     LocationEvent,
+    create_message,
     create_buttoned_message,
     Button,
 )
@@ -37,11 +38,17 @@ async def handle_event(event: BaseEvent):
         text = WELCOME_MESSAGE
         buttons = _make_buttons(WELCOME_BUTTONS)
 
-    if len(text) > 1024:
-        text = text[:1020] + "…"
+    if not text:
+        text = WELCOME_MESSAGE
+        buttons = _make_buttons(WELCOME_BUTTONS)
 
-    return create_buttoned_message(
-        user_id=event.user_id,
-        text=text,
-        buttons=buttons,
-    )
+    if len(text) > 900:
+        text = text[:897] + "…"
+
+    if buttons:
+        return create_buttoned_message(
+            user_id=event.user_id,
+            text=text,
+            buttons=buttons,
+        )
+    return create_message(user_id=event.user_id, text=text)
