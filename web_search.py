@@ -12,10 +12,32 @@ from dotenv import load_dotenv
 from llmproxy import LLMProxy
 
 from user_memory import UserMemory
-from prompts import main_system_prompt
+from prompts import (
+    main_system_prompt,
+    button_creator_prompt,
+    guided_transition_prompt,
+    intent_classifier_prompt,
+    WELCOME_BUTTONS,
+    WELCOME_MESSAGE,
+    FOOD_SAFETY_BUTTONS,
+    NUTRITION_BUTTONS,
+    STORE_TYPE_BUTTONS,
+    WIC_INFO_BUTTONS,
+    LOCATION_PROMPT,
+)
 from rag_pipeline import RAGPipeline
 from location_service import LocationService
 from AI import AI
+
+from wa_service_sdk import Button
+from user_memory import UserMemory
+
+import ast
+import re
+
+API_KEY = "AIzaSyCe4rPiVAletMXtPwckbasCEzsnj8v2ov8"
+CSE_ID = "a60e8ac6d9d7b47ce"
+URL = "https://cse.google.com/cse?cx=a60e8ac6d9d7b47ce"
 
 VALID_LINKS = {
 "https://www.nutrition.gov/", 
@@ -27,3 +49,31 @@ VALID_LINKS = {
 "https://medlineplus.gov/foodandnutrition.html", 
 "https://www.foodsafety.gov/"
 }
+
+
+
+class WebSearch:
+      
+      def __init__(self):
+        self.api_key = API_KEY
+        self.cse_id = CSE_ID            
+        self.websites = VALID_LINKS
+
+        def search(query, max_results):
+            if not self.cse_id:
+                raise ValueError("CSE_ID is required for Google search.")
+            
+            params = {"key": self.api_key, "cse": self.cse_id, "q": query, "num": max_results}
+            response = requests.get(URL, params = params)
+            response.raise_for_status()
+            items = response.json().get("items", [])
+            return [{"title": i["title"], "link": i["link"], "snippet": i["snippet"]} for i in items]
+        
+        
+
+
+        
+
+
+
+

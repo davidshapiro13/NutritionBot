@@ -40,6 +40,7 @@ from prompts import (
     WIC_INFO_BUTTONS,
     LOCATION_PROMPT,
 )
+from web_search import WebSearch
 from wa_service_sdk import Button
 from user_memory import UserMemory
 
@@ -144,7 +145,7 @@ def _should_offer_wic(text: str) -> bool:
     """Detect cases where a short WIC nudge is likely helpful."""
     text = text.lower()
     patterns = [
-        r"\bpregnan", r"\bbreastfeed", r"\bpostpartum\b",
+        r"\bpregnant", r"\bbreastfeed", r"\bpostpartum\b",
         r"\bchild\b", r"\bchildren\b", r"\bkid\b",
         r"\bbaby\b", r"\binfant\b", r"\btoddler\b", r"\bnewborn\b",
         r"\bformula\b", r"\bfamily\b", r"\bbudget\b",
