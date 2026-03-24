@@ -11,3 +11,5 @@ pyproject.toml
 wa_cli.py
 requirements.txt
 venv311/
+.DS_Store
+__pycache__/
