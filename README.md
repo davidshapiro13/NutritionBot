@@ -226,6 +226,7 @@ python rag_pipeline.py
 # WIC store finder test
 python location_service.py
 ```
+<<<<<<< HEAD
 
 ## Onboarding Script
 
@@ -238,3 +239,5 @@ python onboarding.py
 Fields captured:
    - name, age_group, gender, health_conditions, allergies, medications,
       asking_for, main_goal
+=======
+>>>>>>> origin/main

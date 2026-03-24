@@ -235,6 +235,7 @@ class UserMemory:
             self.save(user_id, memory)
             print(f"  [Memory saved]\n{memory}")
         return memory
+<<<<<<< HEAD
 
     def save_profile(self, user_id: str, profile: dict[str, str]) -> None:
         """
@@ -257,3 +258,5 @@ class UserMemory:
         for field, value in profile.items():
             if field in valid_keys and value and str(value).strip():
                 self.save(user_id, f"{field}: {str(value).strip()}")
+=======
+>>>>>>> origin/main
