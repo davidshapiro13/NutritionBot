@@ -24,7 +24,7 @@ Usage (from Nutrition_Bot.py):
     text, buttons = agent.run_location(lat, lng, user_id)
 """
 
-
+import os
 from AI import AI
 from rag_pipeline import RAGPipeline
 from prompts import (
@@ -168,8 +168,20 @@ def _maybe_add_wic_nudge(response: str, buttons: list[Button], context: str, ses
     wic_button = [Button(id="wic_info", title="💡 WIC Help")]
     return response, _merge_buttons(buttons, wic_button)
 
+_web_search = WebSearch(
+    api_key = os.getenv("API_KEY"),
+    cse_id = os.getenv("CSE_ID"),
+    websites = os.getenv("VALID_LINKS")
+)
 
-
+def _add_web_search(response: str, query: str) -> str:
+        try:
+            results = _web_search.search(query, max_results=3)
+            if results:
+                search_text = "\n\nSources:\n" + "\n".join([f"- {r['title']}: {r['link']}" for r in results])
+                response = f"{response}\n{search_text}"
+        except Exception as e:
+            response = f"{response}\n\n(Note: Could not fetch web results at this time.)"
 
 # ══════════════════════════════════════════════════════════════════════════════
 # AGENT CLASS
@@ -217,19 +229,12 @@ class NutritionAgent:
 
         if intent in ("food_safety", "wic_food"):
             response = _rag.query_rag(user_message, session_id=session, user_id=user_id)
+            response = _add_web_search(response, user_message)
             buttons  = _generate_buttons(response, session)
-            try:
-                results = _web_search.search(user_message, max_results=3)
-                if results:
-                    search_text = "\n\nSources:\n" + "\n".join([f"- {r['title']}: {r['link']}" for r in results])
-                    response = f"{response}\n{search_text}"
-            except Exception as e:
-                # Fail gracefully if API fails
-                response = f"{response}\n\n(Note: Could not fetch web results at this time.)"
-
 
         elif intent == "nutrition_advice":
             response = _ai.ask(main_system_prompt, user_message, session)
+            response = _add_web_search(response, user_message)
             buttons  = _generate_buttons(response, session)
             response, buttons = _maybe_add_wic_nudge(response, buttons, user_message, session)
 
