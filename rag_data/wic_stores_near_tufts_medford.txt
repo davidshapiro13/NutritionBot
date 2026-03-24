@@ -1,0 +1,247 @@
+# WIC-Authorized Food Retailers Near Tufts University Medford Campus
+# Sources: mass.gov (official MA WIC vendor list), USDA FNS, Tufts Access
+# Last updated: 2026-03-14
+# Coverage: Medford, Somerville, Malden, Arlington, Cambridge (MA)
+
+================================================================================
+ABOUT WIC STORES
+================================================================================
+
+WIC (Women, Infants, and Children) is a federal nutrition program. WIC-authorized
+stores accept WIC benefits (EBT card) for approved food items.
+
+Massachusetts WIC covers:
+- Fresh, frozen, and canned fruits and vegetables
+- Milk, cheese, eggs
+- Whole wheat bread and whole grains
+- Canned fish (tuna, salmon, sardines)
+- Peanut butter
+- Dried or canned beans and peas
+- 100% fruit juice
+- Infant formula and baby food (at authorized stores)
+
+Full supermarkets carry the full WIC range.
+CVS / Walgreens carry primarily infant formula, baby food, and select staples.
+Independent markets vary — call ahead to confirm specific items.
+
+================================================================================
+CLOSEST WIC STORES TO TUFTS MEDFORD (RECOMMENDED)
+================================================================================
+
+1. Super Stop & Shop #433
+   Address : 760 Fellsway, Medford, MA 02155
+   Phone   : (781) 391-5869
+   Notes   : Largest nearby option. Tufts runs a FREE Saturday grocery shuttle
+             here from Campus Center (44 Professors Row). Full WIC range.
+
+2. Stop & Shop Supermarket #2411
+   Address : 105 Alewife Brook Pkwy, Somerville, MA 02144
+   Phone   : (617) 625-1546
+   Distance: ~1.5 miles from Tufts Medford campus. Full WIC range.
+
+3. Market Basket #28
+   Address : 400 Somerville Ave, Somerville, MA 02143
+   Phone   : (617) 666-2420
+   Distance: ~2 miles. Full WIC range. Known for lower prices.
+
+4. Star Market #7575
+   Address : 275 Beacon Street, Somerville, MA 02145
+   Phone   : (617) 354-7023
+   Distance: ~2.5 miles. Full WIC range.
+
+================================================================================
+MEDFORD, MA (02155)
+================================================================================
+
+Super Stop & Shop (F&P) #433
+  Address : 760 Fellsway, Medford, MA 02155
+  Phone   : (781) 391-5869
+  Type    : Full supermarket. Full WIC range.
+  Notes   : Free Tufts Saturday shuttle stop.
+
+Rosemary Market Corp.
+  Address : 565 Main Street, Medford, MA 02155
+  Phone   : (781) 396-0850
+  Type    : Independent grocery. WIC staples — call ahead for specific items.
+
+CVS Pharmacy #1010
+  Address : 85 High Street, Medford, MA 02155
+  Phone   : (781) 396-4770
+  Type    : Pharmacy. WIC infant formula and baby food.
+
+CVS Pharmacy #252
+  Address : 55 Riverside Ave, Medford, MA 02155
+  Phone   : (781) 395-1515
+  Type    : Pharmacy. WIC infant formula and baby food.
+
+================================================================================
+SOMERVILLE, MA (02143 / 02144 / 02145)
+================================================================================
+
+Stop & Shop Supermarket #2411
+  Address : 105 Alewife Brook Pkwy, Somerville, MA 02144
+  Phone   : (617) 625-1546
+  Type    : Full supermarket. Full WIC range.
+
+Market Basket #28
+  Address : 400 Somerville Ave, Somerville, MA 02143
+  Phone   : (617) 666-2420
+  Type    : Full supermarket. Full WIC range. Budget-friendly.
+
+Star Market #7575
+  Address : 275 Beacon Street, Somerville, MA 02145
+  Phone   : (617) 354-7023
+  Type    : Full supermarket. Full WIC range.
+
+Star Market #7580
+  Address : 14 McGrath Highway, Somerville, MA 02143
+  Phone   : (617) 625-4070
+  Type    : Full supermarket. Full WIC range.
+
+Super Stop & Shop (F&P) #498
+  Address : 771 McGrath Highway, Somerville, MA 02145
+  Phone   : (617) 666-1024
+  Type    : Full supermarket. Full WIC range.
+
+Minute Market
+  Address : 141 Broadway, Somerville, MA 02145
+  Phone   : (617) 666-0104
+  Type    : Convenience/independent. WIC staples — call ahead.
+
+Walgreens #2760
+  Address : 337 Broadway, Somerville, MA 02145
+  Phone   : (617) 776-5104
+  Type    : Pharmacy. WIC infant formula and baby food.
+
+Walgreens #2945
+  Address : 16 Beacon Street, Somerville, MA 02143
+  Phone   : (617) 497-5763
+  Type    : Pharmacy. WIC infant formula and baby food.
+
+================================================================================
+MALDEN, MA (02148) — ~1.5 miles north of Tufts
+================================================================================
+
+Super Stop & Shop (F&P) #062
+  Address : 99 Charles Street, Malden, MA 02148
+  Phone   : (781) 397-0006
+  Type    : Full supermarket. Full WIC range.
+
+Dandea's Superette
+  Address : 790 Main Street, Malden, MA 02148
+  Phone   : (781) 321-7377
+  Type    : Independent grocery. WIC staples — call ahead.
+
+L&M Convenience Store
+  Address : 230 Ferry Street, Malden, MA 02148
+  Phone   : (781) 388-9083
+  Type    : Convenience. WIC staples — call ahead.
+
+CVS Pharmacy #8906
+  Address : 575 Broadway, Malden, MA 02148
+  Phone   : (781) 321-1017
+  Type    : Pharmacy. WIC infant formula and baby food.
+
+CVS Pharmacy #672
+  Address : 32 Ferry Street, Malden, MA 02148
+  Phone   : (781) 324-1101
+  Type    : Pharmacy. WIC infant formula and baby food.
+
+CVS Pharmacy #1001
+  Address : 1080 Eastern Ave, Malden, MA 02148
+  Phone   : (781) 322-5890
+  Type    : Pharmacy. WIC infant formula and baby food.
+
+Walgreens #4966
+  Address : 215 Beach Street, Malden, MA 02148
+  Phone   : (781) 324-4745
+  Type    : Pharmacy. WIC infant formula and baby food.
+
+================================================================================
+ARLINGTON, MA (02474) — ~2 miles west of Tufts
+================================================================================
+
+Super Stop & Shop (F&P) #776
+  Address : 905 Massachusetts Ave, Arlington, MA 02474
+  Phone   : (781) 646-3625
+  Type    : Full supermarket. Full WIC range.
+
+CVS Pharmacy #130
+  Address : 23-25 Massachusetts Ave, Arlington, MA 02474
+  Phone   : (781) 648-0557
+  Type    : Pharmacy. WIC infant formula and baby food.
+
+================================================================================
+CAMBRIDGE, MA (02138–02141) — ~2–3 miles south of Tufts
+================================================================================
+
+Star Market (F&P) #2565
+  Address : 699 Mt Auburn Street, Cambridge, MA 02138
+  Phone   : (617) 876-1450
+  Type    : Full supermarket. Full WIC range.
+
+Star Market #0163
+  Address : 49 White Street, Cambridge, MA 02140
+  Phone   : (617) 492-5566
+  Type    : Full supermarket. Full WIC range.
+
+Ferro's Foodtown Inc.
+  Address : 336 Rindge Ave, Cambridge, MA 02140
+  Phone   : (617) 354-2620
+  Type    : Independent grocery. WIC staples — call ahead.
+
+Fernandes Market
+  Address : 873 Cambridge Street, Cambridge, MA 02141
+  Phone   : (617) 492-5270
+  Type    : Independent grocery. WIC staples — call ahead.
+
+CVS Pharmacy #1022
+  Address : 215 Alewife Brook Pkwy, Cambridge, MA 02138
+  Phone   : (617) 661-2950
+  Type    : Pharmacy. WIC infant formula and baby food.
+
+CVS Pharmacy #1002
+  Address : 624 Massachusetts Ave, Cambridge, MA 02139
+  Phone   : (617) 876-7868
+  Type    : Pharmacy. WIC infant formula and baby food.
+
+Walgreens #6767
+  Address : 625 Massachusetts Ave, Cambridge, MA 02139
+  Phone   : (617) 491-8157
+  Type    : Pharmacy. WIC infant formula and baby food.
+
+================================================================================
+WIC CLINICS (ENROLLMENT & QUESTIONS)
+================================================================================
+
+Cambridge & Somerville WIC Program
+  Address : 366 Broadway Suite 102, Somerville, MA 02145
+  Phone   : (617) 575-5330
+
+North Suburban WIC Program (serves Medford / Malden area)
+  Address : 239 Commercial St., Malden, MA 02148
+  Phone   : (781) 338-7578
+
+================================================================================
+TUFTS GROCERY SHUTTLE (FREE)
+================================================================================
+
+Tufts University runs a FREE Saturday grocery shuttle to Super Stop & Shop
+(760 Fellsway, Medford) — the closest full WIC supermarket to campus.
+
+Pickup: Campus Center, 44 Professors Row, Medford
+For schedule: https://access.tufts.edu/grocery-shuttle
+
+================================================================================
+FINDING MORE WIC STORES
+================================================================================
+
+Official Massachusetts WIC vendor list (by city/town):
+  https://www.mass.gov/info-details/find-wic-approved-stores
+
+USDA WIC clinic locator (for program enrollment, not stores):
+  https://www.fns.usda.gov/wic/locator
+
+Note: No public API exists for WIC store lookup. The above list is sourced
+from the official mass.gov WIC vendor pages and was verified in March 2026.
+Always call ahead to confirm a store is still active and carries the items you need.
