@@ -1,0 +1,111 @@
+QUESTION: 
+    Today is Wednesday the 10th. I have some rice in my fridge from last Thursday. What should I do with it?
+    a) Eat it so you do not waste it.
+    b) Throw it away. It has been too long and can grow bacteria.
+    c) Smell it. If it smells fine, it is fine.
+    d) Mix it into another meal
+    e) None of the above
+
+
+MODEL: gpt-5-mini
+Provided: b | Correct: b
+
+MODEL: us.anthropic.claude-3-haiku-20240307-v1:0
+Provided: b | Correct: b
+
+MODEL: google.gemma-3-27b-it
+Provided: b | Correct: b
+
+MODEL: us.meta.llama3-2-3b-instruct-v1:0
+Provided: b | Correct: b
+
+QUESTION: 
+    What are common symptoms of food poisoning?
+    a) Nausea
+    b) Loss of Taste and Smell
+    c) Stomach Cramps
+    d) Sore throat
+    e) a and c
+    f) c and d
+
+
+MODEL: gpt-5-mini
+Provided: e | Correct: e
+
+MODEL: us.anthropic.claude-3-haiku-20240307-v1:0
+Provided: e | Correct: e
+
+MODEL: google.gemma-3-27b-it
+Provided: e | Correct: e
+
+MODEL: us.meta.llama3-2-3b-instruct-v1:0
+Provided: e | Correct: e
+
+QUESTION: 
+    Which is not a food group?
+
+    a) Fruits
+    b) Grains
+    c) Starches
+    d) Dairy
+    e) Vegetables
+
+
+MODEL: gpt-5-mini
+Provided: c | Correct: c
+
+MODEL: us.anthropic.claude-3-haiku-20240307-v1:0
+Provided: e | Correct: c
+
+MODEL: google.gemma-3-27b-it
+Provided: c
+ | Correct: c
+
+MODEL: us.meta.llama3-2-3b-instruct-v1:0
+Provided: c | Correct: c
+
+QUESTION: 
+    Which of the following is not safe to feed a nine-month-old?
+    a) chicken
+    b) honey
+    c) banana
+    d) rice
+    e) all of these are safe
+    f) none of these are safe
+
+
+MODEL: gpt-5-mini
+Provided: b | Correct: b
+
+MODEL: us.anthropic.claude-3-haiku-20240307-v1:0
+Provided: b | Correct: b
+
+MODEL: google.gemma-3-27b-it
+Provided: b | Correct: b
+
+MODEL: us.meta.llama3-2-3b-instruct-v1:0
+Provided: f | Correct: b
+
+QUESTION: 
+    I have an allergy to gelatin. What foods should I check the ingredients of?
+
+    a) Tomato Sauce
+    b) Chocolate Mousse
+    c) Tofu
+    d) Marshmallows
+    e) a and b
+    f) b and d
+
+
+MODEL: gpt-5-mini
+Provided: f | Correct: f
+
+MODEL: us.anthropic.claude-3-haiku-20240307-v1:0
+Provided: f | Correct: f
+
+MODEL: google.gemma-3-27b-it
+Provided: f | Correct: f
+
+MODEL: us.meta.llama3-2-3b-instruct-v1:0
+Provided: e | Correct: f
+
