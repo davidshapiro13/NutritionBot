@@ -1,3 +1,0 @@
-AI Prompts:
-
-Asked Chat about how to get around JSON failure from LLM

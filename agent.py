@@ -51,7 +51,7 @@ from prompts import (
     LOCATION_PROMPT,
 )
 from web_search import WebSearch
-from sdk.wa_service_sdk import Button
+from wa_service_sdk import Button
 from user_memory import UserMemory
 
 import ast
