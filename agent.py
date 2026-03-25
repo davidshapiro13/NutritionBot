@@ -31,12 +31,22 @@ from prompts import (
     main_system_prompt,
     button_creator_prompt,
     guided_transition_prompt,
+    button_intro_prompt,
+    eligibility_check_prompt,
     intent_classifier_prompt,
     WELCOME_BUTTONS,
     WELCOME_MESSAGE,
     FOOD_SAFETY_BUTTONS,
     NUTRITION_BUTTONS,
+    ASKING_FOR_BUTTONS,
+    AGE_GROUP_BUTTONS,
+    ADULT_AGE_BUTTONS,
+    ALLERGY_BUTTONS,
     STORE_TYPE_BUTTONS,
+    ELIGIBILITY_PROGRAM_BUTTONS,
+    ELIGIBILITY_QUALIFY_BUTTONS,
+    ELIGIBILITY_NOTSURE_BUTTONS,
+    ELIGIBILITY_ACTION_BUTTONS,
     WIC_INFO_BUTTONS,
     LOCATION_PROMPT,
 )
@@ -54,11 +64,16 @@ _rag = RAGPipeline()
 _rag.build_public_index()
 _mem = UserMemory(embed_model=None)
 
-# Onboarding state: {user_id: {"field": ..., "profile": {...}}}
-_onboarding_state = {}
 
 # Tracks whether a user last requested WIC-only or all stores before sharing location
 _pending_store_type: dict[str, str] = {}
+
+# Nutrition inline onboarding state: {user_id: {"step": ..., "data": {...}}}
+# Steps: "asking_for" → "age" → "allergy" → "allergy_text"
+_nutrition_ob_state: dict[str, dict] = {}
+
+# Users currently in eligibility check conversation
+_eligibility_state: set[str] = set()
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -70,14 +85,36 @@ def _make_buttons(buttons_data: list[dict]) -> list[Button]:
 
 def _generate_buttons(response: str, session_id: str) -> list[Button]:
     """Ask LLM to generate contextual follow-up buttons based on a response."""
+    import json as _json
     try:
-        raw = _ai.ask(button_creator_prompt, response, session_id)
-        items = ast.literal_eval(raw)
+        raw = _ai.ask(button_creator_prompt, response, session_id + "_btn")
+        # Strip markdown code fences
+        raw = raw.strip().strip("`").strip()
+        if raw.startswith("json"):
+            raw = raw[4:].strip()
+        # Extract the list portion in case LLM added prose
+        m = re.search(r"\[.*\]", raw, re.DOTALL)
+        if m:
+            raw = m.group(0)
+        # Try ast first, fall back to json.loads
+        try:
+            items = ast.literal_eval(raw)
+        except Exception:
+            items = _json.loads(raw)
         buttons = []
         for item in items:
-            info = ast.literal_eval(item) if isinstance(item, str) else item
-            title = info["title"][:20]  # SDK enforces max 20 chars
-            buttons.append(Button(id=info["id"], title=title))
+            if isinstance(item, str):
+                try:
+                    info = ast.literal_eval(item)
+                except Exception:
+                    info = _json.loads(item)
+            else:
+                info = item
+            title = str(info.get("title", ""))
+            bid   = str(info.get("id", "btn"))
+            if not title or len(title) > 20:
+                continue
+            buttons.append(Button(id=bid, title=title))
         return buttons[:3] if buttons else _make_buttons(WELCOME_BUTTONS)
     except Exception:
         return _make_buttons(WELCOME_BUTTONS)
@@ -97,7 +134,7 @@ def _generate_guided_transition(
         next_buttons=", ".join(button["title"] for button in next_buttons),
     )
     try:
-        response = _ai.ask(prompt, "Write the transition message now.", session_id).strip()
+        response = _ai.ask(prompt, "Write the transition message now.", session_id + "_transition").strip()
         if response:
             return response
     except Exception:
@@ -109,7 +146,7 @@ def _classify_intent(user_message: str, session_id: str) -> str:
     """Classify user message into one of the four intents."""
     result = _ai.ask(intent_classifier_prompt, user_message, session_id)
     intent = result.strip().lower()
-    valid = {"food_safety", "nutrition_advice", "wic_food", "find_stores", "out_of_scope"}
+    valid = {"food_safety", "nutrition_advice", "find resources", "out_of_scope"}
     return intent if intent in valid else "nutrition_advice"
 
 
@@ -144,6 +181,24 @@ def _merge_buttons(primary: list[Button], extra: list[Button], limit: int = 3) -
         if len(merged) >= limit:
             break
     return merged
+
+
+def _append_button_intro(response: str, buttons: list[Button], session_id: str) -> str:
+    """Append a short LLM-generated sentence introducing the follow-up buttons."""
+    if not buttons:
+        return response
+    try:
+        button_titles = ", ".join(b.title for b in buttons)
+        prompt = button_intro_prompt.format(
+            response=response[:400],
+            button_titles=button_titles,
+        )
+        intro = _ai.ask(prompt, "Write the sentence now.", session_id + "_intro").strip()
+        if intro:
+            return f"{response}\n\n{intro}"
+    except Exception:
+        pass
+    return response
 
 
 def _should_offer_wic(text: str) -> bool:
@@ -190,37 +245,31 @@ def _add_web_search(response: str, query: str) -> str:
 # ══════════════════════════════════════════════════════════════════════════════
 
 
-REQUIRED_PROFILE_FIELDS = ["name", "age_group", "main_goal"]
-
 class NutritionAgent:
 
     def run(self, user_message: str, user_id: str) -> tuple[str, list[Button]]:
-        """Handle a free-text message from the user, with onboarding if needed."""
-        # Onboarding state machine
-        state = _onboarding_state.get(user_id)
-        if state:
-            # Continue onboarding: save last answer, ask next
-            last_field = state["field"]
-            state["profile"][last_field] = user_message.strip()
-            missing = [f for f in REQUIRED_PROFILE_FIELDS if not state["profile"].get(f)]
-            if missing:
-                next_field = missing[0]
-                _onboarding_state[user_id] = {"field": next_field, "profile": state["profile"]}
-                prompt = self._onboarding_prompt(next_field)
-                return prompt, _make_buttons(WELCOME_BUTTONS)
-            # All required fields collected
-            _mem.save_profile(user_id, state["profile"])
-            del _onboarding_state[user_id]
-            return "Thank you! Your profile is saved. How can I help you today?", _make_buttons(WELCOME_BUTTONS)
+        """Handle a free-text message from the user."""
+        # Eligibility check conversation
+        if user_id in _eligibility_state:
+            session = _user_session(user_id)
+            response = _ai.ask(eligibility_check_prompt, user_message, session)
+            recommendation_keywords = ["qualify", "eligible", "recommend", "apply", "snap", "wic", "senior nutrition"]
+            if any(kw in response.lower() for kw in recommendation_keywords):
+                _eligibility_state.discard(user_id)
+                buttons = _make_buttons([
+                    {"id": "find_wic_stores", "title": "📍 Find WIC Stores"},
+                    {"id": "wic_apply",       "title": "✅ How to Apply"},
+                    {"id": "find_stores",     "title": "🔙 Other Resources"},
+                ])
+            else:
+                buttons = []
+            return response, buttons
 
-        # Check if onboarding is needed
-        profile = self._get_profile(user_id)
-        missing = [f for f in REQUIRED_PROFILE_FIELDS if not profile.get(f)]
-        if missing:
-            next_field = missing[0]
-            _onboarding_state[user_id] = {"field": next_field, "profile": profile}
-            prompt = self._onboarding_prompt(next_field)
-            return prompt, _make_buttons(WELCOME_BUTTONS)
+        # Nutrition inline onboarding: waiting for typed allergy info
+        nob = _nutrition_ob_state.get(user_id)
+        if nob and nob.get("step") == "allergy_text":
+            nob["data"]["allergy"] = user_message.strip()
+            return self._finish_nutrition_onboarding(user_id, nob["data"])
 
         # Normal flow
         if _is_greeting(user_message):
@@ -254,6 +303,7 @@ class NutritionAgent:
             response = _ai.ask(main_system_prompt, user_message, session)
             buttons  = _make_buttons(WELCOME_BUTTONS)
 
+        response = _append_button_intro(response, buttons, session)
         return response, buttons
 
     def _get_profile(self, user_id: str) -> dict:
@@ -265,14 +315,6 @@ class NutritionAgent:
                 k, v = line.split(":", 1)
                 profile[k.strip()] = v.strip()
         return profile
-
-    def _onboarding_prompt(self, field: str) -> str:
-        prompts = {
-            "name": "Hi! To personalize your experience, what's your name?",
-            "age_group": "What is your age group? (child, adult, or elder)",
-            "main_goal": "What is your main health or nutrition goal?",
-        }
-        return prompts.get(field, f"Please provide your {field}.")
 
     def run_tool(
         self,
@@ -294,24 +336,102 @@ class NutritionAgent:
             buttons = _make_buttons(FOOD_SAFETY_BUTTONS)
 
         elif interaction_id == "nutrition":
-            response = _generate_guided_transition(
-                selected_button="Eating Better",
-                target_goal="Guide the user toward nutrition help for themselves, their child, or a special situation like pregnancy or allergies.",
-                next_buttons=NUTRITION_BUTTONS,
-                session_id=session,
-                fallback="I can help with everyday eating, nutrition for a child, or a special nutrition need. Which fits?",
-            )
-            buttons = _make_buttons(NUTRITION_BUTTONS)
+            _nutrition_ob_state[user_id] = {"step": "asking_for", "data": {}}
+            return "Great! Let's personalize this for you. Who are you asking for?", _make_buttons(ASKING_FOR_BUTTONS)
+
+        elif interaction_id in ("nq_for_self", "nq_for_other"):
+            nob = _nutrition_ob_state.setdefault(user_id, {"step": "asking_for", "data": {}})
+            nob["data"]["asking_for"] = "self" if interaction_id == "nq_for_self" else "other"
+            nob["step"] = "age"
+            return "Got it! What's the age group?", _make_buttons(AGE_GROUP_BUTTONS)
+
+        elif interaction_id == "nq_age_adult":
+            nob = _nutrition_ob_state.setdefault(user_id, {"step": "age", "data": {}})
+            nob["step"] = "age_adult"
+            return "Which age range fits best?", _make_buttons(ADULT_AGE_BUTTONS)
+
+        elif interaction_id in ("nq_age_under18", "nq_age_young", "nq_age_middle", "nq_age_senior"):
+            age_map = {
+                "nq_age_under18": "under 18",
+                "nq_age_young":   "young adult (18–35)",
+                "nq_age_middle":  "middle-aged (36–64)",
+                "nq_age_senior":  "senior (65+)",
+            }
+            nob = _nutrition_ob_state.setdefault(user_id, {"step": "age", "data": {}})
+            nob["data"]["age_group"] = age_map[interaction_id]
+            nob["step"] = "allergy"
+            return "Thanks! Do you have any food allergies?", _make_buttons(ALLERGY_BUTTONS)
+
+        elif interaction_id == "nq_no_allergy":
+            nob = _nutrition_ob_state.get(user_id, {"data": {}})
+            nob["data"]["allergy"] = None
+            return self._finish_nutrition_onboarding(user_id, nob["data"])
+
+        elif interaction_id == "nq_has_allergy":
+            nob = _nutrition_ob_state.setdefault(user_id, {"step": "allergy", "data": {}})
+            nob["step"] = "allergy_text"
+            return "Please type your allergies (e.g. peanuts, dairy, gluten).", []
 
         elif interaction_id == "find_stores":
-            response = _generate_guided_transition(
-                selected_button="Find Resources",
-                target_goal="Guide the user toward nearby stores or WIC-related help.",
-                next_buttons=STORE_TYPE_BUTTONS,
-                session_id=session,
-                fallback="I can help you find nearby stores or WIC support. What would you like?",
+            return (
+                "Let's find the best options for you!\n\n"
+                "🛒 Affordable Options — places anyone can use, no eligibility needed.\n"
+                "📋 Check Eligibility — see if you qualify for WIC, SNAP, or other MA programs."
+            ), _make_buttons(STORE_TYPE_BUTTONS)
+
+        elif interaction_id == "affordable_shopping":
+            query = (
+                "Tell me about affordable grocery options available to everyone in Massachusetts "
+                "regardless of income or eligibility. Include Market Basket, food pantries, "
+                "community fridges, and farmers markets with the HIP program. Keep it concise."
             )
-            buttons = _make_buttons(STORE_TYPE_BUTTONS)
+            response = _ai.ask(main_system_prompt, query, session)
+            buttons = _generate_buttons(response, session)
+
+        elif interaction_id == "check_eligibility":
+            return (
+                "Let's see what you may qualify for. Which program are you looking into?"
+            ), _make_buttons(ELIGIBILITY_PROGRAM_BUTTONS)
+
+        elif interaction_id == "elig_wic":
+            response = _ai.ask(
+                main_system_prompt,
+                "In 3-4 sentences, explain who qualifies for WIC in Massachusetts: "
+                "pregnant, postpartum, breastfeeding women, or children under 5, with income under 185% of federal poverty level. "
+                "End by asking if they think they qualify.",
+                session,
+            )
+            return response, _make_buttons(ELIGIBILITY_QUALIFY_BUTTONS)
+
+        elif interaction_id == "elig_snap":
+            response = _ai.ask(
+                main_system_prompt,
+                "In 3-4 sentences, explain who qualifies for SNAP in Massachusetts: "
+                "income-based, available to most low-income households, also unlocks the HIP program for fresh produce. "
+                "End by asking if they think they qualify.",
+                session,
+            )
+            return response, _make_buttons(ELIGIBILITY_QUALIFY_BUTTONS)
+
+        elif interaction_id == "elig_not_sure":
+            return (
+                "No problem! You can answer a few quick questions to find out what you qualify for, "
+                "or explore affordable food options available to everyone."
+            ), _make_buttons(ELIGIBILITY_NOTSURE_BUTTONS)
+
+        elif interaction_id == "elig_i_qualify":
+            return (
+                "Great! Here's what you can do next:"
+            ), _make_buttons(ELIGIBILITY_ACTION_BUTTONS)
+
+        elif interaction_id in ("elig_still_unsure", "elig_answers"):
+            _eligibility_state.add(user_id)
+            response = _ai.ask(
+                eligibility_check_prompt,
+                "Start the eligibility check now. Ask one question at a time.",
+                session,
+            )
+            return response, []
 
         elif interaction_id == "wic_info":
             response = _ai.ask(
@@ -321,10 +441,13 @@ class NutritionAgent:
             )
             buttons = _make_buttons(WIC_INFO_BUTTONS)
 
-        elif interaction_id in ("find_wic_stores", "find_all_stores"):
-            _pending_store_type[user_id] = interaction_id
-            response = LOCATION_PROMPT
-            buttons  = _make_buttons(WELCOME_BUTTONS)
+        elif interaction_id == "find_wic_stores":
+            _pending_store_type[user_id] = "find_wic_stores"
+            return "Tap the button below to share your location and I'll find the nearest WIC stores for you. 📍", "request_location"
+
+        elif interaction_id == "find_all_stores":
+            _pending_store_type[user_id] = "find_all_stores"
+            return "Tap the button below to share your location and I'll find nearby stores for you. 📍", "request_location"
 
         elif interaction_id in ("for_myself", "for_child", "special_nutrition",
                                 "meat_storage", "dairy_storage", "ask_freely",
@@ -343,13 +466,39 @@ class NutritionAgent:
                 response = _rag.query_rag(query, session_id=session, user_id=user_id)
             else:
                 response = _ai.ask(main_system_prompt, query, session)
-            buttons = _generate_buttons(response, session)
+            clean = re.sub(r"\[Source:[^\]]+\]", "", response).strip()
+            buttons = _generate_buttons(clean, session)
             response, buttons = _maybe_add_wic_nudge(response, buttons, query, session)
 
         else:
             follow_up = interaction_title or interaction_id
             return self.run(follow_up, user_id)
 
+        response = _append_button_intro(response, buttons, session)
+        return response, buttons
+
+    def _finish_nutrition_onboarding(self, user_id: str, data: dict) -> tuple[str, list[Button]]:
+        """Save collected nutrition profile and give first personalized advice."""
+        _nutrition_ob_state.pop(user_id, None)
+        profile = self._get_profile(user_id)
+        if data.get("asking_for"):
+            profile["asking_for"] = data["asking_for"]
+        if data.get("age_group"):
+            profile["age_group"] = data["age_group"]
+        if data.get("allergy"):
+            profile["allergy"] = data["allergy"]
+        _mem.save_profile(user_id, profile)
+
+        session = _user_session(user_id)
+        context_parts = [f"The user is {data.get('age_group', 'an adult')}"]
+        if data.get("asking_for") == "other":
+            context_parts.append("asking on behalf of someone else")
+        if data.get("allergy"):
+            context_parts.append(f"with allergies to {data['allergy']}")
+        context = ", ".join(context_parts) + ". Give them a short, personalized healthy eating tip."
+        response = _ai.ask(main_system_prompt, context, session)
+        buttons = _generate_buttons(response, session)
+        response, buttons = _maybe_add_wic_nudge(response, buttons, context, session)
         return response, buttons
 
     def run_location(
@@ -358,15 +507,13 @@ class NutritionAgent:
         lng: float,
         user_id: str,
     ) -> tuple[str, list[Button]]:
-        """Handle a location message — finds nearby stores based on user's prior selection."""
-        wic_only = _pending_store_type.pop(user_id, None) == "find_wic_stores"
+        """Handle a location message — finds nearest WIC stores from CSV."""
+        _pending_store_type.pop(user_id, None)
         try:
             from location_service import LocationService
             svc    = LocationService()
             stores = svc.find_nearby_wic_stores(lat, lng)
-            if wic_only:
-                stores = [s for s in stores if s["wic_likely"]]
-            response = svc.format_for_bot(stores, lat, lng)
+            response = svc.format_for_bot(stores)
         except Exception as e:
             response = f"Sorry, I couldn't find stores right now. Please try again later. ({e})"
 

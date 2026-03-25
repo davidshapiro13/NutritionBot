@@ -240,9 +240,12 @@ Refrigerator Storage Times:
 - Raw beef, veal, pork, lamb: 3 to 5 days
 - Raw poultry: 1 to 2 days
 - Raw fish: 1 to 2 days
-- Luncheon meats (opened): 3 to 5 days
 - Hard-boiled eggs: 1 week
-
+- Milk: 1 week refrigerator                                                                                                                                  
+- Yogurt: 1-2 weeks refrigerator                          
+- Hard cheese: 3-4 weeks refrigerator, 6 months freezer                                                                                                      
+- Soft cheese: 1-2 weeks refrigerator                                                                                                                        
+- Butter: 1-3 months refrigerator, 6-9 months freezer  
 
 --- WHO's FIVE KEYS TO SAFER FOOD ---
 Source: WHO — https://www.who.int/news-room/fact-sheets/detail/food-safety

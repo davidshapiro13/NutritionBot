@@ -8,6 +8,7 @@ from wa_service_sdk import (
     LocationEvent,
     create_message,
     create_buttoned_message,
+    create_location_request_message,
     Button,
 )
 
@@ -45,6 +46,8 @@ async def handle_event(event: BaseEvent):
     if len(text) > 900:
         text = text[:897] + "…"
 
+    if buttons == "request_location":
+        return create_location_request_message(user_id=event.user_id, text=text)
     if buttons:
         return create_buttoned_message(
             user_id=event.user_id,

@@ -54,9 +54,10 @@ button_creator_prompt = """
 
     <Rules>
         1. Only 2 to 3 options
-        2. Button titles should be short. Emojis should be used when useful
-        3. Button options should be directly related to what you are discussing
-        4. NEVER write any prose before or after the list of JSON.
+        2. Button titles MUST be 20 characters or fewer (including emoji and spaces). Count carefully before writing.
+        3. Emojis should be used when useful
+        4. Button options should be directly related to what you are discussing
+        5. NEVER write any prose before or after the list of JSON.
     </Rules>
 
     If there is any prose included in this response, you have failed.
@@ -81,10 +82,55 @@ NUTRITION_BUTTONS = [
     {"id": "special_nutrition","title": "✨ Special Case"},
 ]
 
+# ── Nutrition inline onboarding buttons ───────────────────────────────────────
+
+ASKING_FOR_BUTTONS = [
+    {"id": "nq_for_self",    "title": "🙋 For Myself"},
+    {"id": "nq_for_other",   "title": "👤 For Someone Else"},
+]
+
+AGE_GROUP_BUTTONS = [
+    {"id": "nq_age_under18", "title": "🧒 Under 18"},
+    {"id": "nq_age_adult",   "title": "🧑 Adult (18+)"},
+]
+
+ADULT_AGE_BUTTONS = [
+    {"id": "nq_age_young",   "title": "🧑 Young (18–35)"},
+    {"id": "nq_age_middle",  "title": "👨 Middle (36–64)"},
+    {"id": "nq_age_senior",  "title": "👴 Senior (65+)"},
+]
+
+ALLERGY_BUTTONS = [
+    {"id": "nq_no_allergy",  "title": "✅ No Allergies"},
+    {"id": "nq_has_allergy", "title": "⚠️ Yes, I Have Some"},
+]
+
 STORE_TYPE_BUTTONS = [
-    {"id": "find_wic_stores", "title": "🏪 WIC Stores"},
-    {"id": "find_all_stores", "title": "🛒 Nearby Stores"},
-    {"id": "wic_info",        "title": "💡 WIC Help"},
+    {"id": "affordable_shopping", "title": "🛒 Affordable Options"},
+    {"id": "check_eligibility",   "title": "📋 Check Eligibility"},
+]
+
+ELIGIBILITY_PROGRAM_BUTTONS = [
+    {"id": "elig_wic",      "title": "🍼 WIC"},
+    {"id": "elig_snap",     "title": "🛒 SNAP"},
+    {"id": "elig_not_sure", "title": "❓ Not Sure"},
+]
+
+ELIGIBILITY_QUALIFY_BUTTONS = [
+    {"id": "elig_i_qualify",    "title": "✅ I Qualify"},
+    {"id": "elig_still_unsure", "title": "❓ Still Not Sure"},
+    {"id": "find_stores",       "title": "🔙 Other Options"},
+]
+
+ELIGIBILITY_NOTSURE_BUTTONS = [
+    {"id": "elig_answers",    "title": "📋 Answer Questions"},
+    {"id": "affordable_shopping", "title": "🛒 Affordable Options"},
+]
+
+ELIGIBILITY_ACTION_BUTTONS = [
+    {"id": "find_wic_stores", "title": "📍 Find WIC Stores"},
+    {"id": "wic_apply",       "title": "✅ How to Apply"},
+    {"id": "find_stores",     "title": "🔙 Other Resources"},
 ]
 
 WIC_INFO_BUTTONS = [
@@ -92,6 +138,23 @@ WIC_INFO_BUTTONS = [
     {"id": "find_wic_stores", "title": "📍 Find WIC Stores"},
     {"id": "find_all_stores", "title": "🛒 Nearby Stores"},
 ]
+
+eligibility_check_prompt = """
+You are a friendly assistant helping people in Massachusetts find food assistance programs they may qualify for.
+
+Programs to consider:
+- WIC: pregnant, up to 6 weeks postpartum, breastfeeding (until baby's 1st birthday), or have a child under 5. Income must be under 185% of federal poverty level (or already on SNAP/Medicaid).
+- SNAP: income-based food benefits via EBT card. Also unlocks the HIP program which doubles spending on fresh produce at farmers markets.
+- Senior Nutrition Program: adults 60+ and their spouses, no income requirement. Provides daily meals at community sites or home delivery.
+- Senior Farmers Market Nutrition Program: low-income seniors, seasonal coupons for farmers markets.
+
+Your job:
+1. Ask the user short, friendly questions one at a time to understand their situation (children under 5, pregnancy/breastfeeding, age, rough income if comfortable sharing).
+2. Based on their answers, tell them which programs they likely qualify for and what benefits they'd get.
+3. End by offering to help them apply or find nearby stores.
+
+Keep each message short. Ask only one question at a time.
+"""
 
 guided_transition_prompt = """
 You are writing a short, warm 1-2 sentence bridge message for a nutrition chatbot.
@@ -103,29 +166,32 @@ The buttons they will see next are: {next_buttons}
 Write only the bridge message. No labels, no explanations, no extra text.
 """
 
+button_intro_prompt = """
+You just gave the user this response:
+{response}
+
+The user will now see these follow-up buttons: {button_titles}
+
+Write ONE short sentence (max 12 words) that naturally leads into those buttons.
+Do not repeat what you just said. No labels, no extra text.
+"""
+
 # ── Fixed Messages ─────────────────────────────────────────────────────────────
 
 WELCOME_MESSAGE = (
     "👋 Hi! I'm here to help you and your family eat well, stay safe, "
     "and make the most of local food resources.\n\n"
-    "I can help you:\n"
-    "• Eat healthier on a budget\n"
-    "• Figure out if food is safe to eat\n"
-    "• Care for yourself or your family with practical nutrition guidance\n"
-    "• Make the most of WIC and nearby food resources\n\n"
+
+    "Here’s how I can support you:\n"
+    "🥗 Eating Better — Get simple, affordable nutrition tips, meal ideas, "
+    "and ways to eat healthy on a budget.\n"
+    "🦠 Food Safety — Check if food is safe to eat, learn storage tips, "
+    "and understand common food-related symptoms.\n"
+    "📍 Find Resources — Find nearby stores, WIC-approved foods, and local "
+    "programs to help you save money on groceries.\n\n"
+
+    "You can choose one of the options below or ask me anything. "
     "What would you like help with today?"
-)
-
-WIC_INFO_MESSAGE = (
-    "WIC (Women, Infants, and Children) is a free program that provides "
-    "food, nutrition education, and healthcare referrals to eligible families.\n\n"
-    "You may qualify if you are pregnant, recently gave birth, breastfeeding, "
-    "or have a child under 5 — and meet income guidelines."
-)
-
-WIC_NUDGE_MESSAGE = (
-    "It looks like you might benefit from WIC support. "
-    "Would you like to learn more or find a WIC store near you?"
 )
 
 LOCATION_PROMPT = (
@@ -133,7 +199,3 @@ LOCATION_PROMPT = (
     "Tap the 📎 attachment icon → Location."
 )
 
-OUT_OF_SCOPE_MESSAGE = (
-    "I'm only able to help with food, nutrition, and food safety topics. "
-    "Is there something food-related I can help you with?"
-)

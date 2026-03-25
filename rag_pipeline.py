@@ -23,6 +23,7 @@ Usage:
 """
 
 import re
+import csv
 from pathlib import Path
 
 import faiss
@@ -57,11 +58,23 @@ def _load_txt(path: Path) -> str:
     return path.read_text(encoding="utf-8", errors="ignore")
 
 
+def _load_csv(path: Path) -> str:
+    """Convert CSV rows to readable text lines for embedding."""
+    lines = []
+    with path.open(encoding="utf-8", errors="ignore", newline="") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            parts = [f"{k}: {v}" for k, v in row.items() if v and v.strip()]
+            lines.append(" | ".join(parts))
+    return "\n".join(lines)
+
+
 def _load_file(path: Path) -> str:
     suffix = path.suffix.lower()
     if suffix == ".pdf":   return _load_pdf(path)
     if suffix == ".docx":  return _load_docx(path)
     if suffix == ".txt":   return _load_txt(path)
+    if suffix == ".csv":   return _load_csv(path)
     return ""
 
 

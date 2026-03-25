@@ -221,7 +221,17 @@ class UserMemory:
             lastk=0,
         ).get("result", "").strip()
 
-        return None if result.upper() == "NONE" else result
+        if result.upper() == "NONE":
+            return None
+        # Only accept result if it contains at least one known structured field
+        known_fields = {
+            "name:", "age_group:", "gender:", "asking_for:",
+            "health_conditions:", "allergies:", "medications:",
+            "dietary_restriction:", "disliked_foods:", "main_goal:",
+        }
+        if not any(field in result.lower() for field in known_fields):
+            return None
+        return result
 
     def auto_extract_and_save(self, user_id: str, user_message: str) -> str | None:
         """
