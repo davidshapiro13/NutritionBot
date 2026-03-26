@@ -246,9 +246,15 @@ def _add_web_search(response: str, query: str) -> str:
 
 
 class NutritionAgent:
+    def _format_profile_context(self, profile: dict) -> str:
+        if not profile:
+            return "(no profile info)"
+        return "\n".join(f"{k}: {v}" for k, v in profile.items() if v)
 
     def run(self, user_message: str, user_id: str) -> tuple[str, list[Button]]:
-        """Handle a free-text message from the user."""
+        """Handle a free-text message from the user. Injects user profile into context."""
+        profile = self._get_profile(user_id)
+        profile_context = self._format_profile_context(profile)
         # Eligibility check conversation
         if user_id in _eligibility_state:
             session = _user_session(user_id)
@@ -279,12 +285,16 @@ class NutritionAgent:
         intent  = _classify_intent(user_message, session)
 
         if intent in ("food_safety", "wic_food"):
-            response = _rag.query_rag(user_message, session_id=session, user_id=user_id)
+            # Inject profile context into RAG
+            full_query = f"[USER PROFILE]\n{profile_context}\n[QUESTION]\n{user_message}"
+            response = _rag.query_rag(full_query, session_id=session, user_id=user_id)
             response = _add_web_search(response, user_message)
             buttons  = _generate_buttons(response, session)
 
         elif intent == "nutrition_advice":
-            response = _ai.ask(main_system_prompt, user_message, session)
+            # Inject profile context into AI
+            full_prompt = f"[USER PROFILE]\n{profile_context}\n[QUESTION]\n{user_message}"
+            response = _ai.ask(main_system_prompt, full_prompt, session)
             response = _add_web_search(response, user_message)
             buttons  = _generate_buttons(response, session)
             response, buttons = _maybe_add_wic_nudge(response, buttons, user_message, session)
@@ -295,7 +305,7 @@ class NutritionAgent:
                 target_goal="Guide the user toward nearby stores or WIC-related help.",
                 next_buttons=STORE_TYPE_BUTTONS,
                 session_id=session,
-                fallback="I can help you look for nearby stores or point you to WIC support. What would you like to find?",
+                fallback="I can help you look for nearby stores or point you to WIC support. What would you like to find?"
             )
             buttons = _make_buttons(STORE_TYPE_BUTTONS)
 
@@ -331,7 +341,7 @@ class NutritionAgent:
                 target_goal="Help the user choose the kind of food safety question they want to start with.",
                 next_buttons=FOOD_SAFETY_BUTTONS,
                 session_id=session,
-                fallback="I can help with storage questions or a specific food safety concern. What fits best?",
+                fallback="I can help with storage questions or a specific food safety concern. What fits best?"
             )
             buttons = _make_buttons(FOOD_SAFETY_BUTTONS)
 
