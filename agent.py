@@ -246,6 +246,10 @@ def _add_web_search(response: str, query: str) -> str:
 
 
 class NutritionAgent:
+    def _format_profile_context(self, profile: dict) -> str:
+        if not profile:
+            return "(no profile info)"
+        return "\n".join(f"{k}: {v}" for k, v in profile.items() if v)
 
     def run(self, user_message: str, user_id: str) -> tuple[str, list[Button]]:
         """Handle a free-text message from the user. Injects user profile into context."""
