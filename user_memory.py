@@ -265,5 +265,7 @@ class UserMemory:
             "main_goal",
         }
         for field, value in profile.items():
+            if field == "allergy":
+                field = "allergies"
             if field in valid_keys and value and str(value).strip():
                 self.save(user_id, f"{field}: {str(value).strip()}")

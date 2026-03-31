@@ -497,7 +497,7 @@ class NutritionAgent:
         if data.get("age_group"):
             profile["age_group"] = data["age_group"]
         if data.get("allergy"):
-            profile["allergy"] = data["allergy"]
+            profile["allergies"] = data["allergy"]
         _mem.save_profile(user_id, profile)
 
         session = _user_session(user_id)
