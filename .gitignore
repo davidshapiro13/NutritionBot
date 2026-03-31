@@ -3,6 +3,7 @@ assets
 examples
 path
 sdk
+wa_service_sdk
 tests
 wa_service_cli.egg-info
 LICENSE

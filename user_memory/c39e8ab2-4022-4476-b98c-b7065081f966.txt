@@ -1,3 +1,2 @@
-name: I want to have a healthy meal what do you suggest I eat?
-age_group: Child
-main_goal: Please suggest a healthy meal for me to eat for dinner
+asking_for: self
+age_group: young adult (18–35)

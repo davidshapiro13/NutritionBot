@@ -270,13 +270,14 @@ class NutritionAgent:
             else:
                 buttons = []
             return response, buttons
-
+        
         # Nutrition inline onboarding: waiting for typed allergy info
+        
         nob = _nutrition_ob_state.get(user_id)
         if nob and nob.get("step") == "allergy_text":
             nob["data"]["allergy"] = user_message.strip()
             return self._finish_nutrition_onboarding(user_id, nob["data"])
-
+        
         # Normal flow
         if _is_greeting(user_message):
             return WELCOME_MESSAGE, _make_buttons(WELCOME_BUTTONS)

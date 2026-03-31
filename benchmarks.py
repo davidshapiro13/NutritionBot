@@ -13,6 +13,9 @@ class Base_Model():
         rag_enabled = True
         self.session_id = "BaseModel"
 
+    def onboard(self):
+        pass
+
     def answer(self, questions):
         for question in questions:
             response = client.generate(
@@ -41,6 +44,10 @@ class Benchmark():
 
                 exam_problem["questions"].append(line[1])
                 exam_problem["rubric"] = line[2]
+                if len(line) > 3:
+                    exam_problem["tag"] = line[3]
+                else:
+                    exam_problem["tag"] == "N/A"
         
             #Delete the title row
             del exam_problems[0]
@@ -95,6 +102,9 @@ class Benchmark():
         exam_problems = self.load_from_csv()
         for problem in exam_problems:
             print(problem["topic"])
+            if problem["tag"] == "Onboard":
+                print("ONBOARDING!!!!")
+                model.onboard()
             answer = model.answer(problem["questions"])
             decisions = self.LLM_as_Jury(problem["questions"], problem["rubric"], answer)
             print(decisions)
