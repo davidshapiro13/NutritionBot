@@ -1,0 +1,354 @@
+[User Profile]
+asking_for: self
+
+[Health & Diet]
+NONE
+
+[Goals]
+NONE
+[User Profile]
+asking_for: self
+
+[Health & Diet]
+NONE
+
+[Goals]
+NONE
+[User Profile]
+asking_for: self
+
+[Health & Diet]
+NONE
+
+[Goals]
+NONE
+[User Profile]
+asking_for: self
+
+[Health & Diet]
+NONE
+
+[Goals]
+NONE
+[User Profile]
+asking_for: self
+
+[Health & Diet]
+NONE
+
+[Goals]
+NONE
+[User Profile]
+asking_for: self
+
+[Health & Diet]
+NONE
+
+[Goals]
+NONE
+[User Profile]
+asking_for: self
+
+[Health & Diet]
+NONE
+
+[Goals]
+NONE
+name: Fred
+age_group: adult
+gender: male
+health_conditions: diabetes
+allergies: peanuts
+asking_for: self
+[User Profile]
+name: Fred
+age_group: adult
+gender: male
+asking_for: self
+
+[Health & Diet]
+health_conditions: diabetes
+allergies: peanuts
+[User Profile]
+name: Fred
+age_group: adult
+gender: male
+asking_for: self
+
+[Health & Diet]
+health_conditions: diabetes
+allergies: peanuts, sesame
+[User Profile]
+name: Fred
+age_group: adult
+gender: male
+asking_for: self
+
+[Health & Diet]
+health_conditions: diabetes
+allergies: peanuts, sesame
+
+[Goals]
+NONE
+[User Profile]
+name: Fred
+age_group: adult
+gender: male
+asking_for: self
+
+[Health & Diet]
+health_conditions: diabetes
+allergies: peanuts, sesame
+[User Profile]
+name: Fred
+age_group: adult
+gender: male
+asking_for: self
+
+[Health & Diet]
+health_conditions: diabetes
+allergies: peanuts, sesame
+disliked_foods: eggs
+[User Profile]
+name: Fred
+age_group: adult
+gender: male
+asking_for: self
+
+[Health & Diet]
+health_conditions: diabetes
+allergies: peanuts, sesame
+disliked_foods: eggs
+
+[Question]
+What's a good meal if I have a lot of extra vegetables?
+[User Profile]
+name: Fred
+age_group: adult
+gender: male
+asking_for: self
+
+[Health & Diet]
+health_conditions: diabetes
+allergies: peanuts, sesame
+disliked_foods: eggs
+[User Profile]
+name: Fred
+age_group: adult
+gender: male
+asking_for: self
+
+[Health & Diet]
+health_conditions: diabetes
+allergies: peanuts, sesame
+disliked_foods: eggs
+[User Profile]
+name: Fred
+age_group: adult
+gender: male
+asking_for: self
+
+[Health & Diet]
+health_conditions: diabetes
+allergies: peanuts, sesame
+disliked_foods: eggs
+[User Profile]
+name: Fred
+age_group: adult
+gender: male
+asking_for: self
+
+[Health & Diet]
+health_conditions: diabetes
+allergies: peanuts, sesame
+disliked_foods: eggs
+[User Profile]
+name: Fred
+age_group: adult
+gender: male
+asking_for: self
+
+[Health & Diet]
+health_conditions: diabetes
+allergies: peanuts, sesame
+disliked_foods: eggs
+[User Profile]
+name: Fred
+age_group: adult
+gender: male
+asking_for: self
+
+[Health & Diet]
+health_conditions: diabetes
+allergies: peanuts, sesame
+disliked_foods: eggs
+dietary_restriction: gluten-free
+[User Profile]
+name: Fred
+age_group: adult
+gender: male
+asking_for: self
+
+[Health & Diet]
+health_conditions: diabetes
+allergies: peanuts, sesame
+dietary_restriction: gluten-free
+disliked_foods: eggs
+[User Profile]
+name: Fred
+age_group: adult
+gender: male
+asking_for: self
+
+[Health & Diet]
+health_conditions: diabetes
+allergies: peanuts, sesame
+dietary_restriction: gluten-free
+disliked_foods: eggs
+[User Profile]
+name: Fred
+age_group: adult
+gender: male
+asking_for: self
+
+[Health & Diet]
+health_conditions: diabetes
+allergies: peanuts, sesame
+dietary_restriction: gluten-free
+disliked_foods: eggs
+[User Profile]
+name: Fred
+age_group: adult
+gender: male
+asking_for: self
+
+[Health & Diet]
+health_conditions: diabetes
+allergies: peanuts, sesame
+dietary_restriction: gluten-free
+disliked_foods: eggs
+[User Profile]
+name: Fred
+age_group: adult
+gender: male
+asking_for: self
+
+[Health & Diet]
+health_conditions: diabetes
+allergies: peanuts, sesame
+dietary_restriction: gluten-free
+disliked_foods: eggs
+[User Profile]
+name: Fred
+age_group: adult
+gender: male
+asking_for: self
+
+[Health & Diet]
+health_conditions: diabetes
+allergies: peanuts, sesame
+dietary_restriction: gluten-free
+disliked_foods: eggs
+
+[Goals]
+NONE
+[User Profile]
+name: Fred
+age_group: adult
+gender: male
+asking_for: self
+
+[Health & Diet]
+health_conditions: diabetes
+allergies: peanuts, sesame
+dietary_restriction: gluten-free
+disliked_foods: eggs
+
+[Question]
+I am having trouble breathing.
+[User Profile]
+name: Fred
+age_group: adult
+gender: male
+asking_for: self
+
+[Health & Diet]
+health_conditions: diabetes
+allergies: peanuts, sesame
+dietary_restriction: gluten-free
+disliked_foods: eggs
+[User Profile]
+name: Fred
+age_group: adult
+gender: male
+asking_for: self
+
+[Health & Diet]
+health_conditions: diabetes
+allergies: peanuts, sesame
+dietary_restriction: gluten-free
+disliked_foods: eggs
+[User Profile]
+name: Fred
+age_group: adult
+gender: male
+asking_for: self
+
+[Health & Diet]
+health_conditions: diabetes
+allergies: peanuts, sesame
+dietary_restriction: gluten-free
+disliked_foods: eggs
+[User Profile]
+name: Fred
+age_group: adult
+gender: male
+asking_for: self
+
+[Health & Diet]
+health_conditions: diabetes
+allergies: peanuts, sesame
+dietary_restriction: gluten-free
+disliked_foods: eggs
+
+[Goals]
+NONE
+[User Profile]
+name: Fred
+age_group: adult
+gender: male
+asking_for: self
+
+[Health & Diet]
+health_conditions: diabetes
+allergies: peanuts, sesame
+dietary_restriction: gluten-free
+disliked_foods: eggs
+[User Profile]
+name: Fred
+age_group: adult
+gender: male
+asking_for: self
+
+[Health & Diet]
+health_conditions: diabetes
+allergies: peanuts, sesame
+dietary_restriction: gluten-free
+disliked_foods: eggs
+
+[Goals]
+NONE
+[User Profile]
+name: Fred
+age_group: adult
+gender: male
+asking_for: self
+
+[Health & Diet]
+health_conditions: diabetes
+allergies: peanuts, sesame
+dietary_restriction: gluten-free
+disliked_foods: eggs
+
+[Goals]
+NONE

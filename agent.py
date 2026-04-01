@@ -63,6 +63,7 @@ _ai  = AI()
 _rag = RAGPipeline()
 _rag.build_public_index()
 _mem = UserMemory(embed_model=None)
+BLANK_PROFILE = "(no profile info)"
 
 
 # Tracks whether a user last requested WIC-only or all stores before sharing location
@@ -117,6 +118,7 @@ def _generate_buttons(response: str, session_id: str) -> list[Button]:
             buttons.append(Button(id=bid, title=title))
         return buttons[:3] if buttons else _make_buttons(WELCOME_BUTTONS)
     except Exception:
+        print("Error")
         return _make_buttons(WELCOME_BUTTONS)
 
 
@@ -248,7 +250,7 @@ def _add_web_search(response: str, query: str) -> str:
 class NutritionAgent:
     def _format_profile_context(self, profile: dict) -> str:
         if not profile:
-            return "(no profile info)"
+            return BLANK_PROFILE
         return "\n".join(f"{k}: {v}" for k, v in profile.items() if v)
 
     def run(self, user_message: str, user_id: str) -> tuple[str, list[Button]]:
@@ -285,34 +287,10 @@ class NutritionAgent:
         session = _user_session(user_id)
         intent  = _classify_intent(user_message, session)
 
-        if intent in ("food_safety", "wic_food"):
-            # Inject profile context into RAG
-            full_query = f"[USER PROFILE]\n{profile_context}\n[QUESTION]\n{user_message}"
-            response = _rag.query_rag(full_query, session_id=session, user_id=user_id)
-            response = _add_web_search(response, user_message)
-            buttons  = _generate_buttons(response, session)
-
-        elif intent == "nutrition_advice":
-            # Inject profile context into AI
-            full_prompt = f"[USER PROFILE]\n{profile_context}\n[QUESTION]\n{user_message}"
-            response = _ai.ask(main_system_prompt, full_prompt, session)
-            response = _add_web_search(response, user_message)
-            buttons  = _generate_buttons(response, session)
-            response, buttons = _maybe_add_wic_nudge(response, buttons, user_message, session)
-
-        elif intent == "find_stores":
-            response = _generate_guided_transition(
-                selected_button="Find Resources",
-                target_goal="Guide the user toward nearby stores or WIC-related help.",
-                next_buttons=STORE_TYPE_BUTTONS,
-                session_id=session,
-                fallback="I can help you look for nearby stores or point you to WIC support. What would you like to find?"
-            )
-            buttons = _make_buttons(STORE_TYPE_BUTTONS)
-
-        else:  # out_of_scope — let the LLM decline and redirect naturally
-            response = _ai.ask(main_system_prompt, user_message, session)
-            buttons  = _make_buttons(WELCOME_BUTTONS)
+        full_query = f"[USER PROFILE]\n{profile_context}\n[QUESTION]\n{user_message}"
+        response = _ai.ask(main_system_prompt, full_query, session)
+        response = _rag.query_rag(full_query, session_id=session, user_id=user_id)
+        buttons  = _generate_buttons(response, session)
 
         response = _append_button_intro(response, buttons, session)
         return response, buttons
@@ -335,6 +313,8 @@ class NutritionAgent:
     ) -> tuple[str, list[Button]]:
         """Handle a button click (InteractiveEvent)."""
         session = _user_session(user_id)
+        profile = self._get_profile(user_id)
+        profile_context = self._format_profile_context(profile)
 
         if interaction_id == "food_safety":
             response = _generate_guided_transition(
@@ -346,7 +326,7 @@ class NutritionAgent:
             )
             buttons = _make_buttons(FOOD_SAFETY_BUTTONS)
 
-        elif interaction_id == "nutrition":
+        elif interaction_id == "nutrition" and profile_context != BLANK_PROFILE:
             _nutrition_ob_state[user_id] = {"step": "asking_for", "data": {}}
             return "Great! Let's personalize this for you. Who are you asking for?", _make_buttons(ASKING_FOR_BUTTONS)
 
