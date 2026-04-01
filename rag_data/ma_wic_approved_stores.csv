@@ -1,0 +1,874 @@
+city,store,address,zip,phone,self_checkout,lat,lng
+Abington,Super Stop & Shop (F&P) #054,375 Centre Street,02351,(781)871-0020,Yes,42.0836501,-71.0045933
+Abington,Trucchi's Supermarket #4,858 Bedford Street,02351,(781)878-5080,,42.1275434,-70.95083869999999
+Abington,Walmart Store  (F&P) #2227,777 Brockton Ave,02351,(781)857-2345,Yes,42.0967256,-70.9678885
+Acton,CVS Pharmacy #706,400 Mass Ave,01720,(978)263-3385,,42.474036,-71.4504369
+Acton,Roche Bros. Supermarkets #112,387 Mass Ave,01720,(978)263-0404,,42.4755,-71.4487
+Acton,Stop & Shop #2424,252 Main Street,01720,(978)849-0012,Yes,42.4740172,-71.4560953
+Acton,Walgreens #19806,100 Powder Mill Rd,01720,(978)897-1900,,42.4420106,-71.4277649
+Adams,Adams Hometown Markets,1 Myrtle Street,01220,(413)743-1941,,42.6203235,-73.1185891
+Adams,Walgreens #19038,21 Columbia Street,01220,(413)743-4659,,42.6263291,-73.1175676
+Agawam,Geissler's Supermarket,830 Suffield Street,01001,(413)821-8904,,42.0609165,-72.6336884
+Agawam,Walgreens #4358,60 Springfield Street,01001,(413)786-1126,,42.090172,-72.62988539999999
+Allston,CVS Pharmacy #1024,1266 Commonwealth Ave,02134,(617)277-6080,,42.3490182,-71.1325056
+Allston,CVS Pharmacy #5382,181 Brighton Ave,02134,(617)779-7313,,42.3538454,-71.133804
+Allston,"Mayfair Foods, Inc.",506 Cambridge Street,02134,(617)782-5539,,42.35314510000001,-71.1379871
+Allston,Stop & Shop #2489,305 Guest Street,02134,(617)779-9116,Yes,42.3561724,-71.1404574
+Amesbury,Super Stop & Shop (F&P) #499,100 Macy Street,01913,(978)388-7588,Yes,42.84742809999999,-70.9112262
+Amesbury,Walgreens #19631,15 Haverhill Road,01913,(978)834-0014,,42.8463548,-70.93587169999999
+Amherst,Big Y Foods #46,175 University Drive,01002,(413)253-0416,,42.3680284,-72.53416250000001
+Amherst,CVS Pharmacy #1095,165 University Drive,01002,(413)256-0421,,42.3686186,-72.53393919999999
+Andover,Stop & Shop #471,209 N Main Street,01810,(978)623-9912,Yes,42.6652351,-71.1444803
+Arlington,CVS Pharmacy #130,23-25 Mass Ave,02474,(781)648-0557,,42.395892,-71.1281941
+Arlington,Super Stop & Shop (F&P) #776,905 Mass Ave,02474,(781)646-3625,Yes,42.4181372,-71.1644359
+Arlington,CVS Pharmacy #278,833 Mass Ave,02476,(781)643-4272,,42.41714109999999,-71.1603548
+Ashland,Market Basket #46,49 Pond Street,01721,(508)872-7410,,42.257084,-71.4282666
+Ashland,Shaw's Supermarket #1419,301 Pond Street,01721,(508)881-5125,Yes,42.2409072,-71.4330904
+Ashland,Walgreen's #18065,339 Pond Street,01721,(508)881-7311,,42.2401338,-71.43331069999999
+Athol,CVS Pharmacy #1068,1653 Main Street,01331,(978)249-7928,,42.5879741,-72.2153865
+Athol,Hannaford Supermarket #8385,150 New Athol Road,01331,(978)249-7955,,42.5816415,-72.26284120000001
+Athol,Market Basket #78,147 Tower Road,01331,(978)248-9401,,42.5810124,-72.1887186
+Attleboro,CVS Pharmacy #1864,191 N Main Street,02703,(508)222-0880,,41.9495164,-71.28886740000002
+Attleboro,CVS Pharmacy #1896,486 Pleasant Street,02703,(508)222-6020,,41.9524774,-71.27168809999999
+Attleboro,"Seabra Foods VI, Inc.",217 S Main Street,02703,(508)226-0606,,41.9347925,-71.2859129
+Attleboro,Stop & Shop #443,251 Washington Street,02703,(508)399-6019,Yes,41.92343959999999,-71.3574678
+Attleboro,Super Stop & Shop (F&P) #432,469 Pleasant Street,02703,(508)226-2400,Yes,41.9510559,-71.27145879999999
+Attleboro,Walgreens #3020,196 Pleasant Street,02703,(508)222-7779,,41.9513581,-71.2739181
+Auburn,CVS Pharmacy #708,676 Southbridge Street,01501,(508)832-6257,,42.18532769999999,-71.8577707
+Auburn,Park 'n Shop,711 Southbridge Street,01501,(508)832-5841,,42.1821666,-71.8594493
+Auburn,Shaw's Supermarket #4471,368 Southbridge Street,01501,(508)832-0440,Yes,42.2059728,-71.8379007
+Auburndale,Star Market #4568,2040 Commonwealth Ave,02466,(617)965-1793,Yes,42.3469722,-71.2448227
+Avon,Walmart Store (F&P) #2122,30 Memorial Drive,02322,(508)427-9460,Yes,42.1211388,-71.0300784
+Ayer,Ayer Shop'n Save LLC,22 Fitchburg Road,01432,(978)796-5261,,42.5709747,-71.5961548
+Barre,Wholesome Farmers Market Inc.,596 Summer Street,01005,(978)257-8107,,42.4089711,-72.0987318
+Bedford,CVS Pharmacy #736,199 Great Road,01730,(781)275-3607,,42.4890425,-71.272526
+Bedford,Super Stop & Shop (F&P) #088,337 Great Road,01730,(781)271-9400,Yes,42.4842516,-71.2623735
+Bedford,Hanscom Air Force Commissary,1709A Griffiss Street,01731,(781)377-4210,,42.4630869,-71.2875044
+Belchertown,CVS Pharmacy #1230,151 North Main Street,01007,(413)323-9621,,42.2884488,-72.4074132
+Belchertown,Super Stop & Shop (F&P) #435,40 George Hannum Road,01007,(413)323-6546,Yes,42.2897204,-72.4118063
+Bellingham,Market Basket #54,274 Hartford Ave,02019,(508)966-3044,,42.1166116,-71.46240279999999
+Bellingham,Super Stop & Shop (F&P) #430,70 Pulaski Blvd.,02019,(508)883-2179,Yes,42.0195114,-71.4984437
+Bellingham,Walmart Store #1918,250 Hartford Ave,02019,(508)966-7633,Yes,42.1162398,-71.4652856
+Belmont,Star Market  (F&P) #2583,535 Trapelo Road,02478,(617)489-6540,Yes,42.3885509,-71.191152
+Beverly,CVS Pharmacy #915,19 Dodge Street,01915,(978)927-0060,,42.5774649,-70.8894279
+Beverly,Shaw's Supermarket #4496,71 Dodge Street,01915,(978)232-9104,Yes,42.5771047,-70.8884084
+Beverly,Stop & Shop #032,37 Enon Street,01915,(978)921-0920,Yes,42.58644630000001,-70.88390079999999
+Beverly,Stop & Shop #081,224 Elliott Street,01915,(978)232-0021,Yes,42.5548364,-70.8864266
+Billerica,CVS Pharmacy #183,700 Boston Road,01821,(978)667-7666,,42.5393501,-71.24332609999999
+Billerica,Market Basket #7,700 Boston Road,01821,(978)663-2861,,42.5393501,-71.24332609999999
+Billerica,Walgreens #18952,467 Boston Road,01821,(978)663-4900,,42.5523471,-71.26466429999999
+Billerica,Market Basket #44,199 Boston Road,01862,(978)667-8199,,42.5809851,-71.28927689999999
+Blackstone,CVS Pharmacy #1225,22 Main Street,01504,(508)883-8800,,42.0171774,-71.52912239999999
+Boston,Star Market #3696,90 Causeway Street,02114,(857) 409-3403,Yes,42.3659567,-71.0618008
+Boston,Whole Foods Market,181 Cambridge Street,02114,(617)723-0004,,42.362128,-71.06558249999999
+Boston,Foodies Urban Market,1421 Washington Street,02118,(617)266-9911,,42.341141,-71.07080839999999
+Boston,Shawmut Grocery,614 Shawmut Ave,02118,(617)442-5964,,42.335498,-71.0805559
+Boston,Walgreens #6072,1603 Washington Street,02118,(617)267-5109,,42.3382823,-71.0750709
+Boston,Whole Foods Market INK Block,348 Harrison Ave,02118,(617)904-1000,,42.34541189999999,-71.0626906
+Boston,Tropical Foods,450 Melnea Cass Blvd,02119,(617)442-7439,,42.3331996,-71.0823686
+Boston,Stop & Shop #412,1620 Tremont Street,02120,(617)232-3572,Yes,42.3333386,-71.10409469999999
+Boston,Chamas Mart & Convenience Store,198 Humboldt Ave,02121,(617)427-1430,,42.3126958,-71.08965529999999
+Boston,CVS Pharmacy #720,2235 Dorchester Ave,02124,(617)296-1027,,42.273901,-71.067634
+Boston,Morton Market,761 Morton Street,02126,(617)690-3137,,42.2833715,-71.0893936
+Boston,Walgreens #3135,825 Morton Street,02126,(617)298-3114,,42.2815062,-71.0877526
+Boston,America's Food Basket,942 Hyde Park Ave,02136,(617)333-4330,,42.2675548,-71.1197852
+Boston,Star Market #0602,53 Huntington Ave,02199,(617)262-4688,Yes,42.3478421,-71.0793972
+Boston,Star Market (F&P) #3588,1065 Commonwealth Avenue,02215,(617)783-5878,Yes,42.3526094,-71.12349840000002
+Boston,Star Market #2576,33 Kilmarnock Street,02215,(617)267-4684,Yes,42.3435518,-71.1004557
+Bourne,Market Basket #69,1 Factory Outlet Way,02561,(508)833-7333,,41.7709827,-70.5459443
+Braintree,CVS Pharmacy #1297,270 Grove Street,02184,(781)356-0714,,42.1915893,-70.9867683
+Braintree,Shaw's Supermarket #1404,125 Pearl Street,02184,(781)356-4467,Yes,42.20108889999999,-71.0002808
+Braintree,Super Stop & Shop (F&P) #478,300 Grove Street,02184,(781)356-1730,Yes,42.1909327,-70.9865657
+Braintree,Target Store T-2693,250 Granite Street,02184,(781)817-8809,Yes,42.2191577,-71.0254968
+Braintree,Walgreens #17228,11 Pearl Street,02184,(781)356-3337,,42.2018384,-71.0045635
+Bridgewater,Roche Bros Supermarkets #110,20 Broad Street,02324,(508)697-5077,,41.9890195,-70.974284
+Brighton,CVS Pharmacy #1889,427 Washington Street,02135,(617)783-2577,,42.3494347,-71.1563987
+Brighton,CVS Pharmacy #3890,207 Market Street,02135,(617)254-0358,,42.3557761,-71.1501877
+Brighton,Star Market (F&P) #4572,370 Western Avenue,02135,(617)787-5266,Yes,42.3612174,-71.1372629
+Brockton,America's Food Basket,1650 Main Street,02301,(508)510-3085,,42.05286570000001,-71.01049619999999
+Brockton,America's Food Basket,21 Torrey Street,02301,(508)510-4963,,42.0751236,-71.0442053
+Brockton,CVS Pharmacy #1006,316 North Pearl Street,02301,(508)580-0605,,42.0997511,-71.06718719999999
+Brockton,CVS Pharmacy #1007,1267 Main Street,02301,(508)587-0235,,42.06042540000001,-71.0149381
+Brockton,CVS Pharmacy #1248,240 Oak Street,02301,(508)588-4610,,42.10037639999999,-71.0347349
+Brockton,CVS Pharmacy #1250,555 Belmont Street,02301,(508)586-7988,,42.0742346,-71.0420666
+Brockton,Market Basket #68,200 Westgate Drive,02301,(508)586-5757,,42.0946605,-71.05200529999999
+Brockton,Shaws Supermarket (F&P) #1429,641 Belmont Street,02301,(508)588-7746,Yes,42.0715402,-71.0461559
+Brockton,Super Stop & Shop (F&P) #055,932 North Montello Street,02301,(508)427-0537,Yes,42.1089483,-71.0256332
+Brockton,Vicente's Tropical Grocery,689 Main Street,02301,(508)580-0296,,42.0714238,-71.0192294
+Brockton,Vicente's Supermarket,160 Pleasant Street,02301,(508)857-4143,,42.0851166,-71.0245781
+Brockton,Walgreens #2977,1101 Main Street,02301,(508)580-3164,,42.0637805,-71.0162431
+Brockton,Walgreens #3758,610 Pleasant Street,02301,(508)427-6223,,42.0888531,-71.0446676
+Brockton,Walmart Store (F&P) #2904,700 Oak Street,02301,(508)584-2333,Yes,42.0981889,-71.056849
+Brockton,CVS Pharmacy #861,355 Centre Street,02302,(508)559-8084,,42.0834187,-71.0057047
+Brockton,Shaw's Supermarket #4407,715 Crescent Street,02302,(508)583-2581,Yes,42.07946510000001,-70.99108679999999
+Brockton,Price-Rite #378,240 E Ashland Street,02302,(508)584-4472,,42.0952609,-71.0090568
+Brookline,Star Market #3566,1717 Beacon Street,02445,(617)566-1802,Yes,42.3376788,-71.1391886
+Brookline,Stop & Shop #001,155 Harvard Street,02446,(617)566-4559,Yes,42.3375564,-71.12117669999999
+Brookline,The Butcherie,428 Harvard Street,02446,(617)731-9888,,42.3455698,-71.1277231
+Brookline,Walgreens #3564,99 Harvard Street,02446,(617)731-4536,,42.3363308,-71.1205281
+Burlington,Market Basket #24,43 Middlesex Turnpike,01803,(781)273-3673,,42.4701443,-71.20834599999999
+Burlington,Shaws Supermarket (F&P) #0495,180 Cambridge Street,01803,(781)221-3002,Yes,42.5112475,-71.1986507
+Burlington,Wegmans Food Markets #59,53 Third Avenue,01803,(781)418-0700,Yes,42.4875085,-71.22598150000002
+Cambridge,CVS Pharmacy #1022,215 Alewife Brook Pkwy,02138,(617)661-6422,,42.3898516,-71.14376229999999
+Cambridge,Walgreens #17165,1740 Massachusetts Ave,02138,(617)876-7662,,42.3846204,-71.119762
+Cambridge,Star Market (F&P) #2565,699 Mt Auburn Street,02138,(617)876-1450,Yes,42.37538989999999,-71.14913539999999
+Cambridge,CVS Pharmacy #1002,624 Massachusetts Ave,02139,(617)876-7868,,42.3651,-71.10367719999999
+Cambridge,Whole Foods Market,115 Prospect Street,02139,(617)492-0070,,42.3680663,-71.102386
+Cambridge,Whole Foods Market,340 River Street,02139,(617)876-6990,,42.36100709999999,-71.1139362
+Cambridge,Walgreens #19487,330 River Street,02139,(617)492-9030,,42.3617632,-71.1139048
+Cambridge,Star Market #0163,49 White Street,02140,(617)492-5566,Yes,42.3898901,-71.1179859
+Canton,Shaw's Supermarket #0428,95 Washington Street,02021,(781)828-1446,Yes,42.1396013,-71.1460443
+Canton,Walgreens #3062,595 Washington Street,02021,(781)828-2375,,42.1531873,-71.14523989999999
+Carver,Shaw's Supermarket #1632,100 North Main St,02330,(508)866-2168,Yes,41.923443,-70.806392
+Charlestown,CVS Pharmacy #1009,21 Austin Street,02129,(617)242-2950,,42.3759587,-71.0654926
+Charlestown,Whole Foods Market,51 Austin Street,02129,(617)337-9700,,42.3756391,-71.06599489999999
+Chelmsford,Hannaford Food & Drug #8191,66-2 Drum Hill Road,01824,(978)459-9304,,42.6230477,-71.3607152
+Chelmsford,Market Basket #4,288 Chelmsford Street,01824,(978)256-0221,,42.6136866,-71.3323341
+Chelmsford,Stop & Shop #480,299 Chelmsford Street,01824,(978)250-4102,Yes,42.61148499999999,-71.3303658
+Chelmsford,Walgreens #7220,86 Chelmsford Street,01824,(978)250-8170,,42.6018452,-71.3477085
+Chelmsford,Walmart Store #2903,66 Parkhurst Road,01824,(978)459-1818,Yes,42.62304719999999,-71.3607268
+Chelsea,CVS Pharmacy #109,1010 Revere Beach Parkway,02150,(617)884-1095,,42.4029938,-71.0234973
+Chelsea,CVS Pharmacy #496,324 Broadway Street,02150,(617)889-1529,,42.3918084,-71.0363587
+Chelsea,La Economica Meat Market,164 Park Street,02150,(617)466-0521,,42.3904943,-71.0355
+Chelsea,Luna Llena Market LLC,149 Chestnut St,02150,(617)466-0656,,42.391089,-71.03864999999999
+Chelsea,Market Basket #32,170 Everett Ave,02150,(617)884-0646,,42.3965051,-71.0423
+Chelsea,Merengue Market II,891 Broadway,02150,(617)466-1267,,42.399479,-71.0223634
+Chelsea,One Stop Market,138 Central Ave,02150,(617)889-6598,,42.3891281,-71.0302294
+Chelsea,"Opped Inc., dba Stop and Compare",153 Hawthorn Street,02150,(617)884-3552,,42.3920117,-71.0342021
+Chelsea,Sully's Variety Store,890 Broadway,02150,(617)889-1899,,42.3996772,-71.022639
+Chelsea,Walgreens #3759,1010 Broadway,02150,(617)884-0917,,42.4029231,-71.0194422
+Chelsea,Yogi's Variety,698 Broadway,02150,(617)884-2222,,42.3959809,-71.0287713
+Chestnut Hill,Star Market #0645,1 Boylston Street,02467,(617)232-3854,Yes,42.3239473,-71.1661568
+Chestnut Hill,Wegmans Food Markets #124,200 Boylston Street,02467,(617)762-2000,Yes,42.31913429999999,-71.1756718
+Chicopee,New Corner Variety,1175 Grattan Street,01013,(413)538-6111,,42.1826914,-72.6113359
+Chicopee,Fruit Fair,398 Front Street,01013,(413)693-8958,,42.147866,-72.60179529999999
+Chicopee,Key Food,185 Exchange Street,01013,(413)331-0350,,42.1484722,-72.6099886
+Chicopee,Walgreens #17673,577 Meadow Street,01013,(413)592-4696,,42.1709253,-72.6139395
+Chicopee,Big Y Foods #52,650 Memorial Drive,01020,(413)593-0204,,42.17484959999999,-72.5800028
+Chicopee,CVS Pharmacy #2339,1176 Granby Road,01020,(413)532-0991,,42.17464930000001,-72.5875792
+Chicopee,CVS Pharmacy #693,1616 Memorial Drive,01020,(413)532-3299,,42.2023471,-72.572578
+Chicopee,CVS Pharmacy #843,235 Center Street,01020,(413)594-8156,,42.1418119,-72.6110168
+Chicopee,PriceRite #361,1600 Memorial Drive,01020,(413)538-7700,Yes,42.2007458,-72.5744118
+Chicopee,Walmart Store (F&P) #5278,591 Memorial Drive,01020,(413)593-3192,Yes,42.1750461,-72.572373
+Chicopee,Stop & Shop (F&P) #036,672 Memorial Drive,01021,(413)593-1111,Yes,42.1756769,-72.57701329999999
+Clinton,CVS Pharmacy #920,792 Main Street,01510,(978)368-7631,,42.4259047,-71.6882126
+Clinton,Hannaford Supermarket #8013,333 Brook Street,01510,(978)368-7909,,42.4245886,-71.68792669999999
+Clinton,Shaw's Supermarket #0674,1175 Main Street,01510,(978)368-0306,Yes,42.4342509,-71.6843919
+Clinton,Walgreens #11119,720 Main St,01510,(978)368-3484,,42.42302249999999,-71.6880146
+Cohasset,Shaw's Supermarket #2445,739 Chief Justice Cushing,02025,(781)383-2315,Yes,42.2214977,-70.8047251
+Cohasset,Super Stop & Shop (F&P) #482,400 Chief Justice Cushing,02025,(781)383-2101,Yes,42.2334051,-70.82035700000002
+Danvers,CVS Pharmacy #2959,139 Endicott Street,01923,(978)646-8930,,42.5507456,-70.93310830000001
+Danvers,Market Basket #23,139 Endicott Street,01923,(978)774-3683,,42.5507456,-70.93310830000001
+Danvers,Stop & Shop #093,301 Newbury Street,01923,(978)762-4444,Yes,42.5851007,-70.9647675
+Danvers,Target Store T-1187,240 Independence Way,01923,(978)762-4439,Yes,42.5531715,-70.9377758
+Danvers,Walmart Store #2180,55 Brooksby Village Way,01923,(978)777-6977,Yes,42.5539423,-70.9685562
+Danvers,Walgreens #9011,107 High Street,01923,(978)762-0049,,42.5586151,-70.9311811
+Dartmouth,Shaw's Supermarket #0619,15 State Road,02747,(508)993-9995,Yes,41.6361645,-70.96159039999999
+Dartmouth,Super Stop & Shop (F&P) #493,25 Faunce Corner Mall Rd,02747,(508)999-7200,Yes,41.6425758,-70.9861029
+Dedham,Star Market #0426,795 Providence Highway,02026,(781)251-3367,Yes,42.2380258,-71.17876079999999
+Dedham,Super Stop & Shop (F&P) #416,160 Providence Highway,02026,(781)329-1050,Yes,42.2580986,-71.1677206
+Dedham,Whole Foods Market,300 Legacy Place,02026,(781)329-7100,,42.2328164,-71.17808529999999
+Dorchester,Brother Supermarket,46 Washington St,02121,(617)445-2962,,42.3071208,-71.0821359
+Dorchester,CVS Pharmacy #2592,468 Blue Hill Ave,02121,(617)427-7806,,42.3088004,-71.0818224
+Dorchester,Glenway Market,90 Glenway St,02121,(617)506-7215,,42.3001651,-71.08220589999999
+Dorchester,New Family Supermarket,205 Humboldt Ave,02121,(617)516-8566,,42.31286799999999,-71.0899281
+Dorchester,"Paradise Market, Inc.",517 Warren St,02121,(617)652-8453,,42.3134011,-71.08378119999999
+Dorchester,Stop & Shop #459,460 Blue Hill Ave,02121,(617)427-6752,Yes,42.3092045,-71.0810685
+Dorchester,America's Food Basket,130 Bowdoin St,02122,(617)506-0559,,42.3039691,-71.07129239999999
+Dorchester,America's Food Basket,217 Bowdoin St,02122,(617)282-7777,,42.3055081,-71.0674657
+Dorchester,Brothers Supermarket,430 Geneva St,02122,(617)265-3931,,42.3005844,-71.0663747
+Dorchester,CVS Pharmacy #2283,715 Morrissey Blvd.,02122,(617)822-1307,,42.2973666,-71.04982319999999
+Dorchester,Dorchester Food Co-Operative,195 Bowdoin St,02122,(617)297-5943,,42.3047209,-71.0681855
+Dorchester,Geneva Grocery,385 Geneva Ave,02122,(617)436-8451,,42.3013023,-71.0681853
+Dorchester,Price-Rite #375,500 Geneva Ave,02122,(617)514-5539,,42.2990808,-71.0626837
+Dorchester,Sobrinos Market,416 Geneva Ave,02122,(617)282-0160,,42.3009926,-71.06702469999999
+Dorchester,Stop & Shop #018,545 Freeport St,02122,(617)265-2766,Yes,42.2926294,-71.0488482
+Dorchester,America's Food Basket,576 Washington St,02124,(617)282-6200,,42.2915105,-71.0713423
+Dorchester,Ashmont Food Mart,1921 Dorchester Ave,02124,(617)506-0029,,42.2851335,-71.0646998
+Dorchester,CVS Pharmacy #11036,451 Washington St,02124,(617)740-0611,,42.2956723,-71.0724824
+Dorchester,CVS Pharmacy #2282,703 Gallivan Blvd.,02124,(617)287-8292,,42.2832497,-71.0474551
+Dorchester,Fernandez Cousins Grocery,1150 Blue Hill Ave,02124,(617)822-1662,,42.2850499,-71.0909509
+Dorchester,Happy Supermarket Inc.,868 Blue Hill Ave,02124,(617)265-9359,,42.2952371,-71.0874961
+Dorchester,Los Caballeros Market,796 Washington St,02124,(617)436-8453,,42.2836916,-71.0713738
+Dorchester,Star Market #0604,4 River Street,02124,(617)298-1462,Yes,42.2718894,-71.0697406
+Dorchester,Acropolis Supermarket,533 Columbia Rd,02125,(617)877-2213,,42.3156566,-71.06598009999999
+Dorchester,Brothers Supermarket #2,776 Dudley St,02125,(617)265-4616,,42.3174943,-71.06571029999999
+Dorchester,CVS Pharmacy #471,778 Dudley St,02125,(617)825-2572,,42.3174925,-71.06542499999999
+Dorchester,Star Market (F&P) #4587,45 Morrissey Blvd.,02125,(617)265-1776,Yes,42.3184171,-71.0506125
+Dorchester,Super Stop & Shop (F&P) #429,1100 Massachusetts Ave,02125,(617)541-4700,Yes,42.3254063,-71.0645253
+Dorchester,First Choice Market,185 Howard Ave,02125,(617)445-4885,,42.3140195,-71.0755629
+Dorchester,Target Store T-1898,7 Allstate Road,02125,(617)602-1921,Yes,42.3292815,-71.0633337
+Dorchester,Tropical Grocery Store,67 Hancock St,02125,(617)326-6995,,42.3133444,-71.0653224
+Dorchester,Walgreens #19437,1100 Dorchester Ave,02125,(617)282-3069,,42.31319389999999,-71.0565544
+Dracut,CVS Pharmacy #632,4 Broadway Road,01826,(978)937-9995,,42.6714225,-71.2965134
+Dracut,CVS Pharmacy #983,2019 Lakeview Ave,01826,(978)957-6550,,42.6834656,-71.3528249
+Dracut,Hannaford Food & Drug #8192,301 Pleasant Street,01826,(978)459-0059,,42.6643737,-71.3118803
+Dudley,Park 'n Shop,14 Airport Road,01571,(508)943-1352,,42.0423865,-71.91333019999999
+Dudley,Walgreens #19240,5 Schofield Ave,01571,(508)949-0513,,42.0471197,-71.8900175
+East Boston,Anthony's Market,407 Meridian Street,02128,(617)561-9322,,42.380462,-71.0390985
+East Boston,CVS Pharmacy #1265,210 Border Street,02128,(617)567-5147,,42.3752392,-71.0407695
+East Boston,Diana Market Inc.,170 Cottage Street,02128,(617)561-4334,,42.3701912,-71.03283259999999
+East Boston,East Boston Market,290 Meridian Street,02128,(617)567-5667,,42.37682239999999,-71.039272
+East Boston,El Condor Market,337 Paris Street,02128,(617)561-0355,,42.3775477,-71.0315341
+East Boston,JK Market 2,232 Sumner Street,02128,(617)475-7685,,42.3686899,-71.0390171
+East Boston,La Riqueza Market,132 Meridian Street,02128,(617)569-2800,,42.3736562,-71.0391903
+East Boston,Orient Heights Food Mart,1016 Bennington Street,02128,(617)569-1388,,42.3871157,-71.0062476
+East Boston,San Miguel Arcangel Market,317 Sumner Street,02128,(617)874-8784,,42.3673476,-71.03640899999999
+East Boston,Sava's Market,150 Bennington Street,02128,(617)567-7832,,42.3770499,-71.0336617
+East Boston,Shaw's #1208,246 Border Street,02128,(617)567-4116,Yes,42.3766408,-71.04041339999999
+East Boston,Super Ahorros Market,300 Bennington St,02128,(617)874-1788,,42.3792042,-71.0282991
+East Boston,Veronica's Market,160 Trenton Street,02128,(617)418-5037,,42.3801163,-71.0334558
+East Boston,Walgreens #5756,1 Kelly Sq,02128,(617)569-5278,,42.374319,-71.03877810000002
+East Bridgewater,CVS Pharmacy #1257,225 Bedford Street,02333,(508)378-1370,,42.0265834,-70.95950959999999
+East Falmouth,CVS Pharmacy #1870,419 East Falmouth Highway,02536,(508)540-5913,,41.5777558,-70.5585649
+East Falmouth,Shaw's (F&P) #0603,137 Tea Ticket Highway,02536,(508)457-6324,Yes,41.5643144,-70.5959094
+East Longmeadow,Big Y Foods (F&P) #14,441 North Main Street,01028,(413)525-6374,,42.0800892,-72.5288478
+East Longmeadow,CVS Pharmacy #769,217 North Main Street,01028,(413)525-4510,,42.072952,-72.5185252
+East Longmeadow,Super Stop & Shop (F&P) #061,470 North Main Street,01028,(413)525-5747,Yes,42.077359,-72.5268121
+East Wareham,CVS Pharmacy #1247,2992 Cranberry Highway,02538,(508)295-3880,,41.7601193,-70.6645264
+East Wareham,Stop & Shop #474,2991 Cranberry Highway,02538,(508)291-1110,Yes,41.7579056,-70.6651158
+Easthampton,Big E's Supermarket,11 Union Street,01027,(413)527-2125,,42.2704036,-72.67119699999999
+Easthampton,CVS Pharmacy #2025,118 Northampton Street,01027,(413)527-1562,,42.2800626,-72.6714621
+Easton,Big Y Foods #108,25 Robert Drive,02375,(508)422-9300,,42.0252118,-71.1413238
+Easton,Roche Bros Supermarkets #116,20 Roche Bros. Way,02356,(508)230-8755,,42.0880786,-71.0947882
+Edgartown,Stop & Shop #398 (Pharmacy only),245 Vineyard Haven Road,02539,(508)627-5107,Yes,41.4539711,-70.5737108
+Edgartown,Stop & Shop #422,225 Upper Main Street,02539,(508)627-9522,Yes,41.3937405,-70.524913
+Everett,Kim's Convenience Store,570 Broadway Street,02149,(617)389-4999,,42.3939744,-71.0323009
+Everett,Santa Maria Market,451 Ferry Street,02149,(617)944-9000,,42.4182803,-71.05056370000001
+Everett,Target Store T-1229,1 Mystic View Road,02149,(617)420-0000,Yes,42.3990625,-71.0721413
+Everett,Walgreens #3496,317 Ferry Street,02149,(617)389-2188,,42.4142954,-71.0468518
+Everett,Walgreens #17728,405 Broadway,02149,(617)387-0005,,42.4059641,-71.0559999
+Fairhaven,CVS Pharmacy #610,10 Sarah's Way,02719,(508)999-0790,,41.6457116,-70.8971844
+Fairhaven,Super Stop & Shop (F&P) #427,221 Huttleston Avenue,02719,(508)990-4500,Yes,41.6406312,-70.88000509999999
+Fairhaven,Walmart Store #1906,42 Fairhaven Commons Way,02719,(508)993-8100,Yes,41.644992,-70.8879561
+Fall River,CVS Pharmacy #207,1620 President Ave,02720,(508)672-2403,,41.7130261,-71.12749099999999
+Fall River,CVS Pharmacy #2878,550 Pleasant Street,02720,(508)678-3945,,41.6993908,-71.1465425
+Fall River,Shaw's Supermarket #1411,4171 North Main Street,02720,(508)677-0940,Yes,41.7508914,-71.12089929999999
+Fall River,Fish River Corp dba Americas Food Basket,1658-1678 President Ave,02720,(508)679-0500,,41.7127265,-71.12687679999999
+Fall River,CVS Pharmacy #20,245 William Canning Blvd.,02721,(508)678-9031,,41.6742623,-71.16221150000001
+Fall River,Market Basket #83,600 William S Canning Blvd,02721,(774)294-5768,,41.6716631,-71.15610090000001
+Fall River,"Seabra Foods IV, Inc.",440 Stafford Road,02721,(508)679-1021,,41.6823947,-71.1556204
+Fall River,Super Stop & Shop (F&P) #071,501 Rodman Street,02721,(508)672-2177,Yes,41.6941023,-71.1528354
+Fall River,Super Stop & Shop (F&P) #473,333 Marianno Bishop Blvd,02721,(508)675-0391,Yes,41.6742795,-71.1645322
+Fall River,Walgreens #3469,369 Plymouth Ave,02721,(508)730-2902,,41.6960789,-71.1520425
+Fall River,Walmart Store (F&P) #3560,638 Quequechan Street,02721,(508)730-2677,Yes,41.6862481,-71.1413148
+Fall River,Walgreens #10802,328 Rhode Island Ave,02721,(508)324-9490,,41.6780169,-71.16197939999999
+Fall River,CVS Pharmacy #1110,4171 North Main Street,02722,(508)677-3555,,41.7508914,-71.12089929999999
+Fall River,PriceRite #332,866 Pleasant Strret,02723,(508)678-8167,Yes,41.69681,-71.1405276
+Fall River,Amaral's Central Market,872 Globe Street,02724,(508)674-8042,,41.6855694,-71.16592469999999
+Fall River,Sunset Variety Inc.,508 Bowen Street,02724,(508)673-2121,,41.6828852,-71.1825283
+Falmouth,CVS Pharmacy #594,105 Davis Straights,02540,(508)540-1797,,41.5601251,-70.59872109999999
+Falmouth,Super Stop & Shop (F&P) #425,20 Teaticket Highway,02536,(508)540-7476,Yes,41.5624521,-70.59955769999999
+Falmouth,Walgreens #19592,520 Main St,02540,(508)495-2991,,41.5528449,-70.60822379999999
+Feeding Hills,Super Stop & Shop (F&P) #782,1282 Springfield Street,01030,(413)789-2224,Yes,42.0679147,-72.67535409999999
+Fitchburg,CVS Pharmacy #1882,57 Rollstone Road,01420,(978)342-8740,,42.56814809999999,-71.8138462
+Fitchburg,CVS Pharmacy #505,161 Main Street,01420,(978)342-8941,,42.5823563,-71.79403289999999
+Fitchburg,Market Basket #14,130 Water Street,01420,(978)345-5882,,42.580639,-71.7939413
+Fitchburg,Market Basket #27,399 John Fitch Highway,01420,(978)343-7464,,42.5813956,-71.77550029999999
+Fitchburg,Walgreens #12558,571 John Fitch Highway,01420,(978)343-8329,,42.585085,-71.7787901
+Foxboro,Super Stop & Shop (F&P) #494,"141 Main Street, Rte 140",02035,(508)543-5791,Yes,42.0753189,-71.2603827
+Foxboro,Walgreens #10638,121 Main Street #6,02025,(508)543-1779,,42.0742786,-71.2586601
+Framingham,CVS Pharmacy #1871,1280 Worcester Road,01701,(508)872-1432,,42.2972545,-71.4496545
+Framingham,Stop & Shop #8,19 Temple Street,01701,(508)879-4044,Yes,42.2976551,-71.4478396
+Framingham,Super Stop & Shop (F&P) #3,235 Old Connecticut Path,01701,(508)820-0900,Yes,42.3060835,-71.40080689999999
+Framingham,Target Store T-1308,400 Cochituate Road,01701,(508)628-3136,Yes,42.3058837,-71.3978381
+Framingham,WalMart Store (F&P) #2902,121 Worcester Road,01701,(508)872-6575,Yes,42.3008446,-71.39952939999999
+Framingham,Whole Foods Market,545 Worcester Rd,01701,(508)628-9525,,42.2981504,-71.41872409999999
+Framingham,CVS Pharmacy #1034,492 Concord Street,01702,(508)820-9218,,42.2892415,-71.4099913
+Franklin,Big Y Foods #38,348 East Central Street,02038,(508)553-8705,,42.0788184,-71.3811401
+Franklin,Shaw's (F&P) #3581,255 East Central Street,02038,(508)520-6880,Yes,42.0813829,-71.3866709
+Franklin,Super Stop & Shop (F&P) #472,40 Franklin Village Drive,02038,(508)520-4102,Yes,42.0894786,-71.42158739999999
+Franklin,Walgreens #13005,160 E Central Street,02038,(508)541-1436,,42.08048360000001,-71.3906547
+Gardner,CVS Pharmacy #2098,314 Main Street,01440,(978)632-1760,,42.5702038,-71.9925645
+Gardner,Hannaford Supermarket #8019,21 Timpany Boulevard,01440,(978)632-6139,,42.5687795,-71.9926026
+Gardner,Price Chopper #239,560 Main Street,01440,(978)730-1040,,42.569568,-71.9853076
+Gardner,Walmart Store (F&P) #2155,677 Timpany Blvd.,01440,(978)630-3244,Yes,42.5514326,-71.9947573
+Gardner,Walgreens #17177,232 Main Street,01440,(978)630-2808,,42.5716469,-71.99320209999999
+Gloucester,CVS Pharmacy #272,401 Gloucester Crossing Rd,01930,(978)281-2450,,42.6236526,-70.6574921
+Gloucester,Market Basket #61,101 Gloucester Crossing Rd,01930,(978)283-0103,,42.6213763,-70.6568118
+Gloucester,Shaw's #3590,127 Eastern Ave,01930,(978)281-4844,Yes,42.6224492,-70.64099039999999
+Gloucester,Shaw's #3591,7 Railroad Ave,01930,(978)283-2601,Yes,42.616471,-70.6654551
+Gloucester,Stop & Shop #410,6 Thatcher Road,01930,(978)281-0010,Yes,42.6186592,-70.6421271
+Grafton,Super Stop & Shop #0057,100 Worcester Street,01519,(508)887-9500,Yes,42.2196535,-71.6957588
+Great Barrington,Big Y Foods #22,700 Main Street,01230,(413)528-1314,,42.1900742,-73.36529469999999
+Great Barrington,CVS Pharmacy #8970,362 Main Street,01230,(413)528-2860,,42.1926592,-73.3645262
+Great Barrington,Price Chopper (F&P) #155,300 Stockbridge Road,01230,(413)528-8415,,42.210089,-73.3445639
+Greenfield,Big Y Foods (F&P) #63,"237 Mohawk Trail, Rte 2",01301,(413)772-0435,,42.5873563,-72.6252442
+Greenfield,CVS Pharmacy #1094,137 Federal Street,01301,(413)774-7201,,42.5921718,-72.59726049999999
+Greenfield,"Fosters Supermarket, Inc.",70 Allen Street,01301,(413)773-1100,,42.5957654,-72.6095534
+Greenfield,Super Stop & Shop (F&P) #045,89 French King Highway,01301,(413)774-6096,Yes,42.60699229999999,-72.5735475
+Groton,CVS Pharmacy #2680,106 Boston Road,01450,(978)448-5249,,42.5967194,-71.56091769999999
+Groton,Shaws Supermarket (F&P) #0627,760A Boston Road,01450,(978)448-0419,Yes,42.5799145,-71.5239916
+Hadley,Super Stop & Shop (F&P) #095,440 Russell Street,01035,(413)253-3227,Yes,42.3642523,-72.5389519
+Hadley,Walmart Store #2683,337 Russell Street,01035,(413)586-4231,Yes,42.3545896,-72.55226499999999
+Halifax,Super Stop & Shop (F&P) #082,341 Plymouth Street,02338,(781)293-1961,Yes,41.9952955,-70.8484783
+Halifax,Walmart Store (F&P) #2128,295 Plymouth Street,02338,(781)294-9339,Yes,41.9973459,-70.846485
+Hanover,CVS Pharmacy #1945,207 Rockland Street,02339,(781)826-8381,,42.113915,-70.82008669999999
+Hanover,Market Basket #91,1775 Washington Street,02339,(781)924-7543,,42.1457138,-70.8424683
+Hanover,Shaw's Supermarket #0440,35 Columbia Road,02339,(781)826-2864,Yes,42.1172593,-70.8235649
+Hanson,Shaws Supermarket (F&P) #1409,476 Liberty Street,02341,(781)293-3008,Yes,42.0659341,-70.868861
+Harwich,Super Stop & Shop (F&P) #475,111 Chatham Road,02645,(508)432-5000,Yes,41.68462,-70.0578
+Harwich,Star Market (F&P) #4596,18 Sisson Road,02646,(508)432-3433,Yes,41.6728993,-70.0932974
+Harwich,CVS Pharmacy #860,10 Post Office Square,02646,(508)430-0660,,41.6677055,-70.08003980000001
+Haverhill,CVS Pharmacy #23,211 Lincoln Ave,01830,(978)372-0291,,42.7628853,-71.0402959
+Haverhill,CVS Pharmacy #365,259 Main Street,01830,(978)374-0719,,42.7807866,-71.07682659999999
+Haverhill,Market Basket #15,2 Water Street,01830,(978)372-0576,,42.7759744,-71.0752189
+Haverhill,Market Basket #48,285 Lincoln Ave,01830,(978)372-1515,,42.7636261,-71.0370551
+Haverhill,CVS Pharmacy #1886,425 Lowell Avenue,01832,(978)373-1234,,42.7736411,-71.1166497
+Haverhill,High Street Market,91 High Street,01832,(978)374-6200,,42.773578,-71.0916747
+Haverhill,Market Basket #9,400 Lowell Avenue,01832,(978)372-2051,,42.7739007,-71.1143712
+Haverhill,Target Store T-2325,35 Computer Drive,01832,(978)377-9003,Yes,42.787899,-71.1151124
+Haverhill,Walgreens #17482,68 South Main Street,01835,(978)373-0292,,42.7714828,-71.075311
+Hingham,Super Stop & Shop (F&P) #035,400 Lincoln St,02043,(781)749-1143,Yes,42.2476673,-70.9236574
+Hingham,Walgreens #19543,184 Lincoln St,02043,(781)749-0487,,42.2487952,-70.9038725
+Holbrook,CVS Pharmacy #382,480 N Franklin St,02343,(781)963-3537,,42.1680597,-71.0078175
+Holbrook,CVS Pharmacy #1251,842 S Franklin St,02343,(781)767-0555,,42.1279458,-71.0101935
+Holden,Big Y Foods #29,160 Reservoir Street,01520,(508)829-9614,,42.3439367,-71.86208119999999
+Holden,Walgreens #11120,1145 Main Street,01520,(508)829-1780,,42.3495225,-71.860168
+Holden,Walgreens #18968,"5 Shrewbury St., #8",01520,(508)829-6504,,42.3361502,-71.8349896
+Holyoke,Almonte Market II,129 Sargeant Street,01040,(413)315-3665,,42.2010211,-72.61495459999999
+Holyoke,KeyFood Marketplace,13 Cabot Street,01040,(413)538-8287,,42.1981297,-72.6041049
+Holyoke,Cuba Supermarket Inc.,439 High Street,01040,(413)538-8261,,42.2041891,-72.610792
+Holyoke,CVS Pharmacy #2071,400 Beech Street,01040,(413)536-1432,,42.2023594,-72.6196327
+Holyoke,CVS Pharmacy #373,250 Whiting Farms Road,01040,(413)532-3216,,42.1747573,-72.63987809999999
+Holyoke,Stop & Shop (F&P) #030,2265 Northampton Street,01040,(413)536-9287,Yes,42.18337469999999,-72.6322017
+Holyoke,Super Fresh,235 South Street,01040,(413)532-1700,,42.195951,-72.6216771
+Holyoke,Super Stop & Shop (F&P) #9,28 Lincoln Street,01040,(413)536-1247,Yes,42.2142732,-72.617704
+Holyoke,Walgreens #4967,1588 Northampton Street,01040,(413)493-3901,,42.2103078,-72.62925349999999
+Hopkinton,Price Chopper #231,167 W Main Street,01748,(508)625-3263,,42.209406,-71.5519952
+Hudson,Market Basket #73,8 Highland Commons East,01749,(978)562-6345,,42.3934186,-71.59345069999999
+Hudson,Shaw's Supermarket #3087,201 Washington Street,01749,(978)562-4549,Yes,42.3805146,-71.56933579999999
+Hudson,Stop & Shop #489,10 Technology Road,01749,(978)562-4111,Yes,42.37762470000001,-71.5631224
+Hudson,WalMart Store (F&P) #1970,280 Washington Street,01749,(978)568-3383,Yes,42.3729018,-71.5588568
+Hudson,Walgreens #17166,186 Main Street,01749,(978)562-5096,,42.3918407,-71.5636788
+Hyannis,CVS Pharmacy #2322,176 North Street,02601,(508)775-8462,,41.6525221,-70.2889167
+Hyannis,Shaw's #1598,1070 Iyannough Road,02601,(508)775-7611,Yes,41.6759739,-70.3040773
+Hyannis,Star Market #4595,625 W Main Street,02601,(508)775-3421,Yes,41.65192260000001,-70.3184952
+Hyannis,Stop & Shop (F&P) #406,4 Attucks Lane,02601,(508)771-0709,Yes,41.6758966,-70.3072609
+Hyannis,Walgreens #17545,520 W Main Street,02601,(508)775-9211,,41.6514073,-70.3147798
+Hyde Park,America's Food Basket,942 Hyde Park Ave,02136,(617)333-4330,,42.2675548,-71.1197852
+Hyde Park,CVS Pharmacy #1049,942A Hyde Park Ave,02136,(617)364-5141,,42.2678973,-71.1198316
+Hyde Park,PriceRite #339,870 River Street,02136,(617)361-6812,Yes,42.2619881,-71.10762439999999
+Hyde Park,Shaw's (F&P) #2579,1377 Hyde Park Ave,02136,(617)364-9375,Yes,42.2518761,-71.12600549999999
+Hyde Park,Stop & Shop #413,1025 Truman Highway,02136,(617)333-0273,Yes,42.24233419999999,-71.1272125
+Indian Orchard,Key Food Supermarket,459 Main Street,01151,(413)301-5156,,42.156113,-72.4899781
+Ipswich,Shaw's #4592,146 High Street,01938,(978)356-8451,Yes,42.6898192,-70.8531519
+Jamaica Plain,CVS Pharmacy #1264,704 Centre Street,02130,(617)524-4714,,42.3115368,-71.1139876
+Jamaica Plain,Happy Market & Spirits,128 South Street,02130,(617)524-9536,,42.3055895,-71.1145422
+Jamaica Plain,Stop & Shop (F&P) #075,301 Centre Street,02130,(617)522-4300,Yes,42.32411750000001,-71.1031663
+Jamaica Plain,Whole Foods Market,413 Centre Street,02130,(617)553-5400,,42.32158280000001,-71.1109652
+Kingston,Big Y Foods #101,182 Summer St,02364,(781)585-7423,,41.9999584,-70.7303288
+Kingston,Super Stop & Shop (F&P) #402,160 Summer St,02364,(781)582-3700,Yes,42.0075519,-70.7326444
+Lawrence,CVS Pharmacy #1786,266 Broadway,01841,(978)688-5924,,42.7084941,-71.1714777
+Lawrence,El Tesoro Supermarket,473 Haverhill St,01841,(978)258-0695,,42.7066257,-71.1762231
+Lawrence,Gomez Supermarket LLC,191 Parker Street,01841,(978)2588395,,42.695159,-71.1580108
+Lawrence,Jamay Inc. dba Union Supermarket #4,309 Park Street,01841,(978)416-8972,,42.7161802,-71.17386979999999
+Lawrence,JGB Supermarket,576 Haverhill Street,01841,(617)453-1082,,42.7044725,-71.1810094
+Lawrence,Jimenez Supermarket,117 Newbury Street,01841,(978)557-2167,,42.71199850000001,-71.1554347
+Lawrence,La Fruteria Supermarket,75 Manchester Street,01841,(978)681-9977,,42.7128272,-71.1794903
+Lawrence,Market Basket #5,700 Essex Street,01840,(978)686-1001,,42.7018808,-71.1720515
+Lawrence,Rafy Market,333 Lawrence Street,01841,(978)685-1695,,42.7202277,-71.1695021
+Lawrence,Raquel Supermarket,296 Lawrence Street,01841,(978)689-0256,,42.7193535,-71.16895269999999
+Lawrence,Sam's Food Store,389 Broadway,01841,(978)681-1500,,42.712734,-71.1741633
+Lawrence,Walgreens #3337,135 Broadway,01840,(978)725-3221,,42.70650879999999,-71.1688953
+Lawrence,Caballo Food Corp. dba America's Food Basket,73 Winthrop Ave,01843,(978)208-0403,,42.6898019,-71.15170549999999
+Lawrence,D'Union Seafood Meat & Market,208 S Broadway,01843,(351)204-7164,,42.6939338,-71.1615538
+Lawrence,Gomez Meat Market LLC,272 South Broadway,01843,(978)688-6076,,42.6918182,-71.1602525
+Lawrence,"Mi Pais Market, Inc.",610 Andover St,01843,(978)655-1927,,42.6905691,-71.1745514
+Lawrence,V&V Market Inc.,273A South Union Street,01843,(978)258-0267,,42.6951142,-71.1535693
+Lawrence,Walgreens #4571,220 S. Broadway,01843,(978)794-8130,,42.6930725,-71.160962
+Lee,Big Y Foods (F&P) #37,10 Pleasant Street,01238,(413)243-3201,,42.29584860000001,-73.2405977
+Lee,Walgreens #19088,25 Park Street,01238,(413)243-2402,,42.3052873,-73.248483
+Leicester,Walmart Store (F&P) #3409,20 Soojian Drive,01524,(508)892-9461,Yes,42.2501964,-71.94031939999999
+Lenox,CVS Pharmacy #433,481 Pittsfield Road,01240,(413)499-3430,,42.4043489,-73.2661238
+Lenox,Market 32 by Price Chopper #233,495 Pittsfield Road,01240,(413)443-5449,,42.4061329,-73.2662541
+Leominster,CVS Pharmacy #1198,9 Nelson Street,01453,(978)840-8343,,42.542907,-71.76087749999999
+Leominster,CVS Pharmacy #810,188 Central Street,01453,(978)537-7940,,42.5188978,-71.75775329999999
+Leominster,Hannaford Food & Drug #8003,118 Lancaster Street,01453,(978)537-1327,,42.52145790000001,-71.75364820000001
+Leominster,Hannaford Food & Drug #8012,927 Merriam Avenue,01453,(978)534-9323,,42.5525222,-71.77800239999999
+Leominster,Market Basket #16,71 Sack Blvd,01453,(978)840-4884,,42.5298707,-71.74528819999999
+Leominster,Target Store T-1965,86 Orchard Hill Park Drive,01453,(978)534-2914,Yes,42.5276259,-71.7139411
+Leominster,Walmart Store (F&P) #2964,11 Jungle Road,01453,(978)466-1313,Yes,42.4925091,-71.7296017
+Leominster,Walgreens #10427,35 Central Street,01453,(978)840-9959,,42.5242052,-71.75957629999999
+Lexington,Stop & Shop #491,36 Bedford Street,02420,(781)861-0457,Yes,42.4520067,-71.2334154
+Lexington,Walgreens #1863,60 Bedford St,02420,(781)863-1111,,42.4535442,-71.2334386
+Littleton,CVS Pharmacy #1885,10 Meeting House Road,01460,(978)486-9230,,42.5465724,-71.4709498
+Littleton,Market Basket #77,301 Constitution Ave,01460,(978)486-0828,,42.55290369999999,-71.47672899999999
+Longmeadow,Big Y Foods (F&P) #13,802 Williams Street,01106,(413)567-6231,,42.0559659,-72.5556763
+Lowell,CVS Pharmacy #5493,336 Bridge Street,01850,(978)452-7165,,42.6497075,-71.30442699999999
+Lowell,Market Basket #2,1201 Bridge Street,01850,(978)454-0361,,42.664079,-71.3022395
+Lowell,Walgreens #13642,1161 Bridge Street,01850,(978)453-0820,,42.6635958,-71.30304509999999
+Lowell,Market Basket #19,11 Wood Street,01851,(978)458-8015,,42.6338055,-71.3565515
+Lowell,Walgreens #6739,54 Plain Street,01851,(978)453-7538,,42.6264465,-71.3222662
+Lowell,Food Basket International,123 Church St,01852,(978455-7554,,42.6405428,-71.3054703
+Lowell,Hannaford Food & Drug #8327,777 Rogers Street,01852,(978)446-7862,,42.6286824,-71.2783263
+Lowell,Jay's Food Store,166 Gorham Street,01852,(978)459-7872,,42.6394758,-71.308347
+Lowell,Lowell Food Mart,624 School St,01852,(978)441-6381,,42.633559,-71.3248531
+Lowell,Market Basket #1,331 Fletcher Street,01854,(978)458-6952,,42.644153,-71.3209023
+Lowell,Market Basket #88,93 Old Ferry Road,01854,(978)942-5511,,42.6406165,-71.3617864
+Ludlow,Big Y Foods (F&P) #19,433 Center Street,01056,(413)589-0161,,42.168553,-72.4823976
+Ludlow,CVS Pharmacy #315,451 Center Street,01056,(413)589-9559,,42.1696811,-72.4808564
+Lunenburg,CVS Pharmacy #1844,454 Electric Ave,01462,(978)345-1064,,42.57529539999999,-71.7488994
+Lunenburg,Hannaford Food & Drug #8388,333 Mass Ave,01462,(978)582-0215,,42.5960013,-71.7576883
+Lunenburg,Walmart Store #2118,301 Mass Ave,01462,(978)582-6000,Yes,42.5949057,-71.7598385
+Lynn,Lesli's Market,205 Union Street,01901,(781)598-5999,,42.4662637,-70.9424937
+Lynn,PriceRite #337,395 Lynnway & Sheppard Ave,01901,(781)581-2611,Yes,42.457533,-70.9520283
+Lynn,Stop & Compare Lynn Marketplace,43A State Street,01901,(781)599-5100,,42.4621156,-70.9504075
+Lynn,Stop & Shop (F&P) #67,35 Washington Street,01901,(781)596-1882,Yes,42.4698052,-70.95895240000002
+Lynn,El Bodegon Market Inc.,341 Union Street,01902,(781)581-0005,,42.4640786,-70.9439524
+Lynn,"Compare Supermarkets, Inc","2A Adams Street, Ext",01902,(781)581-9449,,42.47489909999999,-70.9392904
+Lynn,CVS Pharmacy #1204,509 Eastern Ave,01902,(781)599-4482,,42.4818465,-70.93625349999999
+Lynn,Guadalupe Meat Market Inc.,114 Union Street,01902,(339)440-4431,,42.4672697,-70.940648
+Lynn,Merengue Market,197 Essex Street,01902,(781)581-8095,,42.4719548,-70.934415
+Lynn,Santiago Market,63 Franklin Street,01902,(781)599-5648,,42.4661015,-70.9551778
+Lynn,Santo Domingo Grocery,158 Chestnut street,01902,(781)592-2244,,42.4692656,-70.9372633
+Lynn,Walgreens #2716,21 Joyce Street,01902,(781)593-1070,,42.4674513,-70.94246629999999
+Lynn,CVS Pharmacy #1899,65 Boston Street,01904,(781)595-5997,,42.4774659,-70.9576373
+Lynn,Walgreens #2325,290 Broadway,01904,(781)581-9400,,42.4861819,-70.9601133
+Lynn,Commercial Market,105 Commercial Street,01905,(781)592-0229,,42.4587938,-70.95996339999999
+Lynn,CVS Pharmacy #75,200 S Common Street,01905,(781)592-1470,,42.4619724,-70.9627139
+Lynn,El Gustaso Market,550 Summer St,01905,(781)477-9999,,42.4585476,-70.9699634
+Lynn,Family Corner Market,624 Boston St,01905,(781)599-9055,,42.4635541,-70.9756932
+Lynn,Market Basket #82,40 Federal Street,01905,(781)598-7412,,42.463107,-70.9671703
+Lynn,One Stop Mart,337 Boston Street,01905,(339)440-4297,,42.4669707,-70.96363339999999
+Lynn,San Marcos Mkt Inc. dba Amigo's Market,355 Summer Street,01905,(781)584-8099,,42.4603596,-70.96031510000002
+Lynn,Supreme Food Inc.,201 N Common Street,01905,(781)581-6014,,42.4631918,-70.9631362
+Lynn,Walmart Store #2139,780 Lynnway,01905,(781)592-4300,Yes,42.44874100000001,-70.9609254
+Lynn,Walgreens #2823,841 Western Ave,01905,(781)592-2248,,42.4601114,-70.9693889
+Malden,CVS Pharmacy #1001,1080 Eastern Ave,02148,(781)322-5890,,42.4306402,-71.03949399999999
+Malden,CVS Pharmacy #672,32 Ferry Street,02148,(781)324-1101,,42.4261524,-71.0654158
+Malden,CVS Pharmacy #8906,575 Broadway,02148,(781)321-1017,,42.4404037,-71.0313587
+Malden,Super Stop & Shop (F&P) #062,99 Charles Street,02148,(781)397-0006,Yes,42.4243093,-71.0714572
+Malden,Walgreens #3130,185 Centre Street,02148,(781)321-1765,,42.4247377,-71.068255
+Malden,Walgreens #4966,215 Beach Street,02148,(781)324-4745,,42.43102260000001,-71.02439509999999
+Mansfield,Shaw's Supermarket #0431,390 West Street,02048,(508)339-3987,Yes,42.0236407,-71.231736
+Mansfield,Super Stop & Shop (F&P) #007,377 Chauncy Street,02048,(508)337-9450,Yes,42.0325281,-71.2365624
+Mansfield,Walgreens #19441,243 Chauncy Street,02048,(508)337-8800,,42.0310688,-71.2301171
+Marlborough,CVS Pharmacy #220,264 East Main Street,01752,(508)485-6119,,42.3518519,-71.5346531
+Marlborough,Price Chopper #162,240 East Main Street,01752,(508)480-0109,,42.3534291,-71.5347458
+Marlborough,Target Store T-1516,423 Donald Lynch Blvd.,01752,(508)573-1004,Yes,42.3600913,-71.6069727
+Marlborough,Walgreens #2889,99 Granger Blvd,01752,(508)229-0540,,42.3449418,-71.54879530000001
+Marshfield,CVS Pharmacy #2401,1880 Ocean Street,02050,(781)837-5381,,42.0925023,-70.70448739999999
+Marshfield,Roche Bros. Supermarkets #118,605 Plain Street,02050,(781)837-9955,,42.1041734,-70.7408652
+Marshfield,Star Market (F&P) #2594,1 Snow Road,02050,(781)837-5100,Yes,42.0913127,-70.7084484
+Marshfield,Walgreens #9477,2177 Ocean Street,02050,(781)837-2482,,42.0934176,-70.718051
+Marstons Mills,Stop & Shop #066,"3900 Falmouth Rd., Rte 28",02648,(508)428-1278,Yes,41.6482793,-70.42761879999999
+Mashpee,CVS Pharmacy #1253,8 Greene Street,02649,(508)477-1535,,41.6169927,-70.4887045
+Mashpee,Roche Bros. Supermarkets #117,11 Commercial Street,02649,(508)477-5558,,41.612702,-70.488416
+Mashpee,Super Stop & Shop (F&P) #087,39 Nathan Ellis Highway,02649,(508)539-1800,Yes,41.6196027,-70.4888416
+Mashpee,Walgreens #13135,21 South St,02649,(508)477-0137,,41.6131803,-70.48925679999999
+Mattapan,Aguasvivas Market,926 Morton Street,02126,(617)514-3120,,42.2806405,-71.0828197
+Mattapan,America's Food Basket,926 Cummins Highway,02126,(617)298-0054,,42.2682618,-71.0945294
+Mattapan,CVS Pharmacy #5464,1575 Blue Hill Ave,02126,(617)898-1282,,42.2697831,-71.0940152
+Maynard,Market Basket #87,6 Digital way,01754,(978)243-2424,,42.4169586,-71.44929069999999
+Medfield,Shaws Supermarket (F&P) #1414,230 Main Street,02052,(508)359-8713,Yes,42.19417929999999,-71.2882289
+Medford,CVS Pharmacy #1010,85 High Street,02155,(781)396-4770,,42.419052,-71.11227660000002
+Medford,Super Stop & Shop (F&P) #433,760 Fellsway,02155,(781)391-5869,Yes,42.4088062,-71.0869577
+Medford,Walgreens #19536,467 Salem Street,02155,(781)396-8350,,42.422925,-71.0890297
+Medford,Wegmans Food Markets #134,3850 Mystic Valley Pkway,02155,(339)221-5700,Yes,42.4069024,-71.09193189999999
+Medway,Shaw's #1430,65 Main Street,02053,(508)533-0606,Yes,42.1520835,-71.403251
+Medway,Walgreens #6939,68 Main Street,02053,(508)533-4902,,42.1533846,-71.40583819999999
+Melrose,CVS Pharmacy #159,516 Main Street,02176,(781)665-7107,,42.4557022,-71.0653301
+Melrose,Shaw's Supermarket #3507,34 Essex Street,02176,(781)665-8512,Yes,42.4562287,-71.06602649999999
+Methuen,Caribbean Supermarket,4 Broadway Street,01844,(978)258-7442,,42.7184126,-71.1807773
+Methuen,Carolina Convenience Store,462 Prospect Street,01844,(978)687-3341,,42.7231314,-71.156688
+Methuen,CVS Pharmacy #1085,76 Swan Street,01844,(978)688-9002,,42.7232788,-71.15798760000001
+Methuen,CVS Pharmacy #615,233 Broadway Street,01844,(978)685-6311,,42.72567069999999,-71.18468
+Methuen,Market Basket #10,186 Haverhill Street,01844,(978)682-6327,,42.70482699999999,-71.20157
+Methuen,Market Basket #18,70 Pleasant Valley Street,01844,(978)685-2863,,42.7426465,-71.1654555
+Methuen,Polanco Market,51 Center Street,01844,(978)682-7601,,42.7202184,-71.1772963
+Methuen,Target Store T-2287,67 Pleasant Valley Street,01844,(978)983-2020,Yes,42.7402447,-71.16066769999999
+Methuen,Walmart Store #3491,70 Pleasant Valley Street,01844,(978)686-2633,Yes,42.7426465,-71.1654555
+Methuen,Walgreens #5810,14 Jackson Steet,01844,(978)681-0409,,42.7227491,-71.1594265
+Middleboro,Hannaford Food & Drug #8005,8 Merchants Way,02346,(508)947-4787,,41.88286249999999,-70.9118609
+Middleboro,Trucchi's Supermarket #6,438 West Grove Street,02346,(508)923-1042,,41.8961246,-70.95115059999999
+Middleboro,Walgreens #19323,131 S Main Street,02346,(508)946-0149,,41.8856919,-70.9187396
+Middleton,Market Basket #45,230 S Main Street,01949,(978)777-6233,,42.580367,-70.9979591
+Middleton,Walgreens #10940,235 S Main Street,01949,(978)762-8522,,42.5782532,-71.00022059999999
+Milford,Big Y Foods #104,7 Medway Road,01757,(508)422-9300,,42.1484144,-71.5029892
+Milford,CVS Pharmacy #2254,137 South Main Street,01757,(508)478-1223,,42.1266747,-71.518564
+Milford,Shaw's Supermarket #0677,93 Prospect Street,01757,(508)478-4519,Yes,42.1388342,-71.53354019999999
+Milford,Stop & Shop #2418,"126 Medway Road, Suite 2",01757,(508)478-8941,Yes,42.1503105,-71.48780820000002
+Millbury,"Goretti's Supermarkets, Inc.",1 Providence Street,01527,(508)865-9577,,42.1922784,-71.7523317
+Millbury,Target Store T-1835,70 Worcester Providence,01527,(508)865-3116,Yes,42.1950446,-71.7762097
+Millbury,Walgreens #18335,25 Main Street,01527,(508)865-0544,,42.1923165,-71.7613123
+Millis,Roche Bros. Supermarket #106,6 Milliston Way,02054,(508)376-2091,,42.1667605,-71.3548422
+Monson,Monson Market,115 Main Street,01057,(413)267-3144,,42.0987168,-72.3156655
+Monson,Walgreens #19421,117 Main Street,01057,(413)267-4021,,42.0979666,-72.3158967
+Nantucket,Stop & Shop #2415,31 Sparks Ave,02554,(508)228-2178,Yes,41.2718705,-70.0922156
+Nantucket,Stop & Shop #2413,9 Salem Street,02554,(508)825-8833,Yes,41.2833301,-70.09631259999999
+Natick,Roche Bros. Supermarkets #105,150 West Central Street,01760,(508)655-5540,,42.2812663,-71.3770562
+Natick,Stop & Shop (F&P) #006,829 Worcester Road,01760,(508)650-4050,Yes,42.3011247,-71.3581643
+Needham,Roche Bros. Supermarkets #102,377 Chestnut Street,02492,(781)444-0411,,42.2737993,-71.2387391
+Needham,Sudbury Farms #209,1177 Highland Ave,02494,(781)449-9180,,42.2863877,-71.2356919
+Needham,Walgreens #1852,1478 Highland Ave,02492,(781)444-5714,,42.2809506,-71.2356968
+New Bedford,CVS Pharmacy #685,1145 Kempton Street,02740,(508)999-3241,,41.6367989,-70.956436
+New Bedford,CVS Pharmacy #799,786 Ashley Blvd.,02740,(508)998-3831,,41.6814976,-70.9332905
+New Bedford,PriceRite #306,39 South Street & JFK Highway,02740,(508)990-0317,Yes,41.6254846,-70.92096
+New Bedford,"Seabra Foods V, Inc.",41 Rockdale Avenue,02740,(508)991-2505,,41.6146942,-70.9318843
+New Bedford,Walgreens #3021,1737 Acushnet Ave,02740,(508)984-4410,,41.6676872,-70.9293343
+New Bedford,Walgreens #3090,838 Pleasant Street,02740,(508)984-4434,,41.6386288,-70.9270743
+New Bedford,D&S Mini Market 2,478 Kempton Street,02740,(508)997-7037,,41.6365652,-70.9377061
+New Bedford,Stop & Shop (F&P) #98,438 Dartmouth Street,02742,(508)993-1791,Yes,41.616498,-70.9364798
+New Bedford,Union Fruit Market Inc.,111 Ruth Street,02744,(774)425-2060,,41.6142705,-70.91640129999999
+New Bedford,CVS Pharmacy #492,2100 Acushnet Avenue,02745,(508)995-2653,,41.6791889,-70.92242689999999
+New Bedford,Stop & Shop (F&P) #70,1001 Kings Highway,02745,(508)998-2000,Yes,41.6791086,-70.9424198
+New Bedford,Trucchi's Supermarket #5,2941 Acushnet Avenue,02745,(508)998-7500,,41.6994352,-70.93701829999999
+New Bedford,CVS Pharmacy #789,136 Ashley Blvd.,02746,(508)996-2094,,41.6580239,-70.92881249999999
+New Bedford,Market Basket #65,122 Sawyer Street,02746,(508)992-3049,,41.657449,-70.92217529999999
+New Bedford,PriceRite #356,139 Hathaway Road,02746,(508)992-3719,Yes,41.6611181,-70.9470639
+New Bedford,"Union Fruit Market, Inc.",1437 Acushnet Ave,02746,(508)717-6088,,41.6611039,-70.92769650000001
+New Bedford,Vicente's Supermarket,452 Mt Pleasant St,02746,(508)857-4143,,41.6625628,-70.9410266
+New Bedford,Xavier Market,290 North Front Street,02746,(508)997-7126,,41.6583613,-70.9255417
+Newburyport,Market Basket #40,25 Storey Ave,01950,(978)462-0711,,42.8209214,-70.9020147
+Newburyport,Shaw's Supermarket #2491,45 Storey Ave,01950,(978)462-7121,Yes,42.8201934,-70.90427369999999
+Newburyport,Walgreens #2564,25 Storey Ave,01950,(978)462-0709,,42.8209214,-70.9020147
+Newton,CVS Pharmacy #6505,978 Boylston Street,02461,(617)244-0821,,42.3181167,-71.211237
+Newtonville,Star Market #3561,33 Austin Street,02460,(617)964-6825,Yes,42.3498004,-71.2087985
+North Adams,Big Y Foods #26,45 Veterans Memorial Drive,01247,(413)663-6549,,42.7012114,-73.1105261
+North Adams,CVS Pharmacy #1131,Veterans Memorial Drive,01247,(413)664-8712,,42.7003951,-73.1121978
+North Adams,Super Stop & Shop (F&P) #784,876 State Road,01247,(413)664-8100,Yes,42.6991337,-73.1661222
+North Adams,Walmart Store (F&P) #1984,1415 Curran Memorial Hwy,01247,(413)664-4004,Yes,42.6643838,-73.1106197
+North Andover,CVS Pharmacy #1239,110 Turnpike Street,01845,(978)686-3854,,42.6757741,-71.12855859999999
+North Andover,Market Basket #12,350 Winthrop Ave,01845,(978)688-6322,,42.683689,-71.136682
+North Andover,Super Stop & Shop (F&P) #092,757 Turnpike Street,01845,(978)683-9666,Yes,42.66005819999999,-71.1097582
+North Andover,Walgreens #10209,800 Waverly Road,01845,(978)681-1530,,42.6777805,-71.1333806
+North Attleboro,CVS Pharmacy #938,8 E Washington Street,02760,(508)695-1481,,41.967338,-71.3383726
+North Attleboro,Shaws Supermarket (F&P) #1412,125 Toner Blvd,02760,(508)643-2259,Yes,41.9708459,-71.3009697
+North Attleboro,Super Stop & Shop (F&P) #490,206 E Washington Street,02760,(508)695-1999,Yes,41.9720829,-71.3315866
+North Attleboro,Target Store T-1190,1205 S Washington Street,02760,(508)699-9118,Yes,41.940017,-71.3526029
+North Attleboro,Walmart Store (F&P) #2366,1470 S Washington Street,02760,(508)699-0277,Yes,41.933125,-71.350376
+North Billerica,CVS Pharmacy #131,210 Boston Road,01862,(978)663-6616,,42.5811179,-71.2876529
+North Brookfield,Hannaford Food & Drug #8011,5 Gilbert Street,01535,(508)867-6809,,42.2665884,-72.0833802
+North Dartmouth,Walmart Store (F&P) #2157,506 State Road,02747,(508)984-7771,Yes,41.6419118,-71.0078771
+North Dartmouth,Walgreens #11885,494 State Road,02747,(508)994-4236,,41.6419276,-71.0036136
+North Easton,Shaw's Supermarket #2408,690 Depot Street,02356,(508)238-0165,Yes,42.0242698,-71.1164429
+North Oxford,Walmart Store (F&P) #2012,742 Main Street,01537,(508)987-1444,Yes,42.1706154,-71.8787756
+North Reading,Stop & Shop #2406,265 Main Street,01864,(978)664-0164,Yes,42.5923492,-71.1164429
+North Reading,Walmart Store #2660,72 Main Street,01864,(978)664-3262,Yes,42.5704229,-71.11272919999999
+Northampton,Big Y Foods (F&P) #7,136 North King Street,01060,(413)584-6137,,42.3409577,-72.64227249999999
+Northampton,Super Stop & Shop (F&P) #787,228 King Street,01060,(413)584-9200,Yes,42.329134,-72.6359982
+Northampton,Walmart Store #2901,180 North King Street,01060,(413)587-0001,Yes,42.3413871,-72.64364359999999
+Northampton,Walgreens #11998,225R King Street,01060,(413)587-2802,,42.3298734,-72.6328704
+Northborough,WalMart Store (F&P) #2158,200 Otis Street,01532,(508)393-4385,Yes,42.2851509,-71.6563963
+Northborough,Wegmans - Northborough,9102 Shops Way,01532,(508)936-1900,Yes,42.2911411,-71.6705798
+Norwell,Big Y Foods #103,10 Washington Street,02061,(781)681-9322,,42.1727888,-70.883715
+Norwell,Super Stop & Shop (F&P) #028,468 Washington Street,02061,(781)982-9876,Yes,42.1579174,-70.853641
+Norwood,Big Y #126,434 Walpole Street,02062,(781)769-0905,,42.1796948,-71.22046259999999
+Norwood,CVS Pharmacy #2054,136 Nahatan Street,02062,(781)769-2422,,42.1914786,-71.1962806
+Norwood,Shaw's Supermarket #3567,134 Nahatan Street,02062,(781)762-0610,Yes,42.1925371,-71.1967142
+Norwood,Stop & Shop #418,1415 Providence Highway,02062,(781)255-1141,Yes,42.1632377,-71.20092029999999
+Norwood,Walgreens #18231,469 Walpole Street,02062,(781)769-5400,,42.1788988,-71.2225473
+Orange,WalMart Store (F&P) #2329,555 East Main Street,01364,(978)544-5800,Yes,42.5886487,-72.2842989
+Orleans,CVS Pharmacy #1857,9 West Road,02653,(508)255-0570,,41.7808356,-70.00216379999999
+Orleans,CVS Pharmacy #719,110 MA Route 6A,02653,(508)240-2759,,41.7879012,-69.99229249999999
+Orleans,Shaw's #0690,9 West Road,02653,(508)240-1021,Yes,41.7808356,-70.00216379999999
+Orleans,Super Stop & Shop (F&P) #064,Cranberry Cove Plaza,02653,(508)255-5288,Yes,41.7960507,-69.98464349999999
+Oxford,Market Basket #62,95 Sutton Ave,01540,(508)987-9539,,42.11388660000001,-71.8517098
+Palmer,Big Y Foods (F&P) #20,1180 Thorndike Road,01069,(413)283-6918,,42.1742319,-72.3238981
+Palmer,CVS Pharmacy #969,1001 Thorndike Street,01069,(413)283-2545,,42.1574602,-72.32920659999999
+Palmer,Walgreens #17302,1047 Thorndike Street,01069,(413)283-3658,,42.1587087,-72.32866179999999
+Peabody,CVS Pharmacy #4073,174 Main Street,01960,(978)977-4844,,42.5233643,-70.9201057
+Peabody,Shaw's #2478,114-128 Essex Center Drive,01960,(978)532-5434,Yes,42.5394149,-70.9489215
+Peabody,Super Stop & Shop (F&P) #005,19 Howley Street,01960,(978)977-3900,Yes,42.5233154,-70.9189525
+Peabody,Walgreens #2208,35 Main Street,01960,(978)977-9211,,42.5250251,-70.92611889999999
+Peabody,Walgreens #6296,229 Andover St,01960,(978)532-2453,,42.54724059999999,-70.94680269999999
+Pembroke,Stop & Shop #2414,24 Mattakeesett Street,02359,(781)293-1262,Yes,42.0671959,-70.8122204
+Pembroke,Super Stop & Shop (F&P) #014,125 Church Street,02359,(781)826-9802,Yes,42.1052471,-70.7722282
+Pepperell,Walgreens #17464,60 Groton St,01463,(978)433-2711,,42.6658206,-71.57218410000002
+Pittsfield,Big Y Foods (F&P) #23,200 West Street,01201,(413)447-7301,,42.4485452,-73.25939699999999
+Pittsfield,CVS Pharmacy #257,107 West Street,01201,(413)499-4624,,42.4474132,-73.258487
+Pittsfield,Market 32 by Price Chopper (F&P) #140,555 Hubbard Avenue,01201,(413)442-7696,,42.4687567,-73.1983393
+Pittsfield,Stop & Shop (F&P) #21,1 Dan Fox Drive,01201,(413)442-7600,Yes,42.4099916,-73.26437299999999
+Pittsfield,Walmart Store #2228,"555 Hubbard Ave, Suite 12",01201,(413)442-1971,Yes,42.4648501,-73.1981923
+Pittsfield,Super Stop & Shop (F&P) #458,660 Merrill Road,01201,(413)499-0745,Yes,42.4654217,-73.203237
+Pittsfield,Walgreens #17226,501 North Street,01201,(413)499-5411,,42.4557347,-73.25212290000002
+Pittsfield,Walgreens #18122,37 Chesire Road,01201,(413)443-4486,,42.4695184,-73.20573639999999
+Plainville,Stop & Shop #462,109 Taunton Street,02762,(508)643-2603,Yes,42.03529229999999,-71.3113499
+Plainville,Target Store T-1930,91 Taunton Street,02762,(508)643-5008,Yes,42.0341138,-71.3100078
+Plainville,Walgreens #19915,13 Taunton Street,02762,(508)695-9475,,42.0111907,-71.305452
+Plymouth,CVS Pharmacy #2138,8 Pilgrim Hill Road,02360,(508)747-1465,,41.9509009,-70.687899
+Plymouth,Market Basket #80,1 Commerce Way,02360,(774)404-7518,,41.9422503,-70.7129617
+Plymouth,Shaw's (F&P) #2585,2260 State Road,02360,(508)833-2975,Yes,41.8208995,-70.5504775
+Plymouth,Super Stop & Shop (F&P) #469,129 Samoset Street,02360,(508)746-1444,Yes,41.9550186,-70.6862704
+Plymouth,Walmart Store (F&P) #2336,300 Colony Place Road,02360,(508)830-9555,Yes,41.955574,-70.7179621
+Plymouth,Walgreens #7734,165 Samoset Street,02360,(508)591-3031,,41.9512167,-70.6897772
+Provincetown,Stop & Shop (F&P) #2403,56 Shank Painter Road,02657,(508)487-4903,Yes,42.0502695,-70.195999
+Quincy,CVS Pharmacy #137,626 Southern Artery,02169,(617)472-7534,,42.2528193,-70.9878363
+Quincy,Kam Man Food LLC,219 Quincy Ave,02169,(617)328-1533,,42.2407234,-70.9914582
+Quincy,Star Market #2573,130 Granite Street,02169,(617)770-0841,Yes,42.2447471,-71.0053886
+Quincy,Super Stop & Shop (F&P) #17,495 Southern Artery,02169,(617)773-4510,Yes,42.2527813,-70.99498729999999
+Quincy,Walgreens #4403,418 Quincy Ave,02169,(617)472-4483,,42.2390322,-70.983104
+Quincy,Walmart Store #2341,301 Falls Blvd,02169,(617)745-4390,Yes,42.2361724,-70.9863311
+Quincy,Walgreens #18361,132 Granite Ave,02169,(617)479-2330,,42.2448107,-71.00576
+Quincy,Super Stop & Shop (F&P) #20,65 Newport Avenue,02171,(617)328-4477,Yes,42.271111,-71.0266628
+Randolph,CVS Pharmacy #746,171 North Main Street,02368,(781)963-3906,,42.1654544,-71.0421417
+Randolph,Americas Food Basket,300 North Main Street,02368,(781)885-3487,,42.1678388,-71.0466196
+Randolph,Shaw's Supermarket #1416,121 Memorial Parkway,02368,(781)963-6995,Yes,42.1638197,-71.04555169999999
+Raynham,CVS Pharmacy #335,266 Route 44,02767,(508)824-1361,,41.9057394,-71.0559356
+Raynham,CVS Pharmacy #513,252 Broadway,02767,(508)824-8621,,41.9359726,-71.0822458
+Raynham,Market Basket #52,240 Broadway,02767,(508)822-8866,,41.9368364,-71.0841603
+Raynham,Shaw's Supermarket #1420,300 New State Highway,02767,(508)822-5660,Yes,41.9066203,-71.0553482
+Raynham,Super Stop & Shop (F&P) #38,36 New State Highway,02767,(508)824-8800,Yes,41.9063485,-71.0633273
+Raynham,Walmart Store (F&P) #2021,36 Paramount Drive,02767,(508)822-4900,Yes,41.9042762,-71.0323923
+Raynham,Walmart Store (F&P) #5448,160 Broadway,02767,(508)692-6046,Yes,41.93508800000001,-71.08592449999999
+Reading,CVS Pharmacy #224,650 Main Street,01867,(781)944-0432,,42.5244486,-71.1032127
+Reading,Market Basket #60,1 General Way,01867,(781)942-0040,,42.5190103,-71.09896379999999
+Reading,Stop & Shop #488,25 Walkers Brook Drive,01867,(781)944-2919,Yes,42.519246,-71.0962797
+Reading,Walgreens #18415,15 Bolton Street,01867,(781)942-5810,,42.5197656,-71.1015078
+Revere,Convenient Market,270 Broadway,02151,(781)284-9723,,42.4078901,-71.0138757
+Revere,CVS Pharmacy #9,339 Squire Road,02151,(781)289-6099,,42.4283224,-71.01337509999999
+Revere,Market Basket #74,275 Squire Road,02151,(781)485-0110,,42.4274977,-71.0105411
+Revere,PriceRite #341,255 Squire Road,02151,(781)286-6813,Yes,42.4269382,-71.0130258
+Revere,Revere Beach Food Mart,161 Shirley Ave,02151,(781)284-1030,,42.40753840000001,-70.994834
+Revere,Stop & Shop (F&P) #043,540 Squire Road,02151,(781)286-2200,Yes,42.4294188,-71.0199849
+Revere,Stop & Shop #011,40 Furlong Drive,02151,(781)284-0717,Yes,42.3999337,-71.0000057
+Revere,Target Store T-1942,36 Furlong Drive,02151,(781)922-6030,Yes,42.4004098,-71.000188
+Rockland,Walgreens #7329,75 Market Street,02370,(781)871-5849,,42.1206107,-70.9157872
+Rockport,Walgreens #17472,33 Whistlestop Mall,01966,(978)546-7521,,42.65505020000001,-70.6270238
+Roslindale,Brothers Supermarket,606 American Legion Hwy,02131,(617)524-9877,,42.2856412,-71.109619
+Roslindale,CVS Pharmacy #1031,4600 Washington St,02131,(617)469-6302,,42.275459,-71.13892160000002
+Roslindale,Stop & Shop #004,950 American Legion Hwy,02131,(617)327-2160,Yes,42.27676450000001,-71.11478319999999
+Roslindale,The Village Market,30 Corinth St,02131,(617)327-2588,,42.2862566,-71.1293942
+Roslindale,PriceRite of Roslindale,650 American Legion Hwy,02131,(617)522-0066,,42.2839114,-71.1105938
+Rowley,Market Basket #49,231 Newburyport Turnpike,01969,(978)948-5075,,42.7081649,-70.9060089
+Roxbury,F & T Davey's Supermarket,438 Dudley Street,02119,(617)445-6543,,42.32419429999999,-71.0737797
+Roxbury,Price-Rite #377,330 Martin Luther King Blvd,02119,(617)427-0094,,42.3187649,-71.082538
+Roxbury,Walgreens #4072,1890 Columbus Ave,02119,(617)445-5457,,42.3174486,-71.0973772
+Roxbury,Walgreens #7189,1630 Tremont Street,02120,(617)232-5457,,42.3335258,-71.10470099999999
+Salem,CVS Pharmacy #261,200 Essex Street,01970,(978)744-2224,,42.52184870000001,-70.8947005
+Salem,CVS Pharmacy #457,426B Essex Street,01970,(978)741-0484,,42.5166532,-70.9064309
+Salem,CVS Pharmacy #7109,300 Canal Street,01970,(978)740-2912,,42.5010419,-70.8965984
+Salem,Market Basket #58,227 Highland Ave,01970,(978)741-0986,,42.5038346,-70.9201278
+Salem,Shaw's Supermarket #2493,11 Traders Way,01970,(978)741-8660,Yes,42.50531489999999,-70.9247488
+Salem,Steve's Quality Market,36 Margin Street,01970,(978)744-4220,,42.5190136,-70.89639480000001
+Salem,Walgreens #2063,29 New Derby Street,01970,(978)744-7442,,42.5192108,-70.894537
+Salem,Walmart Store #2640,450 Highland Ave,01970,(978)825-1713,Yes,42.494501,-70.9355235
+Sandwich,CVS Pharmacy #1850,77 Quaker Meeting Hse Rd.,02563,(508)477-2655,,41.701184,-70.4857541
+Sandwich,CVS Pharmacy #636,65 Tupper Road,02563,(508)888-4335,,41.7659709,-70.5077244
+Sandwich,Super Stop & Shop (F&P) #012,Rte 6A & Merchants Road,02563,(508)833-1302,Yes,41.76533329999999,-70.507132
+Sandwich,Stop & Shop #470,71 Quaker Mtg House Rd.,02563,(508)477-1449,Yes,41.7005759,-70.48727459999999
+Saugus,Super Stop & Shop (F&P) #407,"164 Main Street, Rte 1",01906,(781)231-5120,Yes,42.4651983,-71.0264438
+Saugus,Walmart Store (F&P) #3114,770 Broadway,01906,(781)816-5370,Yes,42.4720448,-71.0236601
+Saugus,Walgreens #2577,1228 Broadway,01906,(781)233-6768,,42.4574059,-71.0231453
+Seekonk,CVS Pharmacy #394,1479 Newman Ave,02771,(508)399-8801,,41.8882217,-71.3320597
+Seekonk,Price Rite #358,140 Taunton Ave,02771,(401)435-1851,Yes,41.82621,-71.3410743
+Seekonk,Stop & Shop #2404,1475 Newman Ave,02771,(508)399-5624,Yes,41.8872448,-71.33146789999999
+Seekonk,Super Stop & Shop (F&P) #073,125 Highland Avenue,02771,(508)336-2550,Yes,41.8003617,-71.3372334
+Seekonk,Walmart Store #2184,1180 Fall River Ave,02771,(508)336-0290,Yes,41.7954132,-71.32548849999999
+Sharon,Shaw's Supermarket #0418,780 South Main Street,02067,(781)784-5995,Yes,42.0939331,-71.2201765
+Shrewsbury,CVS Pharmacy #8,197 Boston Turnpike,01545,(508)752-0439,,42.2755673,-71.745379
+Shrewsbury,Market Basket #93,200 Hartford Turnpike Unit 1,01545,(508)841-7990,,42.2464599,-71.7242813
+Shrewsbury,Price Chopper #229,733 Boston Turnpike,01545,(508)791-7142,,42.2784757,-71.6959146
+Shrewsbury,Shaws Supermarket (F&P) #2470,50 Boston Turnpike Rd,01545,(508)797-1126,Yes,42.2738892,-71.7525634
+Shrewsbury,Super Stop & Shop (F&P) #091,539-571 Boston Turnpike,01545,(508)842-1911,Yes,42.2778523,-71.7158766
+Shrewsbury,Whole Foods Market,193 Boston Turnpike Rd,01545,(508)749-5520,,42.2757793,-71.7470491
+Somerset,CVS Pharmacy #237,1587 Brayton Point Road,02725,(508)673-9691,,41.7317701,-71.1730054
+Somerset,Super Stop & Shop (F&P) #421,"815 GAR Highway, Rte 6",02726,(508)679-1373,Yes,41.7295053,-71.1709195
+Somerville,Market Basket #28,400 Somerville Ave,02143,(617)666-2420,,42.3805055,-71.1015441
+Somerville,Star Market #2575,275 Beacon Street,02143,(617)354-7023,Yes,42.383677,-71.111897
+Somerville,Star Market #3580,14 McGrath Highway,02143,(617)625-4070,Yes,42.3738467,-71.0866267
+Somerville,Walgreens #2945,16 Beacon Street,02143,(617)497-5763,,42.3747457,-71.1025597
+Somerville,Whole Foods Market,45 Beacon Street,02143,(617)758-0901,,42.376019,-71.102897
+Somerville,Walgreens #18170,299 Broadway,02143,(617)628-1010,,42.3918239,-71.09245489999999
+Somerville,Walgreens #18091,530 Somerville Ave,02143,(617)776-9320,,42.3827122,-71.1069265
+Somerville,Stop & Shop Supermarket #2411,105 Alewife Brook Parkway,02144,(617)625-1546,Yes,42.406736,-71.13231859999999
+Somerville,Super Stop & Shop (F&P) #498,779 McGrath Highway,02145,(617)666-1024,Yes,42.391492,-71.0855253
+South Attleboro,CVS Pharmacy #2206,366 Washington Street,02703,(508)761-7144,,41.9192847,-71.3582143
+South Attleboro,Market Basket #76,1200 Newport Ave,02703,(508)339-8088,,41.9004387,-71.3536535
+South Boston,CVS Pharmacy #979,423 West Broadway,02127,(617)269-7656,,42.3364057,-71.0478732
+South Boston,Stop & Shop #053,713 East Broadway,02127,(617)269-7989,Yes,42.3353054,-71.0366557
+South Boston,Foodies South Boston,230 West Broadway,02127,(617)269-4700,,42.3398387,-71.0518829
+South Boston,Walgreens #17169,710 East Broadway,02127,(617)269-5788,,42.33620550000001,-71.036498
+South Dartmouth,CVS Pharmacy #1955,548 Dartmouth Street,02747,(508)991-7934,,41.6134297,-70.9375436
+South Dartmouth,Walgreens #17925,674 Dartmouth Street,02748,(508)990-3875,,41.603248,-70.9406032
+South Dennis,CVS Pharmacy #1021,"Patriots Square, Rte. 134",02660,(508)398-0133,,41.695061,-70.15047
+South Dennis,Stop & Shop #461,"Patriot Square,  Rte. 134",02660,(508)394-4535,Yes,41.695061,-70.15047
+South Easton,CVS Pharmacy #972,555 Washington Street,02375,(508)238-3476,,42.048996,-71.0843548
+South Hadley,Big Y Foods (F&P) #50,44 Willimansett Street,01075,(413)538-9303,,42.2225797,-72.5702069
+South Weymouth,CVS Pharmacy #382,1504 Main St,02190,(781)331-2580,,42.1526471,-70.9540298
+South Yarmouth,CVS Pharmacy #944,453 Station Avenue,02664,(508)394-0926,,41.6849341,-70.208787
+South Yarmouth,Shaw's #3692,1108 State Road,02664,(508)394-0995,Yes,41.6518644,-70.20084
+South Yarmouth,Stop & Shop #2422,474 Station Ave,02664,(508)394-0431,Yes,41.6861414,-70.2087442
+South Yarmouth,Super Stop & Shop (F&P) #022,55 Long Pond Drive,02664,(508)394-1234,Yes,41.6581236,-70.2074268
+Southampton,Big Y Foods #11,10 College Highway,01073,(413)527-5500,,42.2535805,-72.6987245
+Southampton,Walgreens #17885,14 College Highway,01073,(413)527-0777,,42.25260189999999,-72.6995788
+Southbridge,Big Bunny Market Inc,942 Main St,01550,(508)765-9824,,42.0828764,-72.0478333
+Southbridge,Big Y Foods #24,505 East Main St,01550,(508)764-6213,,42.0694895,-72.0090374
+Southbridge,CVS Pharmacy #765,399 Main Street,01550,(508)765-0646,,42.076291,-72.0362639
+Southbridge,Walgreens #18421,455 Main St,01550,(508)765-5922,,42.0769637,-72.0372752
+Southwick,Big Y Foods (F&P) #8,195 College Highway,01077,(413)569-6163,,42.025421,-72.7882138
+Southwick,Walgreens #17650,592 College Highway,01077,(413)569-1251,,42.0613529,-72.7651439
+Spencer,Big Y Foods (F&P) #27,62 West Main Street,01562,(508)885-0003,,42.2333536,-72.0150979
+Spencer,CVS Pharmacy #582,133 Main Street,01562,(508)885-3838,,42.2448382,-71.99338730000001
+Spencer,Price Chopper #150,133 Main Street,01562,(508)885-3199,,42.2448382,-71.99338730000001
+Springfield,Stop & Shop (F&P) #80,1277 Liberty Street,01101,(413)732-6920,Yes,42.13726,-72.5820513
+Springfield,Big Y Foods #1,1090 St. James Ave,01104,(413)732-5177,,42.1370368,-72.5717554
+Springfield,CVS Pharmacy #488,970 Saint James Ave,01104,(413)737-6346,,42.1348012,-72.5689463
+Springfield,Honeyland Farms,766 Liberty Street,01104,(413)301-7919,,42.1235258,-72.5845733
+Springfield,Save a Lot,655 Liberty Street,01104,(413)732-4405,,42.1214312,-72.58319089999999
+Springfield,Walgreens #10127,625 Carew Street,01104,(413)205-1495,,42.1220162,-72.5876548
+Springfield,Downtown Super Market,121 Spring Street,01105,(413)214-6415,,42.1074118,-72.58598309999999
+Springfield,C-Town Supermarket,2705 Main Street,01107,(413)732-7403,,42.1154014,-72.60604409999999
+Springfield,Punto Market,2760 Main Street,01107,(413)214-6277,,42.1159745,-72.60675909999999
+Springfield,San Miguel Market Y Restuarant,1344 Dwight St,01107,(413)266-2331,,42.115344,-72.603174
+Springfield,CVS Pharmacy #1130,615 Belmont Ave,01108,(413)732-2998,,42.08608539999999,-72.5551725
+Springfield,Food Zone International,355 Belmont Ave,01108,(413)731-5600,,42.0884425,-72.5644603
+Springfield,C-Town Supermarket,276 Oakland Street,01108,(413)788-6390,,42.09257160000001,-72.5627425
+Springfield,Walgreens #3736,501 Sumner Ave,01108,(413)746-1563,,42.0856477,-72.5578336
+Springfield,Americas Food Basket,790 State Street,01109,(413)733-9090,,42.1120166,-72.56563229999999
+Springfield,CVS Pharmacy #4471,600 State Street,01109,(413)736-0351,,42.11024760000001,-72.5727071
+Springfield,Save a Lot,1060 Wilbraham Road,01109,(413)783-0102,,42.1170517,-72.5264602
+Springfield,Big Y Express Fresh Market #134,"1500 Main Street, Suite 164",01115,(413)504-6134,Yes,42.1026154,-72.5915752
+Springfield,CVS Pharmacy #1026,1500 Main Street,01115,(413)827-7143,,42.1027627,-72.59172
+Springfield,CVS Pharmacy #1291,770 Boston Road,01119,(413)783-0125,,42.1376268,-72.519036
+Springfield,PriceRite #352,633 Boston Road,01119,(413)796-2934,Yes,42.1335287,-72.5217768
+Springfield,Stop & Shop (F&P) #404,1600 Boston Road,01119,(413)543-1041,Yes,42.1444166,-72.4913723
+Springfield,WalMart Store (F&P) #1967,1105 Boston Road,01119,(413)782-6699,Yes,42.1360727,-72.50690999999999
+Springfield,Big Y Foods (F&P) #66,300 Cooley Street,01128,(413)782-0608,,42.0963674,-72.4987139
+Springfield,Stop & Shop (F&P) #454,415 Cooley Street,01128,(413)426-9504,Yes,42.09149439999999,-72.49848279999999
+Springfield,Walgreens #17787,381 Cooley Street,01128,(413)783-4451,,42.09274320000001,-72.4987371
+Springfield,Big Y Fresh Acres #16,1941 Wilbraham Road,01129,(413)783-9141,,42.1138897,-72.4971424
+Springfield,CVS Pharmacy #1157,1242 Parker Street,01129,(413)796-5501,,42.1149771,-72.4988935
+Springfield,Walgreens #2311,1919 Wilbraham Road,01129,(413)783-2535,,42.1142028,-72.49746590000001
+Stoneham,Stop & Shop #039,259 Main Street,02180,(781)438-3737,Yes,42.4847453,-71.1015879
+Stoughton,Super Stop & Shop (F&P) #033,278 Washington Street,02072,(781)341-1797,Yes,42.1382115,-71.1001024
+Stoughton,Target Store T-2258,1 Hawes Way,02072,(781)847-4000,Yes,42.1523233,-71.07255219999999
+Stoughton,Prite-Rite Marketplace #379,666 Washington Street,02072,(508)513-3100,,42.1280469,-71.100613
+Stow,Shaw's (F&P) #2584,155 Great Road,01775,(978)897-5140,Yes,42.4349269,-71.4868898
+Sturbridge,Shaw's Supermarket #2472,178 Main Street,01566,(508)347-3003,Yes,42.0979131,-72.071074
+Sturbridge,Stop & Shop #481,100 Charlton Road,01566,(508)347-9500,Yes,42.1281527,-72.060082
+Sturbridge,Walmart Store #2797,100 Charlton Road,01566,(508)347-4993,Yes,42.1281527,-72.060082
+Sudbury,Shaw's #2571,509 Boston Post Road,01776,(978)443-7066,Yes,42.3589975,-71.42947250000002
+Sudbury,Sudbury Farms #208,439 Boston Post Road,01776,(978)443-3575,,42.3595775,-71.42316439999999
+Sutton,Market 32 by Price Chopper #244,21 Galaxy Pass,01590,(508)865-5168,,42.1602089,-71.7326946
+Swampscott,CVS Pharmacy #669,413 Paradise Road,01907,(781)595-8588,,42.4808664,-70.902154
+Swampscott,Stop & Shop (F&P) #015,450 Paradise Road,01907,(781)596-1445,Yes,42.4827176,-70.9029705
+Swansea,Target Store T-2607,579 GAR Highway,02777,(774)488-3684,Yes,41.7493353,-71.2066251
+Swansea,Walmart Store (F&P) #2953,54 Cousineau Street,02777,(508)677-3775,Yes,41.75440649999999,-71.2196699
+Taunton,CVS Pharmacy #1041,675 County Street,02780,(508)823-5376,,41.8840815,-71.067362
+Taunton,CVS Pharmacy #41,284 Winthrop Street,02780,(508)822-3658,,41.8884548,-71.1201566
+Taunton,CVS Pharmacy #5402,7 Washington Street,02780,(508)821-5605,,41.9026899,-71.0982566
+Taunton,Hannaford Food & Drug #8383,255 Joseph E. Warner Blvd,02780,(508)880-0628,,41.8863462,-71.1216247
+Taunton,Target Store T-1189,81 Taunton Depot Drive,02780,(508)824-8004,Yes,41.877996,-71.06927639999999
+Taunton,Trucchi's Supermarket #1,53 Tremont Street,02780,(508)824-5698,,41.9055172,-71.105116
+Taunton,Trucchi's Supermarket #3,534 County Street,02780,(508)824-8941,,41.8881113,-71.06781029999999
+Taunton,Walgreens #12399,226 Broadway,02780,(508)977-0690,,41.9206685,-71.09144409999999
+Teaticket,Walmart Store #3561,137 Teaticket Highway,02536,(508)540-8995,Yes,41.5618562,-70.5961025
+Tewksbury,CVS Pharmacy #217,1900 Main Street,01876,(978)851-6856,,42.5909623,-71.2022198
+Tewksbury,Market Basket #22,1900 Main Street,01876,(978)851-2960,,42.5909623,-71.2022198
+Tewksbury,Market Basket #8,10 Main Street,01876,(978)851-6211,,42.6303966,-71.2744831
+Tewksbury,Walmart Store (F&P) #2222,333 Main Street,01876,(978)851-6265,Yes,42.62280519999999,-71.2697883
+Townsend,Hannaford Supermarket #8009,18 Main Street,01469,(978)597-5909,,42.6484301,-71.660005
+Townsend,Walgreens #17212,18 Main Street,01469,(978)597-2160,,42.6484301,-71.660005
+Turners Falls,Food City,250 Avenue A,01376,(413)863-9591,,42.6050556,-72.5614817
+Turners Falls,Walgreens #17488,240 Avenue A,01376,(413)863-3107,,42.605315,-72.56110919999999
+Uxbridge,Big Y #131,250 South Main Street,01569,(508)972-0265,,42.06338299999999,-71.620904
+Uxbridge,CVS Pharmacy #946,323 North Main Street,01569,(508)278-2456,,42.0907014,-71.6421491
+Uxbridge,Hannaford Food & Drug #8014,158 North Main Street,01569,(508)278-2487,,42.0817647,-71.6387819
+Vineyard Haven,Stop & Shop #423,50 South Water Street,02568,(508)693-8339,Yes,41.45445309999999,-70.6015561
+Wakefield,CVS Pharmacy #119,451 Main St,01880,(781)245-2270,,42.50174790000001,-71.0698841
+Wakefield,Shaw's Supermarket #3648,134 Water St,01880,(781)245-0032,Yes,42.5031383,-71.0640087
+Walpole,Big Y Foods (F&P) #65,"1111 Providence Hwy, Rte 1",02081,(508)660-9710,,42.123286,-71.2311813
+Walpole,Super Stop & Shop #044,Route 1A & Main St,02081,(508)660-7483,Yes,42.1732495,-71.2250814
+Walpole,WalMart Store (F&P) #2103,550 Providence Hwy,02081,(508)668-4144,Yes,42.14236349999999,-71.215029
+Waltham,CVS Pharmacy #114,12 Harvard St,02451,(781)894-1600,,42.3758388,-71.2433377
+Waltham,Market Basket #79,110 Marketplace Drive,02451,(781)894-1510,,42.3809743,-71.2627283
+Waltham,Star Market (F&P) #2569,1070 Lexington St,02452,(781)891-0615,Yes,42.4124873,-71.2344277
+Waltham,Hannaford Food & Drug #8017,55 Russell St,02453,(781)893-6776,,42.3759813,-71.2445865
+Waltham,Shaw's Supermarket #1497,130 River St,02453,(781)647-5341,,42.36925249999999,-71.2215263
+Ware,Big Y Foods #21,148 West Street,01082,(413)967-6181,,42.2542473,-72.252016
+Ware,CVS Pharmacy #1111,104 West Street,01082,(413)967-5997,,42.2569417,-72.2483237
+Ware,Walmart Store (F&P) #2386,352 Palmer Road,01082,(413)967-0040,Yes,42.2376216,-72.2789538
+Wareham,CVS Pharmacy #518,419 Main St,02571,(508)291-6289,,41.7627967,-70.7206105
+Wareham,Shaw's Supermarket #2653,127 Marion Rd,02571,(508)295-7813,Yes,41.7596904,-70.72883449999999
+Wareham,Target Store T-2292,2421 Cranberry Hwy,02571,(508)273-0436,Yes,41.77514499999999,-70.7422304
+Wareham,Walmart Store (F&P) #2095,15 Tobey Rd,02571,(508)295-8890,Yes,41.7790691,-70.74676869999999
+Wareham,Walgreens #18183,121 Marion Rd,02571,(508)295-5772,,41.7593452,-70.72773029999999
+Watertown,CVS Pharmacy #1012,27 Main St,02472,(617)926-6660,,42.3661445,-71.18500089999999
+Watertown,CVS Pharmacy #10601,655 Mt. Auburn St,02472,(617)744-0842,,42.3717189,-71.1568272
+Watertown,Stop & Shop #049,700 Pleasant St,02472,(617)923-3007,Yes,42.36719189999999,-71.2154686
+Watertown,Stop & Shop #446,171 Watertown St,02472,(781)527-2493,Yes,42.3636208,-71.1951885
+Watertown,Roche Bros. Supermarket #122,96 Arsenal Yards Blvd,02472,(617)612-5537,,42.3617098,-71.15771
+Wayland,Stop & Shop #2700,101 Andrew Ave,01778,(508)358-0740,Yes,42.3644301,-71.3663874
+Webster,CVS Pharmacy #498,112 East Main Street,01570,(508)949-0641,,42.0584225,-71.8662465
+Webster,Price Chopper (F&P) #240,2 Worcester Road,01570,(508)943-7232,,42.0612634,-71.86232129999999
+Wellesley,Roche Bros. Supermarkets #120,184 Linden Street,02481,(781)237-2115,,42.30123469999999,-71.29271059999999
+West Boylston,Walmart Store #2267,137 W Boylston Street,01583,(508)835-1101,Yes,42.3552672,-71.7824472
+West Boylston,CVS Pharmacy #705,264 W Boylston Street,01583,(508)835-3157,,42.34536749999999,-71.7875473
+West Bridgewater,Market Basket #70,352 West Center Street,02379,(508)427-5472,,42.0150095,-71.0325234
+West Bridgewater,Trucchi's Supermarket #2,53 East Center Street,02379,(508)824-5698,,42.02102350000001,-71.0036769
+West Peabody,Big Y Foods #106,637 Lowell Street,01960,(978)536-3200,,42.5506628,-71.0014881
+West Roxbury,Roche Bros. Supermarket #115,1800 Centre Street,02132,(617)469-5747,,42.2863137,-71.15181419999999
+West Roxbury,Star Market (F&P) #3577,75 Spring Street,02132,(617)327-0564,Yes,42.2787338,-71.1632989
+West Springfield,Big Y Foods #3,503 Memorial Ave,01089,(413)746-0999,,42.09452160000001,-72.60423209999999
+West Springfield,CVS Pharmacy #1972,152 Elm Street,01089,(413)827-0734,,42.1073807,-72.6224625
+West Springfield,Price Rite #347,1106 Union Street,01089,(413)731-7344,Yes,42.0948321,-72.6076324
+West Springfield,Super Stop & Shop (F&P) #094,935 Riverdale Street,01089,(413)737-8770,Yes,42.1297367,-72.6232479
+West Yarmouth,CVS Pharmacy #4313,438 Route 28,02673,(508)771-4429,,41.6511917,-70.2414387
+Westboro,Big Y #141,290 Turnpike Road,01581,(508)621-2101,,42.280816,-71.646384
+Westboro,Roche Bros. Supermarkets #119,1100 Union Street,01581,(508)836-3600,,42.27045,-71.60882099999999
+Westboro,Super Stop & Shop (F&P) #497,32 Lyman Street,01581,(508)366-3961,Yes,42.28297209999999,-71.60985529999999
+Westboro,Target Store T-1496,330 Turnpike Road,01581,(508)366-1426,Yes,42.2799011,-71.65528379999999
+Westfield,Big Y Foods #10,1 East Silver Street,01085,(413)568-1001,,42.1123695,-72.7469131
+Westfield,Big Y Foods (F&P) #68,475 East Main Street,01085,(413)562-5230,,42.1116811,-72.7231548
+Westfield,CVS Pharmacy #1234,208 Elm Street,01085,(413)568-4149,,42.1246219,-72.748528
+Westfield,Price Rite #338,303 East Main Street,01085,(413)572-6773,Yes,42.112873,-72.72692800000002
+Westfield,Super Stop & Shop (F&P) #072,57 Main Street,01085,(413)562-2300,Yes,42.1193279,-72.7476016
+Westfield,Walmart Store (F&P) #2174,141 Springfield Road,01085,(413)572-0400,Yes,42.1080199,-72.7074993
+Westford,Market Basket #72,6A Cornerstone Square,01886,(978)589-1108,,42.565631,-71.42599799999999
+Westford,Walgreens #9966,145 Littleton Road,01886,(978)692-3075,,42.5704134,-71.419652
+Westport,CVS Pharmacy #7140,599 State Road,02790,(508)673-3072,,41.6600106,-71.08382739999999
+Westwood,Roche Bros. Supermarket #104,338 Washington Street,02090,(781)326-9303,,42.2175143,-71.1878321
+Westwood,Wegmans Food Markets #57,169 University Ave,02090,(781)234-0300,Yes,42.2068068,-71.154692
+Weymouth,CVS Pharmacy #43,474 Washington Street,02188,(781)335-0404,,42.2077137,-70.9564469
+Weymouth,Super Stop & Shop (F&P) #487,700 Middle Street,02188,(781)337-2782,Yes,42.200303,-70.9440917
+Weymouth,Walmart Store #3200,740 Middle Street,02188,(781)331-0063,Yes,42.1997076,-70.9440917
+Weymouth,Walgreens #6470,750 Washington Street,02188,(781)331-5301,,42.2022449,-70.94648819999999
+Weymouth,Shaw's Supermarket #3413,610 Middle Street,02189,(781)331-5108,Yes,42.2027904,-70.9429771
+Weymouth,CVS Pharmacy #1853,737 Bridge Street,02191,(781)335-3331,,42.2452878,-70.93562430000001
+Whitinsville,CVS Pharmacy #302,1163 Providence Road,01588,(508)234-7341,,42.12525850000001,-71.6480064
+Whitinsville,Shaw's Supermarket #1432,1177 Providence Road,01588,(508)234-0457,Yes,42.125633,-71.6482381
+Whitinsville,Walmart Store (F&P) #2629,100 Valley Parkway,01588,(508)234-9034,Yes,42.1074506,-71.6991753
+Whitman,Stop & Shop #444,475 Bedford Street,02382,(781)447-7817,Yes,42.0750393,-70.94616429999999
+Whitman,Walgreens #10272,392 Bedford Street,02382,(781)447-0823,,42.07147320000001,-70.9483249
+Wilbraham,Big Y Foods (F&P) #86,2035 Boston Road,01095,(413)543-0931,,42.1484045,-72.4715405
+Wilbraham,CVS Pharmacy #2566,1990 Boston Road,01095,(413)543-8256,,42.149642,-72.47691859999999
+Wilmington,Market Basket #3,260 Main Street,01887,(978)658-8411,,42.5552084,-71.17808529999999
+Winchendon,CVS Pharmacy #8441,301 Central Street,01475,(978)297-3792,,42.686486,-72.0436221
+Winchester,Stop & Shop #455,695 Main Street,01890,(781)721-1028,Yes,42.4559359,-71.13733189999999
+Woburn,CVS Pharmacy #665,415 Main Street,01801,(781)935-5550,,42.4806653,-71.1509323
+Woburn,Market Basket #20,310 Mishawum Road,01801,(781)933-0086,,42.50620970000001,-71.1317411
+Woburn,Super Stop & Shop (F&P) #096,2 Elm Road,01801,(781)935-0821,Yes,42.48632,-71.1284184
+Woburn,Target Store T-1266,101 Commerce Way,01801,(781)904-0002,Yes,42.5186944,-71.1347449
+Woburn,Walgreens #21288,506 Main St,01801,(781)933-1850,,42.48259669999999,-71.15117219999999
+Wollaston,CVS Pharmacy #1015,42 Beale Street,02170,(617)471-7451,,42.2664562,-71.0173743
+Worcester,Big Y Foods (F&P) #43,100 Mayfield Street,01602,(508)793-9011,,42.2593675,-71.82619609999999
+Worcester,CVS Pharmacy #1035,638 Chandler Street,01602,(508)798-0221,,42.2764921,-71.8530905
+Worcester,CVS Pharmacy #166,115 Stafford Street,01603,(508)753-3297,,42.2385187,-71.84438639999999
+Worcester,Price Chopper (F&P) #179,50 Cambridge Street,01603,(508)363-4870,,42.24296289999999,-71.8298947
+Worcester,Shaw's Supermarket #0622,68 Stafford Street,01603,(508)755-5808,Yes,42.2413147,-71.8418672
+Worcester,Plaza Supermarket,1000 Main Street,01603,(508)7652-5406,,42.24845819999999,-71.82586309999999
+Worcester,CVS Pharmacy #1273,50 Southwest Cutoff,01604,(508)793-1903,,42.2393959,-71.7479759
+Worcester,CVS Pharmacy #707,500 Grafton Street,01604,(508)798-8743,,42.2505296,-71.7794852
+Worcester,Price Chopper #151,29 Sunderland Road,01604,(508)752-7061,,42.2470495,-71.7723522
+Worcester,Value Mart,50 Hamilton Street,01604,(508)754-0553,,42.2558286,-71.7821842
+Worcester,A&T Inc. dba Top Dollar Plus,112 Tacoma Street,01605,(508)852-0723,,42.3065266,-71.76964869999999
+Worcester,A&T Inc. dba Top Dollar Plus,25 Tacoma Street,01605,(508)856-0191,,42.3029036,-71.7666642
+Worcester,CVS Pharmacy #153,481 Lincoln Street,01605,(508)852-3578,,42.2931292,-71.7772959
+Worcester,Popcorn Market,179 Belmont Street,01605,(508)754-1639,,42.2727935,-71.7875068
+Worcester,Shaws Supermarket (F&P) #0624,14 West Boylston Street,01605,(508)852-5833,Yes,42.2886595,-71.8065436
+Worcester,Stop & Shop (F&P) #85,940 West Boylston Street,01605,(508)852-0505,Yes,42.3262772,-71.7905919
+Worcester,Market 32 by Price Chopper (F&P) #194,72 Pullman Street,01606,(508)854-8474,,42.3231243,-71.7972139
+Worcester,PriceRite #334,117 Gold Star Blvd,01606,(508)853-7443,Yes,42.2914538,-71.80357839999999
+Worcester,Walmart Store (F&P) #4387,25 Tobias Boland Way,01607,(774)314-3157,Yes,42.2333659,-71.7915466
+Worcester,CVS Pharmacy #299,44 West Boylston Street,01608,(508)852-0238,,42.28965059999999,-71.80614349999999
+Worcester,Price Chopper #148,221-223 Park Avenue,01609,(508)945-4203,,42.2708617,-71.8149734
+Worcester,CVS Pharmacy #657,400 Park Ave,01610,(508)792-3866,,42.2576252,-71.8233161
+Worcester,Four Way Meat Mkt dba Gala Foods,664 Main Street,01610,(508)438-3663,,42.2593049,-71.80628779999999
+Worcester,America's Food Basket,4 May Street,01610,(508)753-3962,,42.2552135,-71.8146074
+Worcester,Price Chopper #160,564 Southwest Cutoff,01610,(508)752-3737,,42.21396660000001,-71.797866
+Worcester,PriceRite #310,520 Southbridge Street,01610,(508)797-6213,Yes,42.247651,-71.80922149999999
+Worcester,Stop & Shop #37,541A Lincoln Street,01610,(508)853-8791,Yes,42.2936536,-71.77105209999999
+Worcester,Walgreens #3151,320 Park Ave,01610,(508)767-1732,,42.2610509,-71.8214794
+Worcester,Stop & Shop (F&P) #79,949 Grafton Street,01613,(508)791-8855,Yes,42.2462312,-71.7586106
