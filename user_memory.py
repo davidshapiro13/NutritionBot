@@ -21,6 +21,10 @@ Tracked fields (extracted automatically after each conversation turn):
     dietary_restriction - e.g. vegetarian, vegan, halal, kosher, gluten-free
     disliked_foods    - e.g. broccoli, spicy food
 
+    preferences       - e.g. likes quick meals, prefers soups, shops at Market Basket
+    recurring_needs   - e.g. low-budget meals, easy prep, no-cook lunches
+    durable_extras    - other durable facts that help personalize advice but do not fit another field
+
   [Goals]
     main_goal         - e.g. lose weight, manage diabetes, eat healthier
 
@@ -172,7 +176,8 @@ class UserMemory:
         Tracked fields (only filled when explicitly mentioned):
           name, age_group, gender, asking_for,
           health_conditions, allergies, medications,
-          dietary_restriction, disliked_foods, main_goal
+          dietary_restriction, disliked_foods, preferences,
+          recurring_needs, durable_extras, main_goal
 
         Returns:
             Formatted key: value string, or None if nothing extractable.
@@ -192,11 +197,16 @@ class UserMemory:
             f"  - medications: (e.g. metformin, warfarin, blood pressure medication)\n"
             f"  - dietary_restriction: (e.g. vegetarian, vegan, halal, kosher, gluten-free)\n"
             f"  - disliked_foods: (e.g. broccoli, spicy food)\n\n"
+            f"  - preferences: (stable food or shopping preferences explicitly stated)\n"
+            f"  - recurring_needs: (repeatable ongoing needs explicitly stated, such as low-budget meals, easy prep, quick breakfasts, or no-cook lunches)\n"
+            f"  - durable_extras: (other durable, reusable facts that could improve personalization but do not fit the fields above)\n\n"
             f"  [Goals]\n"
             f"  - main_goal: (e.g. lose weight, manage diabetes, eat healthier, build muscle)\n\n"
             f"Rules:\n"
             f"  - Only include fields that are clearly and explicitly mentioned.\n"
             f"  - Do NOT infer or guess anything not directly stated.\n"
+            f"  - Save only durable, reusable facts. Do NOT save one-time requests.\n"
+            f"  - Use durable_extras only when the fact is helpful long-term and does not fit another field.\n"
             f"  - If NOTHING is worth saving, reply with exactly: NONE\n\n"
             f"Format (only include non-empty fields, one per line):\n"
             f"name: ...\n"
@@ -208,6 +218,9 @@ class UserMemory:
             f"medications: ...\n"
             f"dietary_restriction: ...\n"
             f"disliked_foods: ...\n"
+            f"preferences: ...\n"
+            f"recurring_needs: ...\n"
+            f"durable_extras: ...\n"
             f"main_goal: ..."
         )
 
@@ -227,7 +240,8 @@ class UserMemory:
         known_fields = {
             "name:", "age_group:", "gender:", "asking_for:",
             "health_conditions:", "allergies:", "medications:",
-            "dietary_restriction:", "disliked_foods:", "main_goal:",
+            "dietary_restriction:", "disliked_foods:", "preferences:",
+            "recurring_needs:", "durable_extras:", "main_goal:",
         }
         if not any(field in result.lower() for field in known_fields):
             return None
@@ -262,6 +276,11 @@ class UserMemory:
             "health_conditions",
             "allergies",
             "medications",
+            "dietary_restriction",
+            "disliked_foods",
+            "preferences",
+            "recurring_needs",
+            "durable_extras",
             "main_goal",
         }
         for field, value in profile.items():

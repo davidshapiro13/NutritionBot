@@ -34,6 +34,7 @@ from prompts import (
     button_intro_prompt,
     eligibility_check_prompt,
     intent_classifier_prompt,
+    profile_nudge_prompt,
     WELCOME_BUTTONS,
     WELCOME_FALLBACK_MESSAGE,
     welcome_generator_prompt,
@@ -70,7 +71,7 @@ BLANK_PROFILE = "(no profile info)"
 _pending_store_type: dict[str, str] = {}
 
 # Nutrition inline onboarding state: {user_id: {"step": ..., "data": {...}}}
-# Steps: "asking_for" → "age" → "allergy" → "allergy_text"
+# Used for conversational, one-question-at-a-time profile building.
 _nutrition_ob_state: dict[str, dict] = {}
 
 # Users currently in eligibility check conversation
@@ -203,6 +204,89 @@ def _append_button_intro(response: str, buttons: list[Button], session_id: str) 
     return response
 
 
+def _normalize_text(value: str) -> str:
+    return re.sub(r"\s+", " ", value or "").strip()
+
+
+def _has_profile_value(profile: dict, *fields: str) -> bool:
+    return any(_normalize_text(profile.get(field, "")) for field in fields)
+
+
+def _choose_profile_target(profile: dict) -> str | None:
+    """Pick the next profile area to ask about, based on questionnaire-style priorities."""
+    if not _has_profile_value(profile, "asking_for"):
+        return "asking_for"
+    if not _has_profile_value(profile, "age_group"):
+        return "age_group"
+    if not _has_profile_value(profile, "main_goal"):
+        return "main_goal"
+    if not _has_profile_value(profile, "health_conditions", "medications", "allergies", "dietary_restriction"):
+        return "health_context"
+    if not _has_profile_value(profile, "preferences", "disliked_foods", "recurring_needs"):
+        return "routine"
+    return None
+
+
+def _should_continue_profile_flow(user_message: str) -> bool:
+    """Treat short, direct replies as answers to the most recent profile question."""
+    text = _normalize_text(user_message)
+    if not text:
+        return True
+    if "?" in text:
+        return False
+    return len(text.split()) <= 12
+
+
+def _build_profile_question(profile: dict, user_message: str, target: str, session_id: str) -> str:
+    """Generate one natural follow-up question to keep profile-building conversational."""
+    prompt = (
+        f"[USER PROFILE]\n{_format_profile_for_prompt(profile)}\n\n"
+        f"[LATEST MESSAGE]\n{_normalize_text(user_message) or 'The user just tapped the nutrition option.'}\n\n"
+        f"[TARGET]\n{target}"
+    )
+    fallback_map = {
+        "asking_for": "Are you asking for yourself, or for someone else?",
+        "age_group": "What age range should I keep in mind?",
+        "main_goal": "What would you most like help with right now?",
+        "health_context": "Any health conditions, medications, allergies, or food restrictions I should keep in mind?",
+        "routine": "Any foods you avoid, budget concerns, or cooking limits that would help me tailor ideas?",
+    }
+    try:
+        question = _ai.ask(profile_nudge_prompt, prompt, session_id + "_profile_nudge").strip()
+        if question:
+            return question
+    except Exception:
+        pass
+    return fallback_map[target]
+
+
+def _profile_acknowledgement(profile: dict) -> str:
+    if _normalize_text(profile.get("asking_for")) in {"child", "parent", "spouse", "other"}:
+        return "Thanks, that helps me tailor this for them."
+    return "Thanks, that helps me tailor this for you."
+
+
+def _format_profile_for_prompt(profile: dict) -> str:
+    if not profile:
+        return BLANK_PROFILE
+    return "\n".join(f"{k}: {v}" for k, v in profile.items() if _normalize_text(v))
+
+
+def _save_and_reload_profile(user_id: str, user_message: str):
+    if _normalize_text(user_message):
+        try:
+            _mem.auto_extract_and_save(user_id, user_message)
+        except Exception:
+            pass
+    raw = _mem.load_all(user_id)
+    profile = {}
+    for line in raw.splitlines():
+        if ":" in line:
+            k, v = line.split(":", 1)
+            profile[k.strip()] = v.strip()
+    return profile
+
+
 def _should_offer_wic(text: str) -> bool:
     """Detect cases where a short WIC nudge is likely helpful."""
     text = text.lower()
@@ -249,9 +333,70 @@ def _add_web_search(response: str, query: str) -> str:
 
 class NutritionAgent:
     def _format_profile_context(self, profile: dict) -> str:
-        if not profile:
-            return BLANK_PROFILE
-        return "\n".join(f"{k}: {v}" for k, v in profile.items() if v)
+        return _format_profile_for_prompt(profile)
+
+    def _get_profile(self, user_id: str) -> dict:
+        """Parse user profile from memory file."""
+        raw = _mem.load_all(user_id)
+        profile = {}
+        for line in raw.splitlines():
+            if ":" in line:
+                k, v = line.split(":", 1)
+                profile[k.strip()] = v.strip()
+        return profile
+
+    def _remember_user_message(self, user_id: str, user_message: str) -> dict:
+        """Save structured facts from raw user text and return the refreshed profile."""
+        return _save_and_reload_profile(user_id, user_message)
+
+    def _start_profile_conversation(self, user_id: str, profile: dict, session: str, seed_message: str) -> tuple[str, list[Button]]:
+        target = _choose_profile_target(profile) or "asking_for"
+        _nutrition_ob_state[user_id] = {"target": target}
+        question = _build_profile_question(profile, seed_message, target, session)
+        return question, []
+
+    def _continue_profile_conversation(self, user_id: str, user_message: str, session: str) -> tuple[str, list[Button]] | None:
+        state = _nutrition_ob_state.get(user_id)
+        if not state or not _should_continue_profile_flow(user_message):
+            return None
+
+        profile = self._remember_user_message(user_id, user_message)
+        next_target = _choose_profile_target(profile)
+        if next_target:
+            _nutrition_ob_state[user_id] = {"target": next_target}
+            question = _build_profile_question(profile, user_message, next_target, session)
+            return f"{_profile_acknowledgement(profile)} {question}", []
+
+        _nutrition_ob_state.pop(user_id, None)
+        response = _ai.ask(
+            main_system_prompt,
+            f"[USER PROFILE]\n{self._format_profile_context(profile)}\n[QUESTION]\nGive one short, encouraging sentence that says you can now tailor nutrition help better and invites the user to ask anything.",
+            session,
+        ).strip()
+        if not response:
+            response = "Thanks, that gives me a good sense of what to tailor for you. What would you like help with first?"
+        return response, _make_buttons(WELCOME_BUTTONS)
+
+    def _maybe_append_profile_nudge(
+        self,
+        user_id: str,
+        response: str,
+        profile: dict,
+        user_message: str,
+        session: str,
+        intent: str,
+    ) -> tuple[str, list[Button]]:
+        if intent not in {"nutrition_advice", "food_safety"}:
+            return response, []
+        target = _choose_profile_target(profile)
+        if not target:
+            _nutrition_ob_state.pop(user_id, None)
+            return response, []
+        if len(_normalize_text(user_message).split()) < 3:
+            return response, []
+        question = _build_profile_question(profile, user_message, target, session)
+        _nutrition_ob_state[user_id] = {"target": target}
+        return f"{response}\n\n{question}", []
 
     def run(self, user_message: str, user_id: str) -> tuple[str, list[Button]]:
         """Handle a free-text message from the user. Injects user profile into context."""
@@ -272,17 +417,14 @@ class NutritionAgent:
             else:
                 buttons = []
             return response, buttons
-        
-        # Nutrition inline onboarding: waiting for typed allergy info
-        
-        nob = _nutrition_ob_state.get(user_id)
-        if nob and nob.get("step") == "allergy_text":
-            nob["data"]["allergy"] = user_message.strip()
-            return self._finish_nutrition_onboarding(user_id, nob["data"])
-        
+
+        session = _user_session(user_id)
+        profile_reply = self._continue_profile_conversation(user_id, user_message, session)
+        if profile_reply is not None:
+            return profile_reply
+
         # Normal flow
         if _is_greeting(user_message):
-            session = _user_session(user_id)
             user_line = user_message.strip() or "The user just opened the chat."
             welcome_query = (
                 f"[USER PROFILE]\n{profile_context}\n[USER SAID]\n{user_line}"
@@ -299,26 +441,31 @@ class NutritionAgent:
                 response = WELCOME_FALLBACK_MESSAGE
             return response, _make_buttons(WELCOME_BUTTONS)
 
-        session = _user_session(user_id)
         intent  = _classify_intent(user_message, session)
 
-        full_query = f"[USER PROFILE]\n{profile_context}\n[QUESTION]\n{user_message}"
-        response = _ai.ask(main_system_prompt, full_query, session)
-        response = _rag.query_rag(full_query, session_id=session, user_id=user_id)
-        buttons  = _generate_buttons(response, session)
+        if intent == "food_safety":
+            full_query = f"[USER PROFILE]\n{profile_context}\n[QUESTION]\n{user_message}"
+            response = _rag.query_rag(full_query, session_id=session, user_id=user_id, memory_source_message=user_message)
+            remembered_profile = self._get_profile(user_id)
+        else:
+            remembered_profile = self._remember_user_message(user_id, user_message)
+            profile_context = self._format_profile_context(remembered_profile)
+            full_query = f"[USER PROFILE]\n{profile_context}\n[QUESTION]\n{user_message}"
+            response = _ai.ask(main_system_prompt, full_query, session)
+
+        nudge_buttons: list[Button] = []
+        response, nudge_buttons = self._maybe_append_profile_nudge(
+            user_id=user_id,
+            response=response,
+            profile=remembered_profile,
+            user_message=user_message,
+            session=session,
+            intent=intent,
+        )
+        buttons = nudge_buttons or _generate_buttons(response, session)
 
         response = _append_button_intro(response, buttons, session)
         return response, buttons
-
-    def _get_profile(self, user_id: str) -> dict:
-        """Parse user profile from memory file."""
-        raw = _mem.load_all(user_id)
-        profile = {}
-        for line in raw.splitlines():
-            if ":" in line:
-                k, v = line.split(":", 1)
-                profile[k.strip()] = v.strip()
-        return profile
 
     def run_tool(
         self,
@@ -341,20 +488,24 @@ class NutritionAgent:
             )
             buttons = _make_buttons(FOOD_SAFETY_BUTTONS)
 
-        elif interaction_id == "nutrition" and profile_context == BLANK_PROFILE:
-            _nutrition_ob_state[user_id] = {"step": "asking_for", "data": {}}
-            return "Great! Let's personalize this for you. Who are you asking for?", _make_buttons(ASKING_FOR_BUTTONS)
+        elif interaction_id == "nutrition":
+            return self._start_profile_conversation(
+                user_id=user_id,
+                profile=profile,
+                session=session,
+                seed_message="The user tapped the nutrition option and is ready to talk about eating habits and health goals.",
+            )
 
         elif interaction_id in ("nq_for_self", "nq_for_other"):
-            nob = _nutrition_ob_state.setdefault(user_id, {"step": "asking_for", "data": {}})
-            nob["data"]["asking_for"] = "self" if interaction_id == "nq_for_self" else "other"
-            nob["step"] = "age"
-            return "Got it! What's the age group?", _make_buttons(AGE_GROUP_BUTTONS)
+            answer = "asking_for: self" if interaction_id == "nq_for_self" else "asking_for: other"
+            _nutrition_ob_state[user_id] = {"target": "age_group"}
+            self._remember_user_message(user_id, answer)
+            question = _build_profile_question(self._get_profile(user_id), answer, "age_group", session)
+            return question, []
 
         elif interaction_id == "nq_age_adult":
-            nob = _nutrition_ob_state.setdefault(user_id, {"step": "age", "data": {}})
-            nob["step"] = "age_adult"
-            return "Which age range fits best?", _make_buttons(ADULT_AGE_BUTTONS)
+            _nutrition_ob_state[user_id] = {"target": "age_group"}
+            return "What adult age range should I keep in mind?", _make_buttons(ADULT_AGE_BUTTONS)
 
         elif interaction_id in ("nq_age_under18", "nq_age_young", "nq_age_middle", "nq_age_senior"):
             age_map = {
@@ -363,20 +514,20 @@ class NutritionAgent:
                 "nq_age_middle":  "middle-aged (36–64)",
                 "nq_age_senior":  "senior (65+)",
             }
-            nob = _nutrition_ob_state.setdefault(user_id, {"step": "age", "data": {}})
-            nob["data"]["age_group"] = age_map[interaction_id]
-            nob["step"] = "allergy"
-            return "Thanks! Do you have any food allergies?", _make_buttons(ALLERGY_BUTTONS)
+            self._remember_user_message(user_id, f"age_group: {age_map[interaction_id]}")
+            _nutrition_ob_state[user_id] = {"target": "health_context"}
+            question = _build_profile_question(self._get_profile(user_id), age_map[interaction_id], "health_context", session)
+            return question, []
 
         elif interaction_id == "nq_no_allergy":
-            nob = _nutrition_ob_state.get(user_id, {"data": {}})
-            nob["data"]["allergy"] = None
-            return self._finish_nutrition_onboarding(user_id, nob["data"])
+            self._remember_user_message(user_id, "allergies: none")
+            _nutrition_ob_state[user_id] = {"target": "main_goal"}
+            question = _build_profile_question(self._get_profile(user_id), "No allergies.", "main_goal", session)
+            return question, []
 
         elif interaction_id == "nq_has_allergy":
-            nob = _nutrition_ob_state.setdefault(user_id, {"step": "allergy", "data": {}})
-            nob["step"] = "allergy_text"
-            return "Please type your allergies (e.g. peanuts, dairy, gluten).", []
+            _nutrition_ob_state[user_id] = {"target": "health_context"}
+            return "What allergies or food restrictions should I keep in mind?", []
 
         elif interaction_id == "find_stores":
             return (
@@ -481,30 +632,6 @@ class NutritionAgent:
             return self.run(follow_up, user_id)
 
         response = _append_button_intro(response, buttons, session)
-        return response, buttons
-
-    def _finish_nutrition_onboarding(self, user_id: str, data: dict) -> tuple[str, list[Button]]:
-        """Save collected nutrition profile and give first personalized advice."""
-        _nutrition_ob_state.pop(user_id, None)
-        profile = self._get_profile(user_id)
-        if data.get("asking_for"):
-            profile["asking_for"] = data["asking_for"]
-        if data.get("age_group"):
-            profile["age_group"] = data["age_group"]
-        if data.get("allergy"):
-            profile["allergies"] = data["allergy"]
-        _mem.save_profile(user_id, profile)
-
-        session = _user_session(user_id)
-        context_parts = [f"The user is {data.get('age_group', 'an adult')}"]
-        if data.get("asking_for") == "other":
-            context_parts.append("asking on behalf of someone else")
-        if data.get("allergy"):
-            context_parts.append(f"with allergies to {data['allergy']}")
-        context = ", ".join(context_parts) + ". Give them a short, personalized healthy eating tip."
-        response = _ai.ask(main_system_prompt, context, session)
-        buttons = _generate_buttons(response, session)
-        response, buttons = _maybe_add_wic_nudge(response, buttons, context, session)
         return response, buttons
 
     def run_location(

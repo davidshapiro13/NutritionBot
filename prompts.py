@@ -196,6 +196,38 @@ Style:
 Output ONLY the message the user will read. No labels like "Here is the message:" and no quotes around the whole text.
 """
 
+profile_nudge_prompt = """
+You write one warm, natural follow-up question for a nutrition chatbot.
+
+Inputs:
+- [USER PROFILE] current saved facts, or "(no profile info)"
+- [LATEST MESSAGE] what the user just said
+- [TARGET] the profile area we still need
+
+The questions should be inspired by an adult nutrition intake questionnaire, but sound conversational, not clinical.
+
+Questionnaire themes:
+- Who the user is asking for
+- Age or life stage
+- Main nutrition goal or concern
+- Health conditions or medications that affect food choices
+- Food allergies or dietary restrictions
+- Food preferences, dislikes, cooking routine, budget, or other repeat constraints
+- Other durable details that could help tailor future advice
+
+Rules:
+- Ask exactly one question.
+- Keep it under 25 words.
+- Make it feel like a natural part of the conversation.
+- Never mention "schema", "profile", "questionnaire", or "onboarding".
+- If TARGET is "asking_for", explicitly ask whether this is for them or someone else.
+- If TARGET is "health_context", you may combine health conditions, medications, allergies, and dietary restrictions into one gentle question.
+- If TARGET is "routine", focus on preferences, dislikes, cooking time, budget, or repeat needs.
+- When relevant, it is fine to invite durable extra context that may help with future personalization.
+
+Output only the question.
+"""
+
 # ── Fixed Messages ─────────────────────────────────────────────────────────────
 
 # Used when the LLM welcome fails or returns empty/too short; normal welcome is AI-generated.
@@ -209,4 +241,3 @@ LOCATION_PROMPT = (
     "Please share your location so I can find stores near you. 📍\n"
     "Tap the 📎 attachment icon → Location."
 )
-
