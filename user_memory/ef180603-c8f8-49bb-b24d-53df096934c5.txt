@@ -1,2 +1,12 @@
 asking_for: self
 age_group: under 18
+asking_for: self
+age_group: young adult (18–35)
+allergies: egg
+[User Profile]
+asking_for: self
+age_group: young adult (18–35)
+allergies: egg
+
+[Goals]
+main_goal: lose weight

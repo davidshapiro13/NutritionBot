@@ -166,6 +166,7 @@ The next part of the conversation is about: "{target_goal}"
 The buttons they will see next are: {next_buttons}
 
 Write only the bridge message. No labels, no explanations, no extra text.
+Remind the use that they can also type their response and not just rely on buttons.
 """
 
 button_intro_prompt = """
