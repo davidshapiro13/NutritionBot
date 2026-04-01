@@ -35,9 +35,9 @@ from prompts import (
     eligibility_check_prompt,
     intent_classifier_prompt,
     WELCOME_BUTTONS,
-    WELCOME_MESSAGE,
+    WELCOME_FALLBACK_MESSAGE,
+    welcome_generator_prompt,
     FOOD_SAFETY_BUTTONS,
-    NUTRITION_BUTTONS,
     ASKING_FOR_BUTTONS,
     AGE_GROUP_BUTTONS,
     ADULT_AGE_BUTTONS,
@@ -282,7 +282,22 @@ class NutritionAgent:
         
         # Normal flow
         if _is_greeting(user_message):
-            return WELCOME_MESSAGE, _make_buttons(WELCOME_BUTTONS)
+            session = _user_session(user_id)
+            user_line = user_message.strip() or "The user just opened the chat."
+            welcome_query = (
+                f"[USER PROFILE]\n{profile_context}\n[USER SAID]\n{user_line}"
+            )
+            try:
+                response = _ai.ask(
+                    welcome_generator_prompt,
+                    welcome_query,
+                    session + "_welcome",
+                ).strip()
+                if len(response) < 30:
+                    response = WELCOME_FALLBACK_MESSAGE
+            except Exception:
+                response = WELCOME_FALLBACK_MESSAGE
+            return response, _make_buttons(WELCOME_BUTTONS)
 
         session = _user_session(user_id)
         intent  = _classify_intent(user_message, session)
@@ -326,7 +341,7 @@ class NutritionAgent:
             )
             buttons = _make_buttons(FOOD_SAFETY_BUTTONS)
 
-        elif interaction_id == "nutrition" and profile_context != BLANK_PROFILE:
+        elif interaction_id == "nutrition" and profile_context == BLANK_PROFILE:
             _nutrition_ob_state[user_id] = {"step": "asking_for", "data": {}}
             return "Great! Let's personalize this for you. Who are you asking for?", _make_buttons(ASKING_FOR_BUTTONS)
 

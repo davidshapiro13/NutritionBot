@@ -1,5 +1,5 @@
 from agent import NutritionAgent
-from prompts import WELCOME_MESSAGE, WELCOME_BUTTONS
+from prompts import WELCOME_FALLBACK_MESSAGE, WELCOME_BUTTONS
 
 from wa_service_sdk import (
     BaseEvent,
@@ -36,11 +36,11 @@ async def handle_event(event: BaseEvent):
         )
 
     else:
-        text = WELCOME_MESSAGE
+        text = WELCOME_FALLBACK_MESSAGE
         buttons = _make_buttons(WELCOME_BUTTONS)
 
     if not text:
-        text = WELCOME_MESSAGE
+        text = WELCOME_FALLBACK_MESSAGE
         buttons = _make_buttons(WELCOME_BUTTONS)
 
     if len(text) > 900:
