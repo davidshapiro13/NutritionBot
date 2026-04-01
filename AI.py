@@ -2,7 +2,7 @@ from llmproxy import LLMProxy
 
 class AI():
 
-    def __init__(self, model_name='4o-mini', query_num=10):
+    def __init__(self, model_name='4o-mini', query_num=15):
         self.client = LLMProxy()
         self.model_name = model_name
         self.last_queries = query_num
