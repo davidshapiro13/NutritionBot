@@ -149,7 +149,7 @@ def _classify_intent(user_message: str, session_id: str) -> str:
     """Classify user message into one of the four intents."""
     result = _ai.ask(intent_classifier_prompt, user_message, session_id)
     intent = result.strip().lower()
-    valid = {"food_safety", "nutrition_advice", "find resources", "out_of_scope"}
+    valid = {"food_safety", "nutrition_advice", "find_stores", "out_of_scope"}
     return intent if intent in valid else "nutrition_advice"
 
 
@@ -234,7 +234,57 @@ def _should_continue_profile_flow(user_message: str) -> bool:
         return True
     if "?" in text:
         return False
+    lower = text.lower()
+    interrupting_phrases = {
+        "food safety",
+        "nutrition",
+        "find stores",
+        "find resources",
+        "wic",
+        "snap",
+        "help",
+        "menu",
+        "start",
+        "hi",
+        "hello",
+    }
+    if lower in interrupting_phrases:
+        return False
     return len(text.split()) <= 12
+
+
+def _looks_like_profile_answer(target: str, user_message: str) -> bool:
+    """Use target-specific heuristics so new requests do not get swallowed as profile answers."""
+    text = _normalize_text(user_message)
+    if not text:
+        return True
+    if not _should_continue_profile_flow(text):
+        return False
+
+    lower = text.lower()
+    request_starters = (
+        "can you", "could you", "would you", "what ", "how ", "should ", "do i ",
+        "is it ", "are there", "give me", "tell me", "help me",
+    )
+    if lower.startswith(request_starters):
+        return False
+
+    if target == "asking_for":
+        return bool(re.search(r"\b(for me|myself|self|me|my child|my kid|my son|my daughter|my baby|my mom|my mother|my dad|my father|my parent|my husband|my wife|my spouse|someone else)\b", lower))
+
+    if target == "age_group":
+        return bool(re.search(r"\b(under|adult|child|kid|teen|young|middle|senior|elder|\d{1,3})\b", lower))
+
+    if target == "health_context":
+        return bool(re.search(r"\b(allerg|diabet|pregnan|gluten|vegan|vegetarian|halal|kosher|medication|metformin|warfarin|hypertension|blood pressure|none|no allergies)\b", lower))
+
+    if target == "main_goal":
+        return len(text.split()) <= 10 and not lower.startswith(("food ", "meal ", "store "))
+
+    if target == "routine":
+        return len(text.split()) <= 12
+
+    return False
 
 
 def _build_profile_question(profile: dict, user_message: str, target: str, session_id: str) -> str:
@@ -355,19 +405,33 @@ class NutritionAgent:
         question = _build_profile_question(profile, seed_message, target, session)
         return question, []
 
-    def _continue_profile_conversation(self, user_id: str, user_message: str, session: str) -> tuple[str, list[Button]] | None:
-        state = _nutrition_ob_state.get(user_id)
-        if not state or not _should_continue_profile_flow(user_message):
+    def _maybe_start_profile_from_welcome(
+        self,
+        user_id: str,
+        profile: dict,
+        session: str,
+        welcome_response: str,
+        user_message: str,
+    ) -> tuple[str, list[Button]] | None:
+        """For new users, kick off profile-building directly from the welcome flow."""
+        target = _choose_profile_target(profile)
+        if not target:
             return None
+        if target != "asking_for":
+            return None
+        _nutrition_ob_state[user_id] = {"target": target}
+        question = _build_profile_question(profile, user_message, target, session)
+        return f"{welcome_response}\n\n{question}", []
 
-        profile = self._remember_user_message(user_id, user_message)
-        next_target = _choose_profile_target(profile)
-        if next_target:
-            _nutrition_ob_state[user_id] = {"target": next_target}
-            question = _build_profile_question(profile, user_message, next_target, session)
-            return f"{_profile_acknowledgement(profile)} {question}", []
+    def _answer_saved_profile_task(self, user_id: str, profile: dict, session: str, state: dict) -> tuple[str, list[Button]]:
+        pending_question = (state or {}).get("pending_question")
+        if pending_question:
+            full_query = f"[USER PROFILE]\n{self._format_profile_context(profile)}\n[QUESTION]\n{pending_question}"
+            response = _ai.ask(main_system_prompt, full_query, session)
+            buttons = _generate_buttons(response, session)
+            response, buttons = _maybe_add_wic_nudge(response, buttons, pending_question, session)
+            return response, buttons
 
-        _nutrition_ob_state.pop(user_id, None)
         response = _ai.ask(
             main_system_prompt,
             f"[USER PROFILE]\n{self._format_profile_context(profile)}\n[QUESTION]\nGive one short, encouraging sentence that says you can now tailor nutrition help better and invites the user to ask anything.",
@@ -376,6 +440,24 @@ class NutritionAgent:
         if not response:
             response = "Thanks, that gives me a good sense of what to tailor for you. What would you like help with first?"
         return response, _make_buttons(WELCOME_BUTTONS)
+
+    def _continue_profile_conversation(self, user_id: str, user_message: str, session: str) -> tuple[str, list[Button]] | None:
+        state = _nutrition_ob_state.get(user_id)
+        target = (state or {}).get("target")
+        if not state or not target or not _looks_like_profile_answer(target, user_message):
+            return None
+
+        profile = self._remember_user_message(user_id, user_message)
+        next_target = _choose_profile_target(profile)
+        if next_target:
+            next_state = dict(state)
+            next_state["target"] = next_target
+            _nutrition_ob_state[user_id] = next_state
+            question = _build_profile_question(profile, user_message, next_target, session)
+            return f"{_profile_acknowledgement(profile)} {question}", []
+
+        _nutrition_ob_state.pop(user_id, None)
+        return self._answer_saved_profile_task(user_id, profile, session, state)
 
     def _maybe_append_profile_nudge(
         self,
@@ -386,7 +468,7 @@ class NutritionAgent:
         session: str,
         intent: str,
     ) -> tuple[str, list[Button]]:
-        if intent not in {"nutrition_advice", "food_safety"}:
+        if intent != "nutrition_advice":
             return response, []
         target = _choose_profile_target(profile)
         if not target:
@@ -439,6 +521,15 @@ class NutritionAgent:
                     response = WELCOME_FALLBACK_MESSAGE
             except Exception:
                 response = WELCOME_FALLBACK_MESSAGE
+            welcome_with_profile = self._maybe_start_profile_from_welcome(
+                user_id=user_id,
+                profile=profile,
+                session=session,
+                welcome_response=response,
+                user_message=user_line,
+            )
+            if welcome_with_profile is not None:
+                return welcome_with_profile
             return response, _make_buttons(WELCOME_BUTTONS)
 
         intent  = _classify_intent(user_message, session)
@@ -489,12 +580,32 @@ class NutritionAgent:
             buttons = _make_buttons(FOOD_SAFETY_BUTTONS)
 
         elif interaction_id == "nutrition":
-            return self._start_profile_conversation(
-                user_id=user_id,
-                profile=profile,
-                session=session,
-                seed_message="The user tapped the nutrition option and is ready to talk about eating habits and health goals.",
+            target = _choose_profile_target(profile)
+            if target:
+                _nutrition_ob_state[user_id] = {
+                    "target": target,
+                    "pending_question": "Give me practical, personalized healthy eating advice based on this user's profile.",
+                }
+                question = _build_profile_question(
+                    profile,
+                    "The user tapped the nutrition option and is ready to talk about eating habits and health goals.",
+                    target,
+                    session,
+                )
+                return question, []
+            response = _ai.ask(
+                main_system_prompt,
+                f"[USER PROFILE]\n{profile_context}\n[QUESTION]\nGive me practical, personalized healthy eating advice based on this user's profile.",
+                session,
             )
+            buttons = _generate_buttons(response, session)
+            response, buttons = _maybe_add_wic_nudge(
+                response,
+                buttons,
+                "Give me practical, personalized healthy eating advice based on this user's profile.",
+                session,
+            )
+            return response, buttons
 
         elif interaction_id in ("nq_for_self", "nq_for_other"):
             answer = "asking_for: self" if interaction_id == "nq_for_self" else "asking_for: other"
