@@ -1,0 +1,114 @@
+# Leftover Food Safety Rules
+# Sources: USDA FSIS — Leftovers and Food Safety
+# Last updated: 2026-04-02
+
+================================================================================
+THE GOLDEN RULE OF LEFTOVERS
+================================================================================
+
+Leftovers are safe to eat for 3 to 4 days when stored properly in the refrigerator
+at 40°F or below. After 4 days, throw them out — even if they look and smell fine.
+Bacteria that cause illness do not always change the look, smell, or taste of food.
+
+For longer storage, freeze leftovers within 3–4 days.
+Frozen leftovers are safe indefinitely but best quality within 2–6 months.
+
+================================================================================
+COOLING LEFTOVERS SAFELY
+================================================================================
+
+Hot food must be cooled quickly before storing. The goal is to move food through
+the danger zone (40°F–140°F) as fast as possible.
+
+Rules:
+- Refrigerate leftovers within 2 HOURS of cooking (1 hour if room temp is above 90°F)
+- Divide large amounts into SHALLOW containers (2 inches deep or less)
+  so food cools faster throughout
+- Large cuts of meat (whole roasts, turkeys) should be cut into smaller pieces
+  before refrigerating
+- Do NOT leave a big pot of hot soup or stew on the counter to cool "naturally"
+  — it will stay in the danger zone for too long
+- Do NOT put a large, still-hot container directly in the fridge — it raises the
+  fridge temperature and puts other foods at risk
+
+Fast-cooling tips:
+- Place shallow containers in an ice bath before refrigerating
+- Stir soups and stews to release heat
+- Spread food out on a sheet pan to cool faster
+
+================================================================================
+REHEATING LEFTOVERS SAFELY
+================================================================================
+
+Reheat all leftovers to an internal temperature of 165°F (74°C).
+
+Methods:
+- STOVETOP: Bring soups, sauces, and gravies to a rolling boil
+- OVEN: Preheat to at least 325°F; use a food thermometer to confirm 165°F
+- MICROWAVE: Cover food; stir and rotate during heating for even temperature.
+  Let stand for 2 minutes after heating, then check temperature in multiple spots.
+
+IMPORTANT: Reheating only kills bacteria — it does NOT destroy toxins already
+formed by Staph aureus or Bacillus cereus. If food was left out too long,
+reheating does not make it safe.
+
+Can you reheat leftovers more than once?
+Technically yes, as long as each reheat reaches 165°F and food is stored properly
+between uses. However, each reheat cycle reduces quality. Best practice: only
+reheat the portion you will eat.
+
+================================================================================
+LEFTOVER STORAGE TIMES BY FOOD TYPE
+================================================================================
+
+Cooked meat and poultry:        3–4 days refrigerator / 2–6 months freezer
+Cooked fish and seafood:        3–4 days refrigerator / 4–6 months freezer
+Cooked egg dishes:              3–4 days refrigerator / do not freeze
+Soups and stews:                3–4 days refrigerator / 2–3 months freezer
+Cooked pasta (plain):           3–5 days refrigerator / 1–2 months freezer
+Cooked rice:                    3–4 days refrigerator / 6 months freezer
+Pizza:                          3–4 days refrigerator / 1–2 months freezer
+Cooked vegetables:              3–4 days refrigerator / 8–12 months freezer
+Gravy and meat broth:           1–2 days refrigerator / 2–3 months freezer
+Casseroles (cooked):            3–4 days refrigerator / 2–3 months freezer
+Stuffing (cooked):              3–4 days refrigerator / 1 month freezer
+
+SPECIAL RULE — Stuffing:
+Always remove stuffing from poultry before refrigerating. Store stuffing
+separately. If cooked inside the bird, it must reach 165°F to be safe.
+
+SPECIAL RULE — Cooked Rice:
+Cooked rice can harbor Bacillus cereus spores that survive cooking.
+Cool and refrigerate rice within 1 hour. Never leave cooked rice at room
+temperature for more than 2 hours.
+
+================================================================================
+PACKING LUNCHES & MEAL PREP SAFETY
+================================================================================
+
+- Use an insulated lunch bag with an ice pack to keep cold food below 40°F
+- Do not pack hot and cold food together — use separate containers
+- Perishable food (sandwiches with meat/cheese, yogurt, cut fruit) is not safe
+  if left unrefrigerated for more than 2 hours
+- Once a cold pack melts, the 2-hour clock starts
+- When reheating meal-prepped food, always reach 165°F — do not just warm it up
+
+================================================================================
+FREEZING LEFTOVERS
+================================================================================
+
+- Freeze within 3–4 days (do not wait until the last day)
+- Use freezer-safe containers or heavy-duty freezer bags; remove as much air
+  as possible to prevent freezer burn
+- Label with contents and date
+- Thaw in the refrigerator, not on the counter
+- Quality tip: most cooked foods are best within 2–3 months in the freezer,
+  though safety is maintained indefinitely at 0°F
+
+================================================================================
+SOURCES
+================================================================================
+
+- USDA FSIS Leftovers and Food Safety: https://www.fsis.usda.gov/food-safety/safe-food-handling-and-preparation/food-safety-basics/leftovers-and-food-safety
+- USDA FSIS Danger Zone: https://www.fsis.usda.gov/food-safety/safe-food-handling-and-preparation/food-safety-basics/danger-zone-40f-140f
+- FDA: https://www.fda.gov/food/buy-store-serve-safe-food/safe-food-handling

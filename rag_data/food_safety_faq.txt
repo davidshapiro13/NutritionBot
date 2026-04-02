@@ -1,0 +1,202 @@
+# Food Safety FAQ — Question & Answer Format
+# Written for NutritionBot RAG retrieval
+# Based on USDA FSIS, FDA, CDC guidelines
+# Last updated: 2026-04-02
+
+This document is written in Q&A format to match how users naturally ask food
+safety questions. Each answer is concise and actionable.
+
+================================================================================
+LEFTOVERS & STORAGE
+================================================================================
+
+Q: How long are leftovers good for in the fridge?
+A: Most cooked leftovers are safe for 3 to 4 days in the refrigerator at 40°F or
+   below. After 4 days, throw them out — even if they look and smell fine.
+
+Q: Can I eat pizza that was left out overnight?
+A: No. Pizza with cheese or meat left out for more than 2 hours should be discarded.
+   Bacteria grow rapidly at room temperature, and reheating does not make it safe
+   because toxins from Staph bacteria survive cooking.
+
+Q: My soup has been in the fridge for 5 days. Is it still good?
+A: No — cooked soups and stews are only safe for 3 to 4 days. Discard it.
+
+Q: I forgot to put leftovers in the fridge right away. They sat out for about 3 hours. Are they still safe?
+A: No. Perishable food is unsafe after 2 hours at room temperature (1 hour if above
+   90°F). Discard the leftovers.
+
+Q: Can I freeze food to make it last longer?
+A: Yes. Frozen food is safe indefinitely, but best quality within 2–6 months for
+   most cooked foods. Freeze within 3–4 days of cooking, not after.
+
+Q: How do I reheat leftovers safely?
+A: Reheat to an internal temperature of 165°F. In the microwave, cover and stir
+   partway through, let stand 2 minutes, and check temperature in multiple spots.
+   On the stovetop, bring soups and sauces to a rolling boil.
+
+Q: Can I reheat the same leftovers multiple times?
+A: Yes, as long as each portion is reheated to 165°F and refrigerated promptly
+   between uses. But quality declines — best practice is to reheat only what you
+   will eat at one time.
+
+Q: How do I cool hot food safely before refrigerating?
+A: Divide large amounts into shallow containers (2 inches deep) to help them cool
+   faster. Refrigerate within 2 hours. Do not leave a big pot on the counter to
+   cool overnight — that puts food in the danger zone for too long.
+
+================================================================================
+MEAT & POULTRY
+================================================================================
+
+Q: Can I thaw chicken on the counter?
+A: No. Thawing at room temperature puts the outer surface in the danger zone while
+   the inside is still frozen. Safe methods: refrigerator (1–2 days), cold water
+   (change every 30 minutes, cook immediately), or microwave (cook immediately).
+
+Q: How long can raw chicken stay in the fridge?
+A: Raw chicken (whole or parts) is safe for 1 to 2 days in the refrigerator.
+
+Q: How do I know when chicken is fully cooked?
+A: Use a food thermometer — chicken must reach 165°F at the thickest part.
+   Color is not reliable. Juices running clear is not reliable. Use a thermometer.
+
+Q: My ground beef has been in the fridge for 3 days. Is it safe to cook?
+A: No. Raw ground beef is only safe for 1 to 2 days. At 3 days, discard it.
+
+Q: Is it safe to refreeze meat that has already been thawed?
+A: It depends on how you thawed it. Meat thawed in the refrigerator can be safely
+   refrozen (quality may decline). Meat thawed in cold water or microwave must be
+   cooked before refreezing.
+
+Q: The inside of my burger is still pink. Is that okay?
+A: Not necessarily. Ground beef must reach 160°F to be safe — color is not a
+   reliable indicator. Always use a thermometer. A pink center can still be safe if
+   it reached 160°F; a brown center may not be safe if it did not.
+
+Q: Can I marinate meat on the counter?
+A: No. Always marinate in the refrigerator, no matter how short the time.
+   Discard used marinade that touched raw meat. If you want to use it as a sauce,
+   boil it first or set aside a separate portion before adding raw meat.
+
+================================================================================
+DANGER ZONE & FOOD LEFT OUT
+================================================================================
+
+Q: What is the "danger zone" for food?
+A: The danger zone is 40°F to 140°F. Bacteria that cause food poisoning double
+   roughly every 20 minutes in this range. Keep cold food below 40°F and hot
+   food above 140°F.
+
+Q: How long can food sit out at room temperature?
+A: No more than 2 hours. If the room or outdoor temperature is above 90°F, the
+   limit is 1 hour. After that, discard perishable food.
+
+Q: I left dinner out on the table while we watched a movie. It's been about 2.5 hours. Can we still eat it?
+A: No. Once perishable food has been out for more than 2 hours, it should be
+   discarded. Reheating will not make it safe.
+
+Q: What should I do with food at a party that's been sitting on the buffet?
+A: Keep track of time. Hot food should stay above 140°F (use warming trays or
+   chafing dishes). Cold food should stay on ice at 40°F or below. Discard any
+   food that has been out for 2 hours.
+
+Q: What food is safe to leave out at room temperature?
+A: Shelf-stable foods only: whole fruits and vegetables (uncut), bread, crackers,
+   chips, peanut butter, dry goods. Anything with meat, dairy, eggs, or cut produce
+   is perishable and must follow the 2-hour rule.
+
+================================================================================
+EGGS & DAIRY
+================================================================================
+
+Q: How long do hard-boiled eggs last?
+A: Hard-boiled eggs are safe for up to 1 week in the refrigerator, whether in the
+   shell or peeled. Peeled hard-boiled eggs should be stored in water or in an
+   airtight container.
+
+Q: Is it safe to eat raw cookie dough?
+A: No. Raw cookie dough contains two risks: raw eggs (Salmonella) and raw flour
+   (E. coli). Both can cause foodborne illness. Use pasteurized eggs and
+   heat-treated flour if you want to eat dough raw.
+
+Q: My milk is 2 days past the sell-by date. Is it safe?
+A: "Sell by" is a store stocking date, not a safety date. Milk can still be safe
+   5–7 days after the sell-by date if it has been properly refrigerated. Smell and
+   taste it — if it smells sour or tastes off, discard it.
+
+Q: I left butter out overnight. Is it still good?
+A: Salted butter can safely sit at room temperature for 1–2 days in a covered dish.
+   If it smells rancid or the texture has changed, discard it.
+
+================================================================================
+PRODUCE
+================================================================================
+
+Q: Do I need to wash pre-washed bagged salad?
+A: No. Rewashing pre-washed or triple-washed bagged greens can actually introduce
+   contamination from your sink. Just open and eat.
+
+Q: How long does cut fruit last?
+A: Cut fruits and vegetables are perishable. Store in the refrigerator and use
+   within 3–5 days. Cut melon should be eaten within 3–4 days.
+
+Q: I found mold on my bread. Can I cut it off and eat the rest?
+A: For soft, porous bread — no. Mold roots (invisible threads) spread throughout
+   soft food. Discard the whole loaf. For hard cheese, you can cut 1 inch around
+   and below the mold and eat the rest, using a clean knife.
+
+================================================================================
+SPECIAL GROUPS
+================================================================================
+
+Q: Are there foods pregnant women should avoid for food safety reasons?
+A: Yes. Avoid: deli meats and hot dogs unless heated to 165°F (Listeria risk);
+   soft cheeses made from unpasteurized milk; raw or undercooked seafood; raw eggs;
+   raw sprouts; unpasteurized juice. These carry higher risk of Listeria, Salmonella,
+   or other infections that can harm the baby.
+
+Q: My child (age 3) ate some raw chicken by accident. What should I do?
+A: Stay calm. Monitor for symptoms for up to 6 days: stomach cramps, diarrhea,
+   vomiting, fever. If any of these develop — especially bloody diarrhea or high
+   fever — see a doctor right away. Children under 5 are high-risk for serious
+   complications like HUS from E. coli or severe Salmonella.
+
+Q: I'm elderly (72 years old). Are there extra food safety precautions for me?
+A: Yes. Adults 65 and older are at higher risk for serious foodborne illness.
+   Avoid raw or undercooked meat, poultry, eggs, and seafood. Avoid raw sprouts
+   and unpasteurized products. Reheat leftovers to 165°F. When in doubt, throw
+   food out rather than risk it.
+
+================================================================================
+ILLNESS & WHAT TO DO
+================================================================================
+
+Q: I think I have food poisoning. What should I do?
+A: Stay hydrated — sip water, clear broth, or Pedialyte. Rest. Avoid anti-diarrheal
+   medication unless directed by a doctor (especially avoid Imodium with bloody
+   diarrhea). The illness is often not from the last thing you ate — it can take
+   2–3 days for symptoms to appear.
+
+Q: When should I go to the doctor for food poisoning?
+A: Go to the doctor if you have: bloody diarrhea, diarrhea lasting more than 3 days,
+   fever above 102°F, inability to keep liquids down, or signs of dehydration
+   (very dark urine, dizziness, dry mouth, no urination).
+
+Q: I ate at a restaurant and got sick. What should I do?
+A: See a doctor if symptoms are severe. Save any leftover food in a sealed container
+   in the fridge — it can be tested. Report the illness to your local board of health
+   or the Massachusetts DPH food safety program so others can be protected.
+
+Q: How do I know if my food poisoning is serious?
+A: Warning signs of serious illness: bloody stool, high fever (above 102°F), signs
+   of dehydration, symptoms not improving after 3 days. Children under 5, pregnant
+   women, people over 65, and anyone immunocompromised should seek care sooner.
+
+================================================================================
+SOURCES
+================================================================================
+
+- USDA FSIS: https://www.fsis.usda.gov/food-safety
+- CDC Food Safety: https://www.cdc.gov/food-safety
+- FDA: https://www.fda.gov/food/buy-store-serve-safe-food/safe-food-handling
