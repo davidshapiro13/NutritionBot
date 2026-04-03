@@ -21,6 +21,10 @@ Tracked fields (extracted automatically after each conversation turn):
     dietary_restriction - e.g. vegetarian, vegan, halal, kosher, gluten-free
     disliked_foods    - e.g. broccoli, spicy food
 
+    preferences       - e.g. likes quick meals, prefers soups, shops at Market Basket
+    recurring_needs   - e.g. low-budget meals, easy prep, no-cook lunches
+    durable_extras    - other durable facts that help personalize advice but do not fit another field
+
   [Goals]
     main_goal         - e.g. lose weight, manage diabetes, eat healthier
 
@@ -47,6 +51,13 @@ from llmproxy import LLMProxy
 
 # ── Path ─────────────────────────────────────────────────────────────────────
 USER_MEM_DIR = Path(__file__).parent / "user_memory"
+SINGLE_VALUE_FIELDS = {
+    "name",
+    "age_group",
+    "gender",
+    "asking_for",
+    "main_goal",
+}
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -110,19 +121,58 @@ class UserMemory:
 
     # ── Read / Write ──────────────────────────────────────────────────────────
 
+    def _parse_memory_lines(self, user_id: str) -> list[str]:
+        return [line.strip() for line in self.load_all(user_id).splitlines() if line.strip()]
+
+    def _save_lines(self, user_id: str, lines: list[str]) -> None:
+        mem_file = USER_MEM_DIR / f"{user_id}.txt"
+        text = "\n".join(lines)
+        if text:
+            text += "\n"
+        mem_file.write_text(text, encoding="utf-8")
+        self._cache.pop(user_id, None)
+
     def save(self, user_id: str, content: str) -> None:
         """
-        Append a structured fact to the user's memory file.
-        Invalidates the in-memory cache so the next retrieval rebuilds the index.
+        Save structured facts to the user's memory file with basic dedupe/overwrite.
 
         Args:
             user_id : WhatsApp user_id or any unique string
             content : text to remember (e.g. "health_conditions: diabetes")
         """
-        mem_file = USER_MEM_DIR / f"{user_id}.txt"
-        with mem_file.open("a", encoding="utf-8") as f:
-            f.write(content.strip() + "\n")
-        self._cache.pop(user_id, None)
+        new_lines = [line.strip() for line in content.splitlines() if line.strip()]
+        if not new_lines:
+            return
+
+        existing_lines = self._parse_memory_lines(user_id)
+        line_set = set(existing_lines)
+
+        for line in new_lines:
+            if ":" not in line:
+                if line not in line_set:
+                    existing_lines.append(line)
+                    line_set.add(line)
+                continue
+
+            field, value = line.split(":", 1)
+            field = field.strip()
+            normalized_line = f"{field}: {value.strip()}"
+
+            if field in SINGLE_VALUE_FIELDS:
+                existing_lines = [
+                    old for old in existing_lines
+                    if not old.lower().startswith(f"{field.lower()}:")
+                ]
+                line_set = set(existing_lines)
+                existing_lines.append(normalized_line)
+                line_set.add(normalized_line)
+                continue
+
+            if normalized_line not in line_set:
+                existing_lines.append(normalized_line)
+                line_set.add(normalized_line)
+
+        self._save_lines(user_id, existing_lines)
 
     def load_all(self, user_id: str) -> str:
         """Return the full raw memory text for a user, or empty string."""
@@ -172,7 +222,8 @@ class UserMemory:
         Tracked fields (only filled when explicitly mentioned):
           name, age_group, gender, asking_for,
           health_conditions, allergies, medications,
-          dietary_restriction, disliked_foods, main_goal
+          dietary_restriction, disliked_foods, preferences,
+          recurring_needs, durable_extras, main_goal
 
         Returns:
             Formatted key: value string, or None if nothing extractable.
@@ -192,11 +243,16 @@ class UserMemory:
             f"  - medications: (e.g. metformin, warfarin, blood pressure medication)\n"
             f"  - dietary_restriction: (e.g. vegetarian, vegan, halal, kosher, gluten-free)\n"
             f"  - disliked_foods: (e.g. broccoli, spicy food)\n\n"
+            f"  - preferences: (stable food or shopping preferences explicitly stated)\n"
+            f"  - recurring_needs: (repeatable ongoing needs explicitly stated, such as low-budget meals, easy prep, quick breakfasts, or no-cook lunches)\n"
+            f"  - durable_extras: (other durable, reusable facts that could improve personalization but do not fit the fields above)\n\n"
             f"  [Goals]\n"
             f"  - main_goal: (e.g. lose weight, manage diabetes, eat healthier, build muscle)\n\n"
             f"Rules:\n"
             f"  - Only include fields that are clearly and explicitly mentioned.\n"
             f"  - Do NOT infer or guess anything not directly stated.\n"
+            f"  - Save only durable, reusable facts. Do NOT save one-time requests.\n"
+            f"  - Use durable_extras only when the fact is helpful long-term and does not fit another field.\n"
             f"  - If NOTHING is worth saving, reply with exactly: NONE\n\n"
             f"Format (only include non-empty fields, one per line):\n"
             f"name: ...\n"
@@ -208,6 +264,9 @@ class UserMemory:
             f"medications: ...\n"
             f"dietary_restriction: ...\n"
             f"disliked_foods: ...\n"
+            f"preferences: ...\n"
+            f"recurring_needs: ...\n"
+            f"durable_extras: ...\n"
             f"main_goal: ..."
         )
 
@@ -227,7 +286,8 @@ class UserMemory:
         known_fields = {
             "name:", "age_group:", "gender:", "asking_for:",
             "health_conditions:", "allergies:", "medications:",
-            "dietary_restriction:", "disliked_foods:", "main_goal:",
+            "dietary_restriction:", "disliked_foods:", "preferences:",
+            "recurring_needs:", "durable_extras:", "main_goal:",
         }
         if not any(field in result.lower() for field in known_fields):
             return None
@@ -262,6 +322,11 @@ class UserMemory:
             "health_conditions",
             "allergies",
             "medications",
+            "dietary_restriction",
+            "disliked_foods",
+            "preferences",
+            "recurring_needs",
+            "durable_extras",
             "main_goal",
         }
         for field, value in profile.items():

@@ -1,0 +1,208 @@
+# Food Safety Rules: Illness, Pathogens & Prevention
+# Sources: CDC, FDA, USDA FSIS, WHO
+# Last updated: 2026-04-02
+
+================================================================================
+SECTION 1: FOOD POISONING SYMPTOMS & WHEN TO SEEK HELP
+================================================================================
+
+Source: CDC — https://www.cdc.gov/food-safety/signs-symptoms/index.html
+
+The five primary symptoms of food poisoning (foodborne illness):
+- Diarrhea
+- Stomach pain or cramps
+- Nausea
+- Vomiting
+- Fever
+
+IMPORTANT: The food that caused illness is often NOT the last food eaten.
+It frequently takes 2–3 days to feel sick after eating contaminated food.
+
+Symptom Onset Timeline by Pathogen:
+- Staphylococcus aureus (Staph): 30 minutes to 8 hours
+- Salmonella: 6 hours to 6 days
+- Norovirus: 12 to 48 hours
+- E. coli (STEC): 3 to 4 days (range: 2–8 days)
+- Listeria: up to 2 weeks
+- Clostridium perfringens: 6 to 24 hours
+- Campylobacter: 2 to 5 days
+
+SEEK MEDICAL CARE IMMEDIATELY IF YOU HAVE:
+1. Bloody diarrhea
+2. Diarrhea lasting more than 3 days
+3. High fever — temperature above 102°F (38.9°C)
+4. Uncontrollable vomiting (cannot keep any liquids down)
+5. Signs of dehydration:
+   - Very little or no urination
+   - Very dry mouth and throat
+   - Dizziness when standing
+   - Dark-colored urine
+   - Crying without tears (in children)
+
+SPECIAL AT-RISK POPULATIONS — Contact a doctor promptly if:
+- Pregnant women develop fever and flu-like symptoms (risk of Listeria)
+- Children under 5 show bloody stool, high fever, or dehydration
+- Adults 65 or older experience prolonged or worsening symptoms
+- Immunocompromised individuals experience any food poisoning symptoms
+
+HUS EMERGENCY WARNING SIGNS (especially after E. coli infection):
+Go to the emergency room immediately:
+- Decreased or stopped urination
+- Extreme paleness
+- Unexplained bruising or bleeding
+- Blood in urine
+- Extreme fatigue or confusion
+
+WHAT TO DO WHEN SICK:
+1. Stay hydrated — sip water, clear broth, or oral rehydration solutions (Pedialyte)
+2. Avoid anti-diarrheal medications (Imodium) without doctor advice, especially
+   with bloody diarrhea or high fever — can worsen E. coli infection
+3. Consult a healthcare provider — stool/blood test can identify pathogen
+4. Document meals — record everything eaten in the past week
+5. Report illness — contact local/state health department if you suspect a source
+
+================================================================================
+SECTION 2: COMMON FOODBORNE PATHOGENS
+================================================================================
+
+--- SALMONELLA ---
+Source: FDA / CDC
+
+Leading cause of foodborne illness hospitalizations and deaths in the US (~450 deaths/year).
+Onset: 12–72 hours. Duration: 4–7 days.
+Common sources: raw or undercooked meat, poultry, eggs; unpasteurized dairy;
+                raw sprouts; nut butters.
+At-risk: children under 5, adults 65+, pregnant women, immunocompromised.
+Prevention: cook poultry to 165°F, eggs until yolk and white are firm;
+            wash surfaces; avoid raw sprouts if high-risk.
+
+--- NOROVIRUS ---
+Source: CDC
+
+Most common cause of foodborne illness in the US (21 million/year).
+Onset: 12–48 hours. Duration: 1–3 days.
+Contagious: infected people can spread virus for 2+ weeks after recovery.
+Common sources: raw shellfish (especially oysters), contaminated produce,
+                direct contact with infected person.
+IMPORTANT: Hand sanitizer is less effective — use soap and water.
+Prevention: wash hands with soap and water; cook shellfish thoroughly;
+            stay home 48 hours after symptoms stop.
+
+--- E. COLI (STEC / O157:H7) ---
+Source: CDC
+
+Onset: 2–8 days (typically 3–4 days). Duration: 5–7 days.
+Symptoms: severe stomach cramps, bloody or watery diarrhea, vomiting.
+Serious complication: Hemolytic Uremic Syndrome (HUS) — life-threatening,
+especially in young children. See HUS warning signs above.
+DO NOT take Imodium with bloody diarrhea or high fever.
+Common sources: ground beef, leafy greens, unpasteurized milk/juice.
+Prevention: cook ground beef to 160°F; wash produce; avoid raw milk.
+
+--- LISTERIA ---
+Especially dangerous for pregnant women and newborns.
+Can survive and grow at refrigerator temperatures (40°F).
+Found in: deli meats, hot dogs, soft cheeses (brie, feta, queso fresco),
+          smoked seafood, raw sprouts.
+Can cause miscarriage, stillbirth, or serious illness in newborns.
+Pregnant women should avoid deli meats unless heated steaming hot (165°F).
+
+--- CAMPYLOBACTER ---
+One of the most common causes of diarrheal illness worldwide.
+Onset: 2–5 days. Duration: 2–10 days.
+Mainly linked to raw or undercooked poultry.
+Even a tiny drop of raw chicken juice can cause infection.
+
+--- CLOSTRIDIUM PERFRINGENS ---
+Often from large batches of food kept warm too long (buffets, cafeteria-style).
+Onset: 6–24 hours. Usually self-limiting.
+Prevention: keep hot food above 140°F; don't hold cooked food in the danger zone.
+
+--- STAPHYLOCOCCUS AUREUS (STAPH) ---
+Fastest onset: 30 minutes to 8 hours.
+Caused by heat-stable toxins in improperly stored food — cooking does NOT
+destroy the toxin once it forms.
+Linked to: salads, sandwiches, dairy products, foods handled with bare hands.
+
+================================================================================
+SECTION 3: THE FOUR CORE PREVENTION STEPS (USDA Framework)
+================================================================================
+
+Source: USDA FSIS
+
+STEP 1: CLEAN — Wash Hands and Surfaces Often
+- Wash hands with soap and warm water for at least 20 seconds:
+  before and after handling food, after using bathroom, after touching pets
+- Wash cutting boards, utensils, countertops with hot soapy water after
+  contact with raw meat, poultry, seafood, or eggs
+- Rinse fruits and vegetables under running water
+- Sanitize with bleach solution: 1 tbsp unscented bleach per gallon of water
+
+STEP 2: SEPARATE — Don't Cross-Contaminate
+- Keep raw meat, poultry, seafood, and eggs away from ready-to-eat foods
+- Use separate cutting boards for raw meat vs. produce
+- Store raw meat on the bottom refrigerator shelf in sealed containers
+- Never put cooked food on a plate that held raw meat without washing it first
+- Bag raw meats separately at the grocery store
+
+STEP 3: COOK — Cook to the Right Temperature
+Safe Minimum Internal Temperatures (USDA):
+- Ground beef, pork, lamb, veal:              160°F (71°C)
+- Beef/pork/lamb/veal steaks, roasts, chops:  145°F (63°C) + 3-min rest
+- All poultry (chicken, turkey, duck):        165°F (74°C)
+- Fish and shellfish:                         145°F (63°C)
+- Eggs:                                       cook until yolk and white are firm
+- Egg dishes and casseroles:                  160°F (71°C)
+- Leftovers:                                  reheat to 165°F (74°C)
+Always use a food thermometer — color is NOT a reliable safety indicator.
+
+STEP 4: CHILL — Refrigerate Promptly
+- Refrigerate perishables within 2 hours (1 hour if temperature above 90°F)
+- Never thaw food at room temperature
+- Keep refrigerator at or below 40°F; freezer at or below 0°F
+
+================================================================================
+SECTION 4: HIGH-RISK FOODS
+================================================================================
+
+Handle these with extra care:
+- Raw or undercooked poultry, meat, seafood, or eggs
+- Raw sprouts (alfalfa, bean, clover, radish)
+- Unwashed raw produce
+- Cut melon left at room temperature
+- Unpasteurized dairy products and juices
+- Raw dough or batter (uncooked flour or raw eggs are both risky)
+- Deli meats and hot dogs (Listeria risk — heat to 165°F if pregnant or high-risk)
+- Soft cheeses made with unpasteurized milk
+
+================================================================================
+SECTION 5: US & GLOBAL STATISTICS
+================================================================================
+
+US (CDC):
+- 48 million people sickened annually
+- 128,000 hospitalizations annually
+- 3,000 deaths annually
+
+Most common causes (US):
+1. Norovirus — most illnesses (21 million/year)
+2. Salmonella — most hospitalizations and deaths
+3. Clostridium perfringens
+4. Campylobacter
+5. Staphylococcus aureus
+
+Global (WHO):
+- 600 million people (1 in 10) sickened each year
+- 420,000 deaths each year
+- Children under 5: 40% of global foodborne disease burden
+
+================================================================================
+SOURCES
+================================================================================
+
+- CDC Food Poisoning Symptoms: https://www.cdc.gov/food-safety/signs-symptoms/index.html
+- CDC Norovirus: https://www.cdc.gov/norovirus/about/index.html
+- CDC E. coli: https://www.cdc.gov/ecoli/signs-symptoms/index.html
+- FDA Salmonella: https://www.fda.gov/food/foodborne-pathogens/salmonella-salmonellosis
+- USDA FSIS Food Safety Steps: https://www.fsis.usda.gov/food-safety/safe-food-handling-and-preparation/food-safety-basics/steps-keep-food-safe
+- WHO Food Safety: https://www.who.int/news-room/fact-sheets/detail/food-safety
