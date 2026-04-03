@@ -1,0 +1,137 @@
+# Food Left Out at Room Temperature — Safety Rules
+# Sources: USDA FSIS Danger Zone, FDA, CDC
+# Last updated: 2026-04-02
+
+================================================================================
+THE CORE RULE
+================================================================================
+
+Never leave perishable food out at room temperature for more than 2 HOURS.
+If the room or outdoor temperature is above 90°F (32°C), the limit is 1 HOUR.
+
+When in doubt, throw it out. You cannot tell if food is unsafe by looking at it,
+smelling it, or tasting it. Bacteria that cause illness often produce no detectable
+change in appearance, odor, or flavor.
+
+================================================================================
+THE DANGER ZONE: 40°F to 140°F (4°C to 60°C)
+================================================================================
+
+Within this temperature range, bacteria that cause food poisoning double in number
+approximately every 20 minutes.
+
+- Below 40°F: bacterial growth slows significantly (refrigerator)
+- Above 140°F: most bacteria are killed (hot holding)
+- 40°F–140°F: DANGER ZONE — food is at risk
+
+The 2-hour rule applies to the total time food spends in the danger zone,
+not just a single stretch. If food was out for 1 hour, put away, and then
+left out again for another hour, it has reached its limit.
+
+================================================================================
+SPECIFIC SITUATIONS & RULES
+================================================================================
+
+--- COOKED FOOD LEFT OUT ---
+Cooked meat, poultry, fish, eggs, casseroles, soups, stews, pasta, rice:
+→ Safe up to 2 hours at room temperature
+→ Discard if out more than 2 hours (1 hour if above 90°F)
+→ Reheating does NOT make food safe if it was out too long — toxins from
+  Staph aureus and Bacillus cereus survive cooking
+
+--- BUFFETS, PARTIES & POTLUCKS ---
+Food sitting on a buffet table is subject to the 2-hour rule.
+Rules for keeping food safe at gatherings:
+- Hot food: keep at 140°F or above (chafing dishes, slow cookers, warming trays)
+- Cold food: keep at 40°F or below (on ice or in coolers)
+- Rotate food in small batches rather than putting out large quantities at once
+- Write the time food was set out — do not rely on memory
+- Discard any food that has been sitting out for 2 hours, even if it looks fine
+
+--- PICNICS & OUTDOOR EVENTS ---
+Outside temperature above 90°F: the limit drops to 1 HOUR.
+Keep coolers at 40°F — use plenty of ice or ice packs.
+Store coolers in the shade, not in car trunks.
+Keep raw meat cooler separate from the food cooler.
+Do not open coolers repeatedly — each opening raises the temperature.
+
+--- RAW MEAT, POULTRY & SEAFOOD LEFT OUT ---
+These are the highest-risk foods. Treat with extra caution:
+→ Never defrost at room temperature — even a short time creates risk
+→ Never marinate at room temperature — always marinate in the refrigerator
+→ If raw meat was accidentally left out more than 2 hours, discard it
+
+--- EGGS LEFT OUT ---
+Shell eggs left at room temperature:
+→ Safe for up to 2 hours
+→ In the US, eggs are washed and refrigerated — they must be kept cold
+→ European eggs (unwashed) can be stored at room temperature, but US
+  store-bought eggs cannot once refrigerated
+
+--- DAIRY LEFT OUT ---
+Milk, yogurt, soft cheese, cream: discard after 2 hours at room temperature
+Hard cheese: can tolerate a bit longer (up to 4 hours) but refrigerate promptly
+Butter: can be left at room temperature for 1–2 days in a covered butter dish
+
+--- BREAD, CRACKERS, CHIPS, WHOLE FRUITS ---
+These are shelf-stable and are NOT subject to the 2-hour rule.
+
+--- CUT PRODUCE ---
+Once fruits and vegetables are cut, they become perishable:
+Cut melon: discard if out more than 2 hours
+Cut leafy greens: discard if out more than 2 hours
+Whole uncut fruit: shelf-stable at room temperature
+
+================================================================================
+POWER OUTAGES
+================================================================================
+
+If power goes out:
+- Keep refrigerator and freezer doors CLOSED as much as possible
+- Full refrigerator stays cold about 4 hours; half-full about 2 hours
+- A full freezer stays safe about 48 hours; half-full about 24 hours
+- Use a food thermometer to check temperature before eating refrigerated food
+
+When power is restored:
+- Refrigerator food at 40°F or below: SAFE
+- Refrigerator food above 40°F for more than 2 hours: DISCARD
+- Freezer food with ice crystals still present: safe to refreeze
+- Freezer food that thawed completely: cook immediately or discard
+
+Foods to ALWAYS discard after a prolonged outage (above 40°F for 2+ hours):
+- Raw or cooked meat, poultry, seafood
+- Milk, cream, yogurt, soft cheese
+- Cooked pasta, rice, potatoes
+- Casseroles, stews, soups
+- Opened mayonnaise or tartar sauce
+- Custard or pudding pies
+- Cut fruits and vegetables
+
+Foods that are SAFE after a power outage (do not need to be discarded):
+- Peanut butter, jelly, jam
+- Hard cheese (still in original packaging)
+- Fruit juice (unopened)
+- Whole fresh fruits and vegetables
+- Bread, rolls, cakes, muffins
+- Vinegar-based dressings and condiments
+- Fruit pies
+
+================================================================================
+TAKEOUT & RESTAURANT LEFTOVERS
+================================================================================
+
+Restaurant takeout and leftovers follow the same rules as home-cooked food:
+- Refrigerate within 2 hours of receiving
+- Eat within 3–4 days
+- Reheat to 165°F before eating
+
+If you forgot to refrigerate takeout and it sat out overnight: DISCARD.
+
+================================================================================
+SOURCES
+================================================================================
+
+- USDA FSIS Danger Zone 40°F–140°F: https://www.fsis.usda.gov/food-safety/safe-food-handling-and-preparation/food-safety-basics/danger-zone-40f-140f
+- USDA FSIS Keep Food Safe After a Disaster: https://www.fsis.usda.gov/food-safety/emergency-preparedness/food-safety-during-and-after-emergencies
+- CDC Food Safety at Events: https://www.cdc.gov/food-safety
+- FDA: https://www.fda.gov/food/buy-store-serve-safe-food/safe-food-handling

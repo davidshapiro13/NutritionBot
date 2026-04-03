@@ -39,6 +39,22 @@ from prompts import main_system_prompt
 RAG_DATA_DIR = Path(__file__).parent / "rag_data"
 EMBED_MODEL  = "all-MiniLM-L6-v2"
 
+# User-visible short tags for trailing "Sources:" (exact filename → label).
+KB_SOURCE_DISPLAY_NAMES: dict[str, str] = {
+    "food_safety_knowledge_base.txt": "food_safety",
+    "Cold Food Storage Chart.pdf": "cold_storage",
+    "ma_wic_approved_stores.csv": "wic_stores",
+    "DGA.pdf": "dga",
+}
+
+
+def _kb_source_display_label(filename: str) -> str:
+    if filename in KB_SOURCE_DISPLAY_NAMES:
+        return KB_SOURCE_DISPLAY_NAMES[filename]
+    stem = Path(filename).stem.strip().lower()
+    stem = re.sub(r"\s+", "_", stem)
+    return stem or filename
+
 
 # ══════════════════════════════════════════════════════════════════════════════
 # DOCUMENT LOADING
@@ -177,35 +193,46 @@ class RAGPipeline:
         print(f"Public KB: {len(docs)} file(s), {len(self._pub_chunks)} chunks indexed.")
         return len(self._pub_chunks)
 
-    # Distance threshold: chunks further than this are considered irrelevant
-    RELEVANCE_THRESHOLD = 1.0
+    # L2 distance on MiniLM embeddings; chunks beyond this are not injected into the LLM prompt
+    RELEVANCE_THRESHOLD = 1.25
 
-    def get_public_context(self, query: str, top_k: int = 2) -> tuple[str, bool]:
+    def get_public_context(self, query: str, top_k: int = 4) -> tuple[str, bool, list[str]]:
         """
-        Retrieve relevant passages from the public knowledge base.
-        Returns (context_string, has_relevant) where has_relevant is False
-        when no chunks pass the distance threshold.
+        Retrieve passages from the public knowledge base.
+
+        Returns (context_string, has_relevant, citation_filenames):
+        - context_string: only chunks under RELEVANCE_THRESHOLD (for the model).
+        - has_relevant: True if at least one such chunk exists.
+        - citation_filenames: unique source files from all top-k hits (for user-visible Sources line).
         """
         if self._pub_index is None or self._pub_index.ntotal == 0:
-            return "", False
+            return "", False, []
         results = _retrieve(query, self._model, self._pub_index, self._pub_chunks, top_k)
+        if not results:
+            return "", False, []
+        seen_cite: set[str] = set()
+        citation_sources: list[str] = []
+        for r in results:
+            s = r["source"]
+            if s not in seen_cite:
+                seen_cite.add(s)
+                citation_sources.append(s)
         relevant = [r for r in results if r["distance"] < self.RELEVANCE_THRESHOLD]
         if not relevant:
-            return "", False
+            return "", False, citation_sources
         context = "\n\n".join(f"[Source: {r['source']}]\n{r['text']}" for r in relevant)
-        return context, True
+        return context, True, citation_sources
 
     # ── Combined context ──────────────────────────────────────────────────────
 
-    def get_context(self, query: str, user_id: str = None) -> tuple[str, bool]:
+    def get_context(self, query: str, user_id: str = None) -> tuple[str, bool, list[str]]:
         """
         Combine public KB context and user memory context.
-        Returns (context_string, has_relevant_kb) where has_relevant_kb
-        indicates whether the public KB had relevant results.
+        Returns (context_string, has_relevant_kb, kb_source_filenames).
         """
         sections = []
 
-        pub, has_relevant = self.get_public_context(query)
+        pub, has_relevant, kb_sources = self.get_public_context(query)
         if pub:
             sections.append(f"[Public Knowledge Base]\n{pub}")
 
@@ -214,11 +241,17 @@ class RAGPipeline:
             if usr:
                 sections.append(f"[User Memory]\n{usr}")
 
-        return "\n\n".join(sections), has_relevant
+        return "\n\n".join(sections), has_relevant, kb_sources
 
     # ── Full RAG answer ───────────────────────────────────────────────────────
 
-    def query_rag(self, question: str, session_id: str = "rag-demo", user_id: str = None) -> str:
+    def query_rag(
+        self,
+        question: str,
+        session_id: str = "rag-demo",
+        user_id: str = None,
+        memory_source_message: str | None = None,
+    ) -> str:
         """
         Full RAG query:
           1. Retrieve public KB + user memory context with relevance filtering
@@ -227,21 +260,27 @@ class RAGPipeline:
           4. Auto-extract and save any new user facts from the question
 
         Args:
-            question   : user question
+            question   : user question (may include profile wrapper)
             session_id : LLMProxy session for conversation history
             user_id    : optional; enables user memory tracking
+            memory_source_message : if set, used for memory extraction instead of question
 
         Returns:
-            LLM answer string
+            LLM answer string, with trailing "Sources: …" when KB retrieval returned chunks
+            and/or web fallback titles were used (KB filenames may appear even if chunks were
+            below the relevance threshold for prompting).
         """
-        context, has_relevant = self.get_context(question, user_id=user_id)
+        context, has_relevant, kb_sources = self.get_context(question, user_id=user_id)
 
         llm = LLMProxy()
 
         length_instruction = (
             "Keep your answer under 500 characters. "
-            "3-5 sentences max. Plain text only, no bullet points or markdown."
+            "3-5 sentences max. Plain text only, no bullet points or markdown. "
+            "Do not list source filenames or URLs in your answer; citations are added separately."
         )
+
+        web_source_labels: list[str] = []
 
         if not has_relevant:
             # No relevant KB chunks — try web search fallback
@@ -249,6 +288,11 @@ class RAGPipeline:
             try:
                 from web_search import WebSearch
                 results = WebSearch().search(question, max_results=3)
+                for r in results or []:
+                    if r.get("snippet"):
+                        t = str(r.get("title", "")).strip()
+                        if t:
+                            web_source_labels.append(t)
                 snippets = [
                     f"[{r['title']}]\n{r['snippet']}"
                     for r in results if r.get("snippet")
@@ -301,7 +345,18 @@ class RAGPipeline:
 
         # Auto-extract structured user facts and save to memory
         if user_id:
-            self.memory.auto_extract_and_save(user_id, question)
+            mem_src = memory_source_message if memory_source_message is not None else question
+            self.memory.auto_extract_and_save(user_id, mem_src)
+
+        unique_web = list(dict.fromkeys(web_source_labels))
+        source_parts: list[str] = []
+        if kb_sources:
+            labels = [_kb_source_display_label(f) for f in kb_sources]
+            source_parts.append("; ".join(labels))
+        if unique_web:
+            source_parts.append("; ".join(unique_web))
+        if source_parts:
+            answer = f"{answer.rstrip()}\n\nSources: {' | '.join(source_parts)}"
 
         return answer
 

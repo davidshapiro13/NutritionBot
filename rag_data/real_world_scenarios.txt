@@ -1,0 +1,196 @@
+# Real-World Food Safety Scenarios
+# Sources: USDA FSIS, FDA, CDC — applied to everyday situations
+# Last updated: 2026-04-02
+
+These scenarios cover the most common food safety questions and mistakes.
+Each scenario gives the situation, the risk, and the correct action.
+
+================================================================================
+MEAT & POULTRY SCENARIOS
+================================================================================
+
+SCENARIO: "I left chicken on the counter to thaw for 3 hours."
+Risk: The outer surface entered the danger zone (40°F–140°F) within the first
+      30–60 minutes. Bacteria (Salmonella, Campylobacter) multiply rapidly.
+Action: DISCARD. Even if you cook it, toxins may already be present, and
+        uneven thawing means parts may not reach safe temperature.
+Safe way to thaw: refrigerator (1–2 days), cold water (change every 30 min),
+                  or microwave (then cook immediately).
+
+SCENARIO: "My ground beef was in the fridge for 4 days. Is it still safe?"
+Rule: Raw ground beef is safe for 1–2 days in the refrigerator.
+Action: DISCARD. At 4 days, it is past the safe window regardless of color or smell.
+Note: Ground meat is higher risk than whole cuts because grinding introduces
+      surface bacteria throughout the meat.
+
+SCENARIO: "The steak is pink in the middle — is it done?"
+Risk: Color alone is not a safe indicator of doneness.
+Rule: Whole muscle beef steaks and roasts are safe at 145°F with a 3-minute rest.
+      Ground beef must reach 160°F (no rest required).
+Action: Always use a food thermometer. Insert into the thickest part, away from bone.
+
+SCENARIO: "I cooked a big batch of chicken. Can I put the hot pot directly in the fridge?"
+Risk: A large hot container raises the refrigerator temperature, putting other
+      food at risk and causing the chicken to cool too slowly through the danger zone.
+Action: Divide into shallow containers (2 inches or less) first, let steam escape
+        briefly, then refrigerate promptly — within 2 hours of cooking.
+
+SCENARIO: "I marinated chicken on the counter for 30 minutes while prepping."
+Risk: Any time above 40°F, bacteria multiply. Poultry is especially high-risk.
+Rule: Always marinate in the refrigerator, no matter how short the time.
+Action: Use the leftover marinade as a sauce only if you boil it first — it touched
+        raw meat and is not safe to use directly.
+
+================================================================================
+LEFTOVERS SCENARIOS
+================================================================================
+
+SCENARIO: "I ordered pizza last night and left it on the counter. Can I eat it this morning?"
+Risk: Pizza with cheese and meat toppings is perishable. If left out overnight
+      (typically 8+ hours), it has been in the danger zone far beyond 2 hours.
+Action: DISCARD. Do not try to reheat and eat it — toxins from Staph aureus
+        are heat-stable and survive cooking.
+
+SCENARIO: "My soup has been in the fridge for 5 days. Is it still okay?"
+Rule: Cooked soups and stews are safe for 3–4 days in the refrigerator.
+Action: DISCARD. At day 5, it is past the safe window. When in doubt, throw it out.
+
+SCENARIO: "I reheated leftovers in the microwave but they're only warm, not hot."
+Risk: Microwaves heat unevenly, leaving cold spots where bacteria survive.
+Rule: Leftovers must reach 165°F throughout to be safe.
+Action: Cover food, stir halfway through, let stand 2 minutes, and check with
+        a thermometer in multiple spots before eating.
+
+SCENARIO: "Can I freeze leftovers that have been in the fridge for 4 days?"
+Rule: Freeze within 3–4 days. Day 4 is the last safe day to freeze.
+Action: If it's day 3–4, freezing is safe. If it's day 5 or more, discard — do
+        not freeze food that is already past its safe refrigerator window.
+
+SCENARIO: "I heated up the same leftovers three times this week."
+Risk: Each reheat cycle does not reset the safety clock. The food is only safe
+      for 3–4 days total from when it was originally cooked.
+Rule: Reheat only what you will eat. Store the rest properly each time.
+Action: As long as each portion reached 165°F and was refrigerated within 2 hours,
+        the remaining food is safe until day 3–4 from original cooking.
+
+================================================================================
+PRODUCE & VEGETABLE SCENARIOS
+================================================================================
+
+SCENARIO: "I washed my salad greens ahead of time and stored them. There's some brown liquid at the bottom."
+Risk: Excess moisture accelerates bacterial growth and breakdown.
+Action: If leaves are slimy or smell bad, discard. Store washed greens with a
+        dry paper towel to absorb moisture. Use within 3–5 days.
+
+SCENARIO: "I bought pre-washed salad in a bag. Do I need to wash it again?"
+Rule: Pre-washed/triple-washed bags are safe to eat without additional rinsing.
+      Rewashing may actually introduce contamination from your sink.
+Action: No need to rewash packaged salad labeled "pre-washed" or "ready to eat."
+        Wash any produce that is NOT labeled as pre-washed.
+
+SCENARIO: "I cut a watermelon and left half on the counter for a few hours."
+Risk: Cut melon is perishable — the moist interior supports rapid bacterial growth.
+Rule: Cut melon must be refrigerated within 2 hours.
+Action: If out more than 2 hours at room temperature, discard. Whole uncut
+        watermelon can stay at room temperature; once cut, treat it as perishable.
+
+SCENARIO: "My onion has a soft spot. Is it still good?"
+General rule: A small soft spot can be cut away (with margin) if the rest is firm.
+If more than half is soft, mushy, or moldy: discard.
+
+================================================================================
+EGG SCENARIOS
+================================================================================
+
+SCENARIO: "I ate cookie dough made with raw eggs and raw flour. Should I be worried?"
+Risk: Both raw eggs (Salmonella) and raw flour (E. coli) can carry harmful bacteria.
+Action: Monitor for symptoms (stomach cramps, diarrhea, vomiting) for up to 3–5 days.
+        If symptoms develop, especially bloody diarrhea or high fever, see a doctor.
+Prevention: Use pasteurized eggs and heat-treated flour for edible raw dough.
+
+SCENARIO: "My hard-boiled eggs have been in the fridge for 10 days. Are they safe?"
+Rule: Hard-boiled eggs are safe for up to 1 week in the refrigerator.
+Action: DISCARD. At 10 days, they are past the safe window.
+Note: Hard-boiled eggs actually have a shorter fridge life than raw shell eggs
+      because the protective coating is removed during cooking.
+
+SCENARIO: "I accidentally left eggs out overnight. Can I use them?"
+Rule: In the US, refrigerated eggs left out at room temperature for more than
+      2 hours should be discarded.
+Action: DISCARD. US eggs are washed, removing their protective bloom, so they
+        must stay refrigerated once they've been chilled.
+
+================================================================================
+DAIRY SCENARIOS
+================================================================================
+
+SCENARIO: "My milk smells a little off but is only 1 day past the sell-by date."
+Rule: "Sell by" is a retailer stocking date, not a safety cutoff. Milk can be
+      good for 5–7 days after the sell-by date if properly refrigerated.
+Action: Trust your senses — if it smells sour or has chunks, discard. If it
+        smells normal and tastes fine, it is likely still safe.
+
+SCENARIO: "I left butter on the counter for 2 days. Is it safe?"
+Rule: Salted butter can safely stay at room temperature for 1–2 days in a
+      covered container. Unsalted butter is more prone to spoilage.
+Action: 2 days is the outer limit. If it smells rancid or has changed texture, discard.
+
+SCENARIO: "My yogurt is 3 weeks past the best-by date."
+Rule: Yogurt is safe for 1–2 weeks past the best-by date if stored properly.
+      3 weeks past is beyond that window.
+Action: Check for mold, separation (beyond normal), or off smell. If any of
+        these are present, discard. If in doubt, throw it out.
+
+================================================================================
+GROCERY SHOPPING & TRANSPORT SCENARIOS
+================================================================================
+
+SCENARIO: "I went grocery shopping and then ran errands for 3 hours before going home."
+Risk: Perishable food in a warm car exceeded the 2-hour window.
+Action: DISCARD raw meat, poultry, dairy, and prepared deli foods if they were
+        at room temperature (above 40°F) for more than 2 hours.
+Prevention: Shop for perishables last; use an insulated bag; go straight home.
+
+SCENARIO: "I brought meat home from the store in a plastic bag. Some juice leaked."
+Risk: Raw meat juices can contaminate other groceries — cross-contamination risk.
+Action: Discard any ready-to-eat food the juice touched. Clean and sanitize the
+        bag, surface, or other items that came into contact with it.
+Prevention: Double-bag raw meat or place in a separate insulated bag.
+
+================================================================================
+SPECIAL SITUATIONS
+================================================================================
+
+SCENARIO: "There was a power outage for 5 hours. Is my food safe?"
+Rule: A refrigerator keeps food safe for about 4 hours with the door kept closed.
+Action: If power was out more than 4 hours, discard all perishables (meat, dairy,
+        cooked food, cut produce). Check with a thermometer — food above 40°F for
+        more than 2 hours should be discarded.
+Safe items: whole fruit, peanut butter, bread, vinegar-based condiments, hard cheese.
+
+SCENARIO: "I'm pregnant. Are there foods I should specifically avoid?"
+Higher-risk foods during pregnancy:
+- Deli meats and hot dogs: heat to 165°F (steaming hot) — Listeria risk
+- Soft cheeses (brie, feta, queso fresco) made with unpasteurized milk: avoid
+- Raw or undercooked seafood (sushi, oysters): avoid
+- Raw or undercooked eggs: avoid (Caesar dressing, hollandaise, runny eggs)
+- Refrigerated pâté or meat spreads: avoid
+- Raw sprouts: avoid
+- Unpasteurized juice or cider: avoid
+Note: These precautions are especially important because Listeria can cross
+      the placenta and cause miscarriage, stillbirth, or serious newborn illness.
+
+SCENARIO: "I gave my toddler raw cookie dough. What do I watch for?"
+Children under 5 are at high risk from Salmonella (raw eggs) and E. coli (raw flour).
+Watch for: stomach cramps, diarrhea, vomiting, and fever for up to 5 days.
+Bloody diarrhea or high fever → see a doctor immediately (risk of HUS with E. coli).
+
+================================================================================
+SOURCES
+================================================================================
+
+- USDA FSIS Leftovers and Food Safety: https://www.fsis.usda.gov/food-safety/safe-food-handling-and-preparation/food-safety-basics/leftovers-and-food-safety
+- USDA FSIS Danger Zone: https://www.fsis.usda.gov/food-safety/safe-food-handling-and-preparation/food-safety-basics/danger-zone-40f-140f
+- USDA FSIS Power Outages: https://www.fsis.usda.gov/food-safety/emergency-preparedness/food-safety-during-and-after-emergencies
+- CDC Food Safety: https://www.cdc.gov/food-safety
+- FDA Refrigerator Storage: https://www.fda.gov/food

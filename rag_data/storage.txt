@@ -1,0 +1,156 @@
+# Food Storage Times & Temperature Guide
+# Sources: USDA FSIS, FDA, Cold Food Storage Chart
+# Last updated: 2026-04-02
+
+================================================================================
+SAFE TEMPERATURES
+================================================================================
+
+Refrigerator: at or below 40°F (4°C)
+Freezer: at or below 0°F (-18°C)
+THE DANGER ZONE: 40°F to 140°F (4°C–60°C) — bacteria double every 20 minutes
+
+Use a refrigerator thermometer to verify temperature. Do not rely on feel alone.
+
+================================================================================
+REFRIGERATOR STORAGE TIMES (USDA)
+================================================================================
+
+--- RAW MEAT & POULTRY ---
+Ground beef, turkey, veal, pork, lamb:    1–2 days
+Beef, veal, lamb, pork steaks/chops/roasts: 3–5 days
+Whole chicken or turkey:                  1–2 days
+Chicken or turkey parts:                  1–2 days
+Variety meats (liver, kidneys, etc.):     1–2 days
+Raw sausage (pork, beef, turkey):         1–2 days
+Smoked sausage links or patties:          1 week
+Hard salami, pepperoni (opened):          3 weeks
+
+--- SEAFOOD ---
+Raw fish (lean, e.g., cod, flounder):     1–2 days
+Raw fish (fatty, e.g., salmon, tuna):     1–2 days
+Raw shrimp, scallops, crayfish, squid:    1–2 days
+Canned fish (opened):                     3–4 days
+
+--- EGGS & DAIRY ---
+Raw eggs in shell:                        3–5 weeks
+Raw egg whites or yolks:                  2–4 days
+Hard-boiled eggs (in shell):              1 week
+Hard-boiled eggs (peeled):                1 week (store in water)
+Milk:                                     1 week after opening
+Butter:                                   1–3 months
+Soft cheese (ricotta, brie, cottage):     1–2 weeks
+Hard cheese (cheddar, parmesan, swiss):   3–4 weeks after opening
+Shredded cheese (opened bag):             1 week
+Yogurt:                                   1–2 weeks
+Cream, half-and-half:                     3–4 days after opening
+Sour cream:                               1–3 weeks
+
+--- COOKED FOODS & LEFTOVERS ---
+Cooked meat or poultry:                   3–4 days
+Cooked fish:                              3–4 days
+Cooked egg dishes:                        3–4 days
+Cooked pasta:                             3–5 days
+Cooked rice:                              3–4 days
+Cooked vegetables:                        3–4 days
+Soups and stews:                          3–4 days
+Pizza:                                    3–4 days
+Gravy and meat broth:                     1–2 days
+
+--- DELI & PROCESSED MEATS ---
+Unopened deli meat packages:              2 weeks
+Opened deli meats (sliced):               3–5 days
+Hot dogs (opened package):                1 week
+Hot dogs (unopened package):              2 weeks
+Bacon:                                    1 week
+Cooked ham slices:                        3–4 days
+Whole cooked ham:                         7 days
+
+--- PRODUCE ---
+Cut melon:                                3–4 days (must be refrigerated)
+Cut leafy greens:                         3–5 days
+Apples, whole:                            3–4 weeks
+Berries:                                  3–6 days
+Grapes:                                   1–2 weeks
+
+================================================================================
+FREEZER STORAGE TIMES (USDA)
+================================================================================
+
+Freezing keeps food safe indefinitely, but quality declines over time.
+Best quality timeframes:
+
+Ground beef or turkey:                    3–4 months
+Beef steaks/roasts:                       6–12 months
+Pork chops:                               4–6 months
+Whole chicken or turkey:                  1 year
+Chicken parts:                            9 months
+Fish (lean):                              6–8 months
+Fish (fatty):                             2–3 months
+Shrimp, scallops:                         3–6 months
+Cooked meat or poultry:                   2–6 months
+Cooked fish:                              4–6 months
+Soups and stews:                          2–3 months
+Hot dogs or luncheon meat (unopened):     1–2 months
+Butter:                                   6–9 months
+Hard cheese (shredded):                   6 months
+Egg whites or yolks (not in shell):       12 months
+Bread and rolls:                          2–3 months
+Cakes (baked):                            2–4 months
+
+================================================================================
+THAWING RULES (USDA)
+================================================================================
+
+NEVER thaw food at room temperature on the counter.
+Three safe methods only:
+
+1. REFRIGERATOR THAWING (best method)
+   - Slow and safe; food stays at 40°F or below
+   - Ground meat, poultry, seafood: 1–2 days
+   - Large roasts, whole turkey: 24 hours per 4–5 lbs
+   - Thawed food can be safely refrozen (quality may decline)
+
+2. COLD WATER THAWING
+   - Submerge in cold water in a leak-proof bag
+   - Change water every 30 minutes
+   - Cook immediately after thawing
+   - DO NOT refreeze without cooking first
+
+3. MICROWAVE THAWING
+   - Use the defrost setting
+   - Cook immediately after — parts may begin to cook
+   - DO NOT refreeze without cooking first
+
+Room temperature thawing: NEVER safe. Bacteria multiply rapidly on the outer
+surface while the center is still frozen.
+
+================================================================================
+MARINATING RULES
+================================================================================
+
+- Always marinate in the refrigerator, never on the counter
+- Discard used marinade that touched raw meat — do not reuse as sauce
+- If you want marinade as a sauce, set aside a portion before adding raw meat
+- Marinating time: fish up to 30 minutes, poultry and meat up to 24 hours
+
+================================================================================
+SPECIAL STORAGE TIPS
+================================================================================
+
+- Store raw meat on the BOTTOM shelf of the refrigerator in a sealed container
+  to prevent juices dripping onto other foods
+- Do not overpack the refrigerator — air needs to circulate to keep food cold
+- Keep eggs in original carton on a middle or bottom shelf, not in the door
+  (door temperature fluctuates more)
+- Once canned food is opened, transfer to a glass or plastic container with lid;
+  do not store in the open can
+- "Best by" and "sell by" dates indicate quality, not safety — but when in doubt, throw it out
+
+================================================================================
+SOURCES
+================================================================================
+
+- USDA FSIS Cold Food Storage Chart: https://www.fsis.usda.gov/food-safety/safe-food-handling-and-preparation/food-safety-basics/cold-food-storage-charts
+- USDA FSIS Freezing and Food Safety: https://www.fsis.usda.gov/food-safety/safe-food-handling-and-preparation/food-safety-basics/freezing-and-food-safety
+- FDA: https://www.fda.gov/food/buy-store-serve-safe-food/refrigerator-thermometers-cold-facts-about-food-safety
