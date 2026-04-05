@@ -5,8 +5,8 @@ Central router that classifies user intent and calls the right tool.
 
 Intents:
     food_safety      → hub + optional RAG router on follow-up; typed questions use query_rag
-    nutrition_advice → AI.ask()
-    find resources   → LLM-led resources_mode + JSON actions (location, eligibility, etc.)
+    nutrition_advice → LLM router: optional query_rag else main_system _ai.ask
+    find resources   → LLM-led resources_mode + JSON; optional KB snippets via router + get_context
     find_stores      → enters resources_mode (same)
     find_wic_stores  → request_location → location_service (WIC CSV)
     out_of_scope     → LLM-generated refusal
@@ -41,6 +41,7 @@ from prompts import (
     FOOD_SAFETY_HUB_FALLBACK_MESSAGE,
     FOOD_SAFETY_HUB_BUTTON_FALLBACK,
     rag_router_prompt,
+    kb_retrieval_router_prompt,
     resources_lead_system_prompt,
     resources_lead_json_repair_prompt,
 )
@@ -133,6 +134,20 @@ def _should_use_rag_food_safety(user_text: str, session_id: str) -> bool:
     """LLM routes whether this food-safety turn should use RAG (default yes if unclear)."""
     try:
         raw = _ai.ask(rag_router_prompt, user_text, session_id + "_ragroute").strip().lower()
+        if raw.startswith("no"):
+            return False
+        if raw.startswith("yes"):
+            return True
+    except Exception:
+        pass
+    return True
+
+
+def _should_retrieve_public_kb(user_message: str, session_id: str, lane: str) -> bool:
+    """LLM routes nutrition/resources KB retrieval (default yes if unclear)."""
+    payload = f"[LANE]\n{lane}\n[USER MESSAGE]\n{(user_message or '').strip() or '(empty)'}"
+    try:
+        raw = _ai.ask(kb_retrieval_router_prompt, payload, session_id + "_kbroute").strip().lower()
         if raw.startswith("no"):
             return False
         if raw.startswith("yes"):
@@ -469,9 +484,19 @@ class NutritionAgent:
         session = _user_session(user_id)
         profile_context = self._format_profile_context(self._get_profile(user_id))
         summary = _resources_conversation_summary.get(user_id, "(none)")
+        retrieval_q = (user_text or "").strip() or "Massachusetts WIC SNAP food assistance resources"
+        kb_block = ""
+        if _should_retrieve_public_kb(retrieval_q, session, "resources"):
+            try:
+                ctx, _has_rel, _src = _rag.get_context(retrieval_q, user_id=user_id)
+                if ctx and str(ctx).strip():
+                    kb_block = f"[KNOWLEDGE BASE SNIPPETS]\n{str(ctx).strip()}\n\n"
+            except Exception:
+                pass
         query = (
             f"[USER PROFILE]\n{profile_context}\n"
             f"[CONVERSATION SUMMARY]\n{summary}\n"
+            f"{kb_block}"
             f"[USER MESSAGE]\n{(user_text or '').strip() or '(empty)'}"
         )
         raw = _ai.ask(resources_lead_system_prompt, query, session + "_rlead")
@@ -764,7 +789,18 @@ class NutritionAgent:
             remembered_profile = self._remember_user_message(user_id, user_message)
             profile_context = self._format_profile_context(remembered_profile)
             full_query = f"[USER PROFILE]\n{profile_context}\n[QUESTION]\n{user_message}"
-            response = _ai.ask(main_system_prompt, full_query, session)
+            if intent == "nutrition_advice":
+                if _should_retrieve_public_kb(user_message, session, "nutrition"):
+                    response = _rag.query_rag(
+                        full_query,
+                        session_id=session,
+                        user_id=user_id,
+                        memory_source_message=user_message,
+                    )
+                else:
+                    response = _ai.ask(main_system_prompt, full_query, session)
+            else:
+                response = _ai.ask(main_system_prompt, full_query, session)
 
         nudge_buttons: list[Button] = []
         response, nudge_buttons = self._maybe_append_profile_nudge(
@@ -833,12 +869,26 @@ class NutritionAgent:
                     session,
                 )
                 return question, []
+            nutrition_open = (
+                f"[USER PROFILE]\n{profile_context}\n[QUESTION]\n"
+                "Give me practical, personalized healthy eating advice based on this user's profile."
+            )
+            nut_router_msg = (
+                "User tapped Eating Better; give practical, personalized healthy eating advice based on profile."
+            )
             try:
-                response = _ai.ask(
-                    main_system_prompt,
-                    f"[USER PROFILE]\n{profile_context}\n[QUESTION]\nGive me practical, personalized healthy eating advice based on this user's profile.",
-                    session,
-                )
+                if _should_retrieve_public_kb(nut_router_msg, session, "nutrition"):
+                    response = _rag.query_rag(
+                        nutrition_open,
+                        session_id=session,
+                        user_id=user_id,
+                        memory_source_message=(
+                            "The user tapped Eating Better from the main menu; "
+                            "give practical, personalized healthy eating advice based on their profile."
+                        ),
+                    )
+                else:
+                    response = _ai.ask(main_system_prompt, nutrition_open, session)
             except Exception:
                 response = (
                     "I’m here to help with eating better. What would you like to work on first—meals, snacks, or something else?"
