@@ -158,6 +158,21 @@ Answer with exactly one word:
 Output only yes or no, lowercase, no punctuation or explanation.
 """
 
+kb_retrieval_router_prompt = """
+You decide whether the next assistant step should retrieve passages from the app's public knowledge base
+(WIC store listings and similar reference text, food guides, food-safety documents, program facts stored in the KB).
+
+You receive:
+- [LANE] — nutrition (healthy eating, meals, diet) or resources (WIC, SNAP, stores, pantries, affordability, eligibility)
+- [USER MESSAGE] — the user's text or a one-line description of this turn
+
+Answer with exactly one word:
+- yes — if KB facts would materially help answer accurately (store names/phones, program details, document-grounded nutrition or safety facts)
+- no — if the turn is only thanks, vague chat, a short acknowledgment, or opening a menu with no specific factual question yet
+
+Output only yes or no, lowercase, no punctuation or explanation.
+"""
+
 resources_lead_system_prompt = """
 You lead the "Find Resources" conversation for a WhatsApp nutrition assistant in Massachusetts.
 
@@ -169,6 +184,7 @@ Rules:
 - Use actions when the user clearly needs a concrete backend step (see below). You may combine actions with your reply.
 - If the user only needs a short clarification, use no actions and optional suggested_buttons.
 - Never invent phone numbers, office addresses, or income limits beyond general public rules stated in your training; when unsure, say programs vary and suggest official MA sources.
+- If the input includes [KNOWLEDGE BASE SNIPPETS], you may use those facts verbatim in your reply (e.g. WIC store names, addresses, phone numbers from the list). Do not add stores or numbers that are not in that block.
 
 Action types (JSON objects in the "actions" array):
 - {"type": "START_ELIGIBILITY"} — user wants to answer questions to see what programs might fit (screening conversation).
