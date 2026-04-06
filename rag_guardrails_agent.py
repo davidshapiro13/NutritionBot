@@ -10,7 +10,29 @@ from llmproxy import LLMProxy
 
 from user_memory import UserMemory
 from prompts import main_system_prompt
-from web_search import WebSearch
+
+# import os
+# import math
+# import requests
+# from pathlib import Path
+# from typing import Optional
+# from dotenv import load_dotenv
+
+# load_dotenv(dotenv_path=Path(__file__).parent / ".env")
+
+# API_KEY = os.getenv("API_KEY")
+# CSE_ID = os.getenv("CSE_ID")
+# URL = "https://www.googleapis.com/customsearch/v1"
+# VALID_LINKS = {
+# "https://www.nutrition.gov/", 
+# "https://www.cancer.gov/", 
+# "https://nutritionsource.hsph.harvard.edu/", 
+# "https://www.cspi.org/", 
+# "https://snaped.fns.usda.gov/resources/nutrition-education-materials/meal-planning-shopping-and-budgeting", 
+# "https://www.mayoclinic.org/symptom-checker/select-symptom/itt-20009075", 
+# "https://medlineplus.gov/foodandnutrition.html", 
+# "https://www.foodsafety.gov/"
+# }
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
 RAG_DATA_DIR = Path(__file__).parent / "rag_data"
