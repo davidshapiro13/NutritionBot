@@ -193,7 +193,7 @@ WELCOME_MESSAGE = (
     "📍 Find Resources — Find nearby stores, WIC-approved foods, and local "
     "programs to help you save money on groceries.\n\n"
 
-    "You can choose one of the options below or ask me anything. "
+    "You can choose one of the button options below or ask me anything by typing it in. "
     "What would you like me to help you with today?"
 )
 
