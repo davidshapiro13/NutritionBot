@@ -641,7 +641,10 @@ class NutritionAgent:
             return None
         if target != "asking_for":
             return None
-        _nutrition_ob_state[user_id] = {"target": target}
+        _nutrition_ob_state[user_id] = {
+            "target": target,
+            "pending_question": "Give me practical, personalized healthy eating advice based on this user's profile.",
+        }
         question = _build_profile_question(profile, user_message, target, session)
         return f"{welcome_response}\n\n{question}", []
 
