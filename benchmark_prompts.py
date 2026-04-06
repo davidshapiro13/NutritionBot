@@ -23,14 +23,10 @@ judge_instructions = """
     You are an expert nutritionist judging answers to health questions.
     You are provided with the question asked, the rubric for how you should
     evaluate and then the answer provided by the model.
-    If the response states that it cannot answer something because of a lack of access, it should get a poor score.
 
     <Answer Criteria>
-    1. Is the answer clear and consise?
-    2. Is the answer accurate?
-    3. Is the answer specific?
-    4. Does it match the rubric well?
-    5. Answers with I do not know should score poorly
+    1. Does it match the rubric well?
+    2. If the rubric expects a concrete answer but the actual answer is vague or unsure, this should get low points.
     </Answer Criteria>
     
     Follow this JSON format. If you have any syntax errors then you failed your mission.

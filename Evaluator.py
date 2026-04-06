@@ -4,7 +4,7 @@ from user_memory import UserMemory
 import random
 
 benchmark = Benchmark()
-benchmark.evaluate()
+#benchmark.evaluate()
 
 class Our_Model():
     def __init__(self):
@@ -31,4 +31,4 @@ class Our_Model():
         
 
 agent = Our_Model()
-benchmark.evaluate(agent, "3-31 Benchmark results.txt")
+benchmark.evaluate(agent, "4-04 Benchmark results.txt")

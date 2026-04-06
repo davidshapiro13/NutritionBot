@@ -1,8 +1,0 @@
-[User Profile]
-asking_for: self
-
-[Health & Diet]
-preferences: qualified for wic
-
-[Goals]
-main_goal: find nearest store that supports wic

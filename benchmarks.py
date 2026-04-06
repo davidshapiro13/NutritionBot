@@ -95,6 +95,9 @@ class Benchmark():
                 file.write(result["topic"] + ": " + result["question"] + "\n")
                 file.write("Answer: " + result["answer"] + "\n")
                 file.write("Jury Score: " + str(int(result["score"])) + "\n\n")
+                for jurer in result["reasoning"]:
+                    file.write(jurer["reason"] + " | Score: " + jurer["score"] + "\n\n")
+
             file.write("Overall score: " + str(overall_score) + "%")
 
     def evaluate(self, model=Base_Model(), file_name="benchmark_results.txt"):
@@ -109,6 +112,6 @@ class Benchmark():
             decisions = self.LLM_as_Jury(problem["questions"], problem["rubric"], answer)
             print(decisions)
             result = self.aggregate(decisions)
-            exam_results.append({"question": problem["questions"][-1], "topic": problem["topic"], "answer": answer, "score": result})
+            exam_results.append({"question": problem["questions"][-1], "topic": problem["topic"], "answer": answer, "score": result, "reasoning": decisions})
         overall_score = self.exam_score(exam_results)
         self.write_results(exam_results, overall_score, file_name)
