@@ -244,27 +244,27 @@ class RAGPipeline:
         )
 
         if not has_relevant:
-            # No relevant KB chunks — try web search fallback
-            web_context = ""
-            try:
-                from web_search import WebSearch
-                results = WebSearch().search(question, max_results=3)
-                snippets = [
-                    f"[{r['title']}]\n{r['snippet']}"
-                    for r in results if r.get("snippet")
-                ]
-                web_context = "\n\n".join(snippets)
-            except Exception:
-                pass
+            # # No relevant KB chunks — try web search fallback
+            # web_context = ""
+            # try:
+            #     from web_search import WebSearch
+            #     results = WebSearch().search(question, max_results=3)
+            #     snippets = [
+            #         f"[{r['title']}]\n{r['snippet']}"
+            #         for r in results if r.get("snippet")
+            #     ]
+            #     web_context = "\n\n".join(snippets)
+            # except Exception:
+            #     pass
 
-            if web_context:
-                query_with_context = (
-                    f"{length_instruction}\n\n"
-                    f"Answer using the web sources below.\n\n"
-                    f"SOURCES:\n{web_context}\n\n"
-                    f"QUESTION:\n{question}"
-                )
-            else:
+            # if web_context:
+            #     query_with_context = (
+            #         f"{length_instruction}\n\n"
+            #         f"Answer using the web sources below.\n\n"
+            #         f"SOURCES:\n{web_context}\n\n"
+            #         f"QUESTION:\n{question}"
+            #     )
+            # else:
                 query_with_context = f"{length_instruction}\n\nQUESTION:\n{question}"
         else:
             query_with_context = (

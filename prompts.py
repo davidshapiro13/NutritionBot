@@ -182,6 +182,9 @@ WELCOME_MESSAGE = (
     "👋 Hi! I'm here to help you and your family eat well, stay safe, "
     "and make the most of local food resources.\n\n"
 
+    "DISCLAIMER: I provide general advice but I'm not a doctor. For urgent health issues, please contact a healthcare professional immediately."
+    "I may give inaccurate information so if you're still unsure, please turn to a medical professional or double check the sources using trusted websites."
+
     "Here’s how I can support you:\n"
     "🥗 Eating Better — Get simple, affordable nutrition tips, meal ideas, "
     "and ways to eat healthy on a budget.\n"
@@ -191,7 +194,7 @@ WELCOME_MESSAGE = (
     "programs to help you save money on groceries.\n\n"
 
     "You can choose one of the options below or ask me anything. "
-    "What would you like help with today?"
+    "What would you like me to help you with today?"
 )
 
 LOCATION_PROMPT = (

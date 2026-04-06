@@ -135,7 +135,6 @@ def _retrieve(query: str, model: SentenceTransformer, index, chunks: list[dict],
 # ══════════════════════════════════════════════════════════════════════════════
 # RAG PIPELINE CLASS
 # ══════════════════════════════════════════════════════════════════════════════
-web_search = WebSearch()
 
 class RAGPipeline:
     """

@@ -50,7 +50,6 @@ from prompts import (
     WIC_INFO_BUTTONS,
     LOCATION_PROMPT,
 )
-from web_search import WebSearch
 from wa_service_sdk import Button
 from user_memory import UserMemory
 
@@ -228,18 +227,6 @@ def _maybe_add_wic_nudge(response: str, buttons: list[Button], context: str, ses
     wic_button = [Button(id="wic_info", title="💡 WIC Help")]
     return response, _merge_buttons(buttons, wic_button)
 
-_web_search = WebSearch()
-
-def _add_web_search(response: str, query: str) -> str:
-    try:
-        results = _web_search.search(query, max_results=3)
-        if results:
-            search_text = "\n\nSources:\n" + "\n".join([f"- {r['title']}: {r['link']}" for r in results])
-            response = f"{response}\n{search_text}"
-    except Exception:
-        pass
-    return response
-
 # ══════════════════════════════════════════════════════════════════════════════
 # AGENT CLASS
 # ══════════════════════════════════════════════════════════════════════════════
@@ -288,14 +275,12 @@ class NutritionAgent:
             # Inject profile context into RAG
             full_query = f"[USER PROFILE]\n{profile_context}\n[QUESTION]\n{user_message}"
             response = _rag.query_rag(full_query, session_id=session, user_id=user_id)
-            response = _add_web_search(response, user_message)
             buttons  = _generate_buttons(response, session)
 
         elif intent == "nutrition_advice":
             # Inject profile context into AI
             full_prompt = f"[USER PROFILE]\n{profile_context}\n[QUESTION]\n{user_message}"
             response = _ai.ask(main_system_prompt, full_prompt, session)
-            response = _add_web_search(response, user_message)
             buttons  = _generate_buttons(response, session)
             response, buttons = _maybe_add_wic_nudge(response, buttons, user_message, session)
 
