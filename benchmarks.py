@@ -82,7 +82,7 @@ class Benchmark():
 
     def aggregate(self, decisions):
         score = sum(int(decision["score"]) for decision in decisions)
-        avg_score = score / len(decisions)
+        avg_score = round(score / len(decisions))
         return avg_score
 
     def exam_score(self, exam_results):

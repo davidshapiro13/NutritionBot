@@ -18,6 +18,8 @@ class Our_Model():
         return response
     
     def onboard(self):
+        self.session_id = "OurModel" + str(random.random())
+        
         profile = {
         "name": "Fred",
         "age_group": "adult",
