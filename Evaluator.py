@@ -13,10 +13,12 @@ class Our_Model():
         self.session_id = "OurModel" + str(random.random())
 
     def answer(self, questions, memory=None):
+        response = ""
         for question in questions:
             if memory == None:
                 response = self.agent.run(question, self.session_id)[0]
             else:
+                print("MEMORY" + memory)
                 response = self.agent.run(question + "[MEMORY]" + memory, self.session_id)[0]
         return response
     
@@ -33,7 +35,7 @@ class Our_Model():
         }
         mem = UserMemory(embed_model=None)
         mem.save_profile(self.session_id, profile)
-        return mem.load_all()
+        return mem.load_all(self.session_id)
         
 
 agent = Our_Model()

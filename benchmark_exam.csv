@@ -5,7 +5,7 @@ RAG3,"I live in Malden, MA. Propose a pharmacy and grocery store for me to shop 
 RAG4,"Which brands are covered under WIC in Massachusetts? a) Nestle, b) Dole, c) Sunbelt, d) Farina Mills, e) Barilla, f) Betty Crocker","Answer is b, d and e. Any other answer is wrong. If they don't include all three, it is wrong and should get low score.",
 RAG5,What is a brand of Tortilla that is covered by WIC in Connecticut?,Answer should be that the agent doesnÕt know because we only have access to WIC for Massachusetts The response should not attempt to provide a concrete solution as it has no knowledge beyond its scope of Massachusetts.,
 MEMORY1,I ate a turkey sandwich for lunch and I hated it.,N/A,
-MEMORY1,Is Turkey a good dinner option for me tonight?,Answer should acknowledge that the user did not like turkey when they had it at lunch so it might not be a good option. If this is not addressed, the score should be low.,
+MEMORY1,Is Turkey a good dinner option for me tonight?,Answer should acknowledge that the user did not like turkey when they had it at lunch so it might not be a good option. If this is not addressed, the score should be low. If it is addressed, full score,
 MEMORY2,Please tell me all the information you know about me.,"Answer should include userÕs name, age range (adult, child or elder), allergies, conditions.",Onboard
 MEMORY3,I am allergic to sesame. Only when I eat it though. I can be around it.,N/A,
 MEMORY3,Now let’s talk about my son Sam. He has no allergies. What is a good meal for him to have?,N/A,

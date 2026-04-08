@@ -108,7 +108,7 @@ class Benchmark():
             if problem["tag"] == "Onboard":
                 print("ONBOARDING!!!!")
                 memory = model.onboard()
-                answer = model.answer(problem["questions"], memory)
+                answer = model.answer(problem["questions"], memory=memory)
             else:
                 answer = model.answer(problem["questions"])
             decisions = self.LLM_as_Jury(problem["questions"], problem["rubric"], answer)

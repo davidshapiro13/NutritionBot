@@ -706,6 +706,7 @@ class NutritionAgent:
         return f"{response}\n\n{question}", []
 
     def run(self, user_message: str, user_id: str) -> tuple[str, list[Button] | str]:
+        print("RUN")
         """Handle a free-text message from the user. Injects user profile into context."""
         profile = self._get_profile(user_id)
         profile_context = self._format_profile_context(profile)
