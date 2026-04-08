@@ -107,8 +107,10 @@ class Benchmark():
             print(problem["topic"])
             if problem["tag"] == "Onboard":
                 print("ONBOARDING!!!!")
-                model.onboard()
-            answer = model.answer(problem["questions"])
+                memory = model.onboard()
+                answer = model.answer(problem["questions"], memory)
+            else:
+                answer = model.answer(problem["questions"])
             decisions = self.LLM_as_Jury(problem["questions"], problem["rubric"], answer)
             print(decisions)
             result = self.aggregate(decisions)

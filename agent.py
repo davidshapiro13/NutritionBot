@@ -44,6 +44,7 @@ from prompts import (
     kb_retrieval_router_prompt,
     resources_lead_system_prompt,
     resources_lead_json_repair_prompt,
+    thanks_tailor_prompt
 )
 from web_search import WebSearch
 from wa_service_sdk import Button
@@ -380,7 +381,7 @@ def _build_profile_question(profile: dict, user_message: str, target: str, sessi
         "age_group": "What age range should I keep in mind?",
         "main_goal": "What would you most like help with right now?",
         "health_context": "Any health conditions, medications, allergies, or food restrictions I should keep in mind?",
-        "routine": "Any foods you avoid, budget concerns, or cooking limits that would help me tailor ideas?",
+        "routine": "Any foods you avoid, budget concerns, or cooking limits that would help me in suggesting ideas?",
     }
     try:
         question = _ai.ask(profile_nudge_prompt, prompt, session_id + "_profile_nudge").strip()
@@ -393,8 +394,8 @@ def _build_profile_question(profile: dict, user_message: str, target: str, sessi
 
 def _profile_acknowledgement(profile: dict) -> str:
     if _normalize_text(profile.get("asking_for")) in {"child", "parent", "spouse", "other"}:
-        return "Thanks, that helps me tailor this for them."
-    return "Thanks, that helps me tailor this for you."
+        return _ai.ask(thanks_tailor_prompt, "user is writing about somone else", "thank-you")
+    return _ai.ask(thanks_tailor_prompt, "user is writing about themselves", "thank-you")
 
 
 def _format_profile_for_prompt(profile: dict) -> str:
@@ -678,7 +679,7 @@ class NutritionAgent:
             next_state["target"] = next_target
             _nutrition_ob_state[user_id] = next_state
             question = _build_profile_question(profile, user_message, next_target, session)
-            return f"{_profile_acknowledgement(profile)} {question}", []
+            return question, []
 
         _nutrition_ob_state.pop(user_id, None)
         return self._answer_saved_profile_task(user_id, profile, session, state)
