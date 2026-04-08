@@ -8,6 +8,8 @@ Intents:
     nutrition_advice → LLM router: optional query_rag else main_system _ai.ask
     find resources   → LLM-led resources_mode + JSON; optional KB snippets via router + get_context
     find_stores      → enters resources_mode (same)
+    orchestrator     → determines if intent is food_safety, nutrition_advice, or find resources or out_of_scope 
+    rag_switch       → decides if RAG needs to be used for food safety or eating better questions
     find_wic_stores  → request_location → resource_tools/store_locator (WIC CSV)
     out_of_scope     → LLM-generated refusal
 
@@ -51,11 +53,6 @@ from prompts import (
 from resource_tools import run_tool as _run_resource_tool
 from wa_service_sdk import Button
 from user_memory import UserMemory
-
-try:
-    from web_search import WebSearch
-except Exception:
-    WebSearch = None
 
 import ast
 import json
@@ -180,8 +177,23 @@ def _wants_wic_store_by_location(text: str) -> bool:
             r"\bstores?\b.{0,30}\b(near|close|around)",
             t,
         )
-    )
+    ) 
 
+def _normalize_intent(message: str) -> str:
+    """Normalize classifier text into a supported intent label."""
+    intent = re.sub(r"\s+", " ", (message or "").strip().lower())
+    if intent.startswith("find resources") or intent == "find_stores" or (
+        "find" in intent and "resource" in intent
+    ):
+        return "find resources"
+    if intent.startswith("food_safety") or intent.startswith("food safety"):
+        return "food_safety"
+    if intent.startswith("nutrition") or intent.startswith("nutrition_advice") or intent.startswith("eating better"):
+        return "nutrition_advice"
+    if intent.startswith("out_of_scope") or intent.startswith("out of scope"):
+        return "out_of_scope"
+    else:
+        return "nutrition_advice"
 
 
 def _classify_intent(user_message: str, session_id: str) -> str:
@@ -189,24 +201,32 @@ def _classify_intent(user_message: str, session_id: str) -> str:
     if _wants_wic_store_by_location(user_message):
         return "find resources"
     result = _ai.ask(intent_classifier_prompt, user_message, session_id)
-    intent = re.sub(r"\s+", " ", (result or "").strip().lower())
-    if intent.startswith("find resources") or intent == "find_stores" or (
-        "find" in intent and "resource" in intent
-    ):
-        intent = "find resources"
-    elif intent.startswith("food_safety"):
-        intent = "food_safety"
-    elif intent.startswith("nutrition"):
-        intent = "nutrition_advice"
-    elif intent.startswith("out_of_scope") or intent.startswith("out of scope"):
-        intent = "out_of_scope"
-    valid = {"food_safety", "nutrition_advice", "find resources", "out_of_scope"}
-    return intent if intent in valid else "nutrition_advice"
+    return _normalize_intent(result)
 
+
+def orchestrator(user_message: str, session_id: str) -> str:
+    """LLM-based orchestrator: determine the top-level intent."""
+    if _wants_wic_store_by_location(user_message):
+        return "find resources"
+    raw = _ai.ask(intent_classifier_prompt, user_message, session_id + "_orchestrator")
+    return _normalize_intent(raw)
+
+
+def should_use_rag_for_intent(user_message: str, session_id: str, intent: str) -> bool:
+    """Decide whether this turn should use RAG based on the top-level intent."""
+    if intent == "food_safety":
+        return _should_use_rag_food_safety(user_message, session_id + "_ragswitch")
+    if intent == "nutrition_advice":
+        return _should_retrieve_public_kb(user_message, session_id + "_kbroute", "nutrition")
+    return False
+
+
+def rag_switch(user_message: str, session_id: str) -> bool:
+    """Backward-compatible wrapper for the food safety RAG router."""
+    return should_use_rag_for_intent(user_message, session_id, "food_safety")
 
 def _user_session(user_id: str) -> str:
     return f"NutritionBot_User_{user_id}"
-
 
 def _parse_tool_decision(raw: str) -> dict:
     """Extract tool selection JSON from LLM output."""
@@ -401,21 +421,6 @@ def _save_and_reload_profile(user_id: str, user_message: str):
             k, v = line.split(":", 1)
             profile[k.strip()] = v.strip()
     return profile
-
-
-_web_search = WebSearch() if WebSearch else None
-
-def _add_web_search(response: str, query: str) -> str:
-    if not _web_search:
-        return response
-    try:
-        results = _web_search.search(query, max_results=3)
-        if results:
-            search_text = "\n\nSources:\n" + "\n".join([f"- {r['title']}: {r['link']}" for r in results])
-            response = f"{response}\n{search_text}"
-    except Exception:
-        pass
-    return response
 
 # ══════════════════════════════════════════════════════════════════════════════
 # AGENT CLASS
@@ -704,7 +709,7 @@ class NutritionAgent:
             response = _append_button_intro(response, buttons, session)
             return response, buttons
 
-        intent = _classify_intent(user_message, session)
+        intent = orchestrator(user_message, session)
 
         if intent == "find resources":
             _resources_mode_users.add(user_id)
@@ -717,14 +722,22 @@ class NutritionAgent:
 
         if intent == "food_safety":
             full_query = f"[USER PROFILE]\n{profile_context}\n[QUESTION]\n{user_message}"
-            response = _rag.query_rag(full_query, session_id=session, user_id=user_id, memory_source_message=user_message)
+            if should_use_rag_for_intent(user_message, session, intent):
+                response = _rag.query_rag(
+                    full_query,
+                    session_id=session,
+                    user_id=user_id,
+                    memory_source_message=user_message,
+                )
+            else:
+                response = _ai.ask(main_system_prompt, full_query, session)
             remembered_profile = self._get_profile(user_id)
         else:
             remembered_profile = self._remember_user_message(user_id, user_message)
             profile_context = self._format_profile_context(remembered_profile)
             full_query = f"[USER PROFILE]\n{profile_context}\n[QUESTION]\n{user_message}"
             if intent == "nutrition_advice":
-                if _should_retrieve_public_kb(user_message, session, "nutrition"):
+                if should_use_rag_for_intent(user_message, session, intent):
                     response = _rag.query_rag(
                         full_query,
                         session_id=session,
@@ -809,7 +822,7 @@ class NutritionAgent:
                 "User tapped Eating Better; give practical, personalized healthy eating advice based on profile."
             )
             try:
-                if _should_retrieve_public_kb(nut_router_msg, session, "nutrition"):
+                if should_use_rag_for_intent(nut_router_msg, session, "nutrition_advice"):
                     response = _rag.query_rag(
                         nutrition_open,
                         session_id=session,
