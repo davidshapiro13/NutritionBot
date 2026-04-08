@@ -12,9 +12,12 @@ class Our_Model():
         self.agent = NutritionAgent()
         self.session_id = "OurModel" + str(random.random())
 
-    def answer(self, questions):
+    def answer(self, questions, memory=None):
         for question in questions:
-            response = self.agent.run(question, self.session_id)[0]
+            if memory == None:
+                response = self.agent.run(question, self.session_id)[0]
+            else:
+                response = self.agent.run(question + "[MEMORY]" + memory, self.session_id)[0]
         return response
     
     def onboard(self):
@@ -30,7 +33,8 @@ class Our_Model():
         }
         mem = UserMemory(embed_model=None)
         mem.save_profile(self.session_id, profile)
+        return mem.load_all()
         
 
 agent = Our_Model()
-benchmark.evaluate(agent, "4-04 Benchmark results.txt")
+benchmark.evaluate(agent, "4-07 Benchmark results.txt")
