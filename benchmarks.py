@@ -96,7 +96,9 @@ class Benchmark():
                 file.write("Answer: " + result["answer"] + "\n")
                 file.write("Jury Score: " + str(int(result["score"])) + "\n\n")
                 for jurer in result["reasoning"]:
-                    file.write(jurer["reason"] + " | Score: " + jurer["score"] + "\n\n")
+                    reason = str(jurer.get("reason", ""))
+                    score = str(jurer.get("score", ""))
+                    file.write(reason + " | Score: " + score + "\n\n")
 
             file.write("Overall score: " + str(overall_score) + "%")
 

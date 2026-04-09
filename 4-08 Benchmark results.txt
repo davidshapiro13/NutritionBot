@@ -1,0 +1,128 @@
+RAG1: How long can eggnog last open in the fridge?
+Answer: According to the information provided, commercially-produced eggnog can last 3 to 5 days in the refrigerator once opened. Homemade eggnog has a shorter refrigerator life of 2 to 4 days. Neither type of eggnog should be frozen.
+
+You can tap one of these next:
+
+Sources: real_world_scenarios; cold_storage; left_out_rules
+Jury Score: 10
+
+The answer provided matches the rubric exactly, specifying that commercially-produced eggnog can last 3 to 5 days in the refrigerator once opened, and that homemade eggnog has a shorter refrigerator life of 2 to 4 days. The answer also notes that neither type of eggnog should be frozen, which is relevant additional information. Overall, the answer is clear, concise, and directly addresses the question asked. | Score: 10
+
+This answer directly addresses the question and provides the exact timeframe requested in the rubric (3-5 days). It also provides helpful additional information about homemade eggnog and freezing, enhancing the answer's value. | Score: 10
+
+The answer provided a clear and concise range of days for both commercially-produced and homemade eggnog to last in the fridge, meeting the rubric's requirement of 3-5 days. The only reason it's not a 10 is that the answer could have been more specific about the conditions (e.g., temperature, handling) that affect the shelf life. | Score: 9
+
+RAG2: What is the phone number of the Stop and Shop at 105 Alewife Brook Pkwy, Somerville, MA 02144
+Answer: The phone number for Stop & Shop at 105 Alewife Brook Pkwy, Somerville MA 02144 is (617)625-1546.
+
+You can tap one of these next:
+Jury Score: 10
+
+The answer provided the exact phone number requested in the rubric, which is (617) 625-1546. It matches the rubric perfectly. | Score: 10
+
+The answer perfectly matches the requested phone number as specified in the rubric. It is clear, concise, and accurate. | Score: 10
+
+This answer matches the rubric exactly, providing the correct phone number as specified. | Score: 10
+
+RAG3: I live in Malden, MA. Propose a pharmacy and grocery store for me to shop in in my town including the address.
+Answer: Try CVS Pharmacy #672 — 32 Ferry Street, Malden, MA 02148. For groceries, try Super Stop & Shop (F&P) #062 — 99 Charles Street, Malden, MA 02148.
+
+You can tap one of these next:
+Jury Score: 10
+
+This answer directly addresses the question and provides specific, relevant recommendations for a pharmacy and grocery store in Malden, MA that match the criteria in the rubric. The addresses provided are also accurate. This is an excellent response that fully meets the requirements. | Score: 10
+
+The answer provided two stores in Malden, MA, a pharmacy (CVS) and a grocery store (Stop & Shop) with their addresses, exactly as requested by the rubric. It's a direct and helpful response. | Score: 10
+
+This answer hit all the points mentioned in the rubric and was clear and concise. It provided specific addresses for both a pharmacy and a grocery store in Malden, MA, as requested. | Score: 10
+
+RAG4: Which brands are covered under WIC in Massachusetts? a) Nestle, b) Dole, c) Sunbelt, d) Farina Mills, e) Barilla, f) Betty Crocker
+Answer: In Massachusetts, WIC serves pregnant, postpartum, and breastfeeding women, plus children under age 5. To qualify, household income must be at or below 185% of the federal poverty level and you must live in Massachusetts. Do you think you qualify?
+
+From the MA WIC guide snippets you shared, Dole (100% juice) is listed. The guide shows Sunbeam (100% whole wheat bread) — I can’t confirm Sunbelt. I don’t see Nestlé, Farina Mills, Barilla, or Betty Crocker in those excerpts. Want me to find nearby WIC-authorized stores or explain how WIC brand rules work?
+
+Tap the button below to share your location — I'll list nearby WIC-authorized stores.
+Jury Score: 4
+
+The answer provided a good overview of the WIC program in Massachusetts, including the income and residency requirements, as well as the specific brands that are covered (Dole, Sunbeam, but not Nestlé, Farina Mills, Barilla, or Betty Crocker). The answer was clear and informative, though it did not directly confirm whether the person would qualify for WIC based on the information provided. Overall, a very good response that addresses the key points of the original question. | Score: 8
+
+The answer correctly identifies Dole as a covered brand, but fails to identify all three correct brands (Dole, Farina Mills, and Barilla). It also introduces irrelevant information about WIC eligibility and offers to find stores, which wasn't asked for in the question. The response is partially correct but incomplete and includes extraneous details. | Score: 3
+
+This answer does not address the question asked. The question was about which brands are covered under WIC in Massachusetts, but the answer is about the qualifications for WIC and does not provide any information about the brands. | Score: 1
+
+RAG5: What is a brand of Tortilla that is covered by WIC in Connecticut?
+Answer: Mission, La Banderita, Ortega and Chi‑Chi’s are listed on some WIC guides, but WIC‑approved brands and items vary by state. I can (a) pull Connecticut’s current WIC-eligible food list, (b) search for WIC-authorized stores near you in CT, or (c) explain how to check items at the store. Which would you like me to do?
+
+You can tap one of these next:
+Jury Score: 4
+
+The answer provided a thoughtful and nuanced response that acknowledged the variability of WIC-approved brands across different states, and offered several helpful options for the user to get more specific information about WIC-eligible tortilla brands in Connecticut. This shows a good understanding of the limitations of the agent's knowledge and provides constructive next steps for the user. The only minor deduction is that the answer could have been slightly more concise, but overall it is an excellent response that meets the rubric criteria very well. | Score: 9
+
+The answer attempts to provide a solution (listing brands) instead of stating it doesn't know and offering options limited to Massachusetts as the rubric requested. It *does* offer further assistance, but initially fails to acknowledge its limited knowledge base. It's not a complete failure, as it does offer to help in other ways, but it doesn't directly follow the instructions. | Score: 3
+
+This answer does not match the rubric at all. The rubric expects a response that indicates the agent does not know the answer, but instead offers options to find the information, which is not in line with the scope of the agent's knowledge. | Score: 1
+
+MEMORY1: Is Turkey a good dinner option for me tonight?
+Answer: Turkey is a healthy lean-protein dinner option that fits into many meals. Try a different preparation to change the flavor and texture — ground-turkey chili, herbed turkey meatballs, or an Asian-style turkey stir-fry. Want a quick recipe for one of those?
+
+Are you asking for yourself, or for someone else?
+
+You can tap one of these next:
+Jury Score: 5
+
+The answer provides some general information about turkey being a healthy protein option, but does not directly address the fact that the user mentioned not liking turkey when they had it for lunch. The answer is somewhat vague and does not fully respond to the specific question asked. | Score: 6
+
+The answer does not acknowledge the user's previous dislike of turkey at lunch. It simply states turkey is a healthy option and suggests different preparations, completely ignoring the context provided in the question. It also asks a question that doesn't really add value to the answer. | Score: 4
+
+This answer partially matches the rubric, but it does not directly address the user's dislike of turkey from lunch. It also does not acknowledge the user's personal preference, instead suggesting alternatives. A more personalized approach would be more effective. | Score: 4
+
+MEMORY2: Please tell me all the information you know about me.
+Answer: Based on the information provided, I understand that you are an adult male named Fred who has diabetes and a peanut allergy. As a nutrition assistant, I can provide guidance on healthy eating and meal ideas that accommodate your health conditions. Please let me know if you have any specific questions about managing your diabetes or avoiding peanuts in your diet. I'm happy to suggest nutritious, budget-friendly options that fit your needs.
+
+You can tap one of these next:
+
+Sources: food_safety; safety_rules; food_safety_faq; food-guide
+
+What would you most like help with right now?
+Jury Score: 5
+
+The answer provided does not match the information given in the rubric. The rubric asked for the user's name, age range, allergies, and conditions, but the answer assumed details that were not provided. | Score: 2
+
+The answer correctly identifies the user's name (Fred), age range (adult), and allergies (peanut) and conditions (diabetes) as requested in the rubric. It also offers helpful next steps and support. It's a strong answer, but it relies on information *it* was provided rather than inferring it independently, which slightly lowers the score. It's a good response, but not exceptional in its deduction skills. | Score: 8
+
+This answer partially matches the rubric, but it is missing the user's name and age range. The answer also does not provide a clear call to action or a specific question to be answered. The user is presented with options to choose from, but this is not directly related to the user's information. | Score: 4
+
+MEMORY3: Can he have some hummus? And can I taste it if he does?
+Answer: Yes, Sam can have hummus. Hummus is generally safe for children without allergies. As long as Sam does not have any allergies, you can also taste the hummus. Just be mindful of portion sizes for a child and avoid double-dipping to prevent the spread of germs.
+
+You can tap one of these next:
+
+Sources: dga; food-guide
+Jury Score: 8
+
+The answer provided a clear and concise response to the question, addressing both whether Sam can have hummus and whether the user can taste it. The answer correctly noted that hummus is generally safe for children without allergies, and advised the user to be mindful of portion sizes and to avoid double-dipping to prevent the spread of germs. The only minor point that could be improved is to explicitly state that the user should not taste the hummus due to their own sesame allergy, but the overall answer is very strong and hits the key points of the rubric. | Score: 9
+
+The answer correctly states that hummus is fine for Sam given his lack of allergies. However, it fails to mention the user's sesame allergy and advise against *them* tasting it, which was a key part of the rubric. It does offer good advice about portion sizes and double-dipping, but misses the main point regarding the user's allergy. | Score: 7
+
+This answer is generally correct, but it could be more specific about Sam's allergies. The answer also advises against eating hummus, which is not in line with the rubric. Additionally, the answer could benefit from a clearer explanation of portion sizes and double-dipping. Overall, it's a good start, but could be more detailed and accurate. | Score: 8
+
+MEMORY4: Would you recommend I try eating Quiche? 
+Answer: I wouldn’t recommend traditional quiche since you dislike eggs. For an egg-free, quiche-like option that uses extra vegetables try a savory vegetable galette, a tofu-based "quiche" made with silken tofu and herbs, or a chickpea-flour (socca) pie. Want a quick recipe for one of these?
+
+What age range should I keep in mind?
+
+You can tap one of these next:
+Jury Score: 5
+
+The answer provides a good alternative to traditional quiche that avoids eggs, which the question indicates the person dislikes. The answer suggests several egg-free options that are quiche-like, which is responsive to the original question. The only thing missing is a direct recommendation on whether to try quiche or not, but the alternative suggestions make it clear that quiche may not be the best option. | Score: 8
+
+The answer does address the core of the rubric by recommending against traditional quiche due to the egg content. However, it then immediately pivots to offering alternatives and asking for more information (age range) which wasn't requested and detracts from directly answering the initial question. It's a good answer overall, but not perfectly focused on the rubric's instruction. | Score: 7
+
+This answer does not match the rubric at all. The rubric expected a simple 'no' because quiche is made with eggs, but the answer provided a lengthy and detailed response with multiple options and a request for a recipe. | Score: 1
+
+MEMORY5: Suggest a healthy meal that my whole family will like to eat given our restrictions.
+Answer: Try a boosted frozen-meal plate: heat a favorite frozen dinner and add a big side of steamed or roasted vegetables and a fresh salad. Add extra protein like scrambled eggs, grilled chicken, baked tofu, or Greek yogurt to make it more filling. Include a whole-grain or starchy side such as rice, quinoa, or a baked potato, and finish with fruit for dessert. Want quick recipes or tips for picking healthier frozen meals?
+
+You can tap one of these next:
+Jury Score: 8
+
