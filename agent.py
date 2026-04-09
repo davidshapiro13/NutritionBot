@@ -8,7 +8,7 @@ Intents:
     nutrition_advice → LLM router: optional query_rag else main_system _ai.ask
     find resources   → LLM-led resources_mode + JSON; optional KB snippets via router + get_context
     find_stores      → enters resources_mode (same)
-    find_wic_stores  → request_location → location_service (WIC CSV)
+    find_wic_stores  → request_location → resource_tools (WIC / general stores)
     out_of_scope     → LLM-generated refusal
 
 Usage (from Nutrition_Bot.py):
@@ -27,6 +27,8 @@ Usage (from Nutrition_Bot.py):
 import os
 from AI import AI
 from rag_pipeline import RAGPipeline
+import json
+
 from prompts import (
     main_system_prompt,
     button_creator_prompt,
@@ -41,14 +43,14 @@ from prompts import (
     FOOD_SAFETY_HUB_BUTTON_FALLBACK,
     rag_router_prompt,
     kb_retrieval_router_prompt,
-    resources_lead_system_prompt,
-    resources_lead_json_repair_prompt,
-    thanks_tailor_prompt
+    thanks_tailor_prompt,
+    RESOURCES_FALLBACK_BUTTONS,
+    resources_tool_selector_prompt,
+    resources_synthesizer_prompt,
 )
-from web_search import WebSearch
+from resource_tools import run_tool as _run_resource_tool
 from wa_service_sdk import Button
 from user_memory import UserMemory
-from agent_resources import run_resources_turn
 from agent_state import STATE as _state
 from agent_profile import (
     answer_saved_profile_task,
@@ -257,17 +259,29 @@ def _profile_acknowledgement(profile: dict) -> str:
     return _ai.ask(thanks_tailor_prompt, "user is writing about themselves", "thank-you")
 
 
-_web_search = WebSearch()
 
-def _add_web_search(response: str, query: str) -> str:
-    try:
-        results = _web_search.search(query, max_results=3)
-        if results:
-            search_text = "\n\nSources:\n" + "\n".join([f"- {r['title']}: {r['link']}" for r in results])
-            response = f"{response}\n{search_text}"
-    except Exception:
-        pass
-    return response
+def _parse_tool_decision(raw: str) -> dict:
+    """Extract tool selection JSON from LLM output."""
+    text = (raw or "").strip().strip("`").strip()
+    if text.lower().startswith("json"):
+        text = text[4:].lstrip()
+    start = text.find("{")
+    if start < 0:
+        return {"tool": "none", "params": {}, "reply": ""}
+    depth = 0
+    for i in range(start, len(text)):
+        if text[i] == "{":
+            depth += 1
+        elif text[i] == "}":
+            depth -= 1
+            if depth == 0:
+                chunk = text[start : i + 1]
+                try:
+                    out = json.loads(chunk)
+                    return out if isinstance(out, dict) else {"tool": "none", "params": {}, "reply": ""}
+                except Exception:
+                    return {"tool": "none", "params": {}, "reply": ""}
+    return {"tool": "none", "params": {}, "reply": ""}
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -338,29 +352,75 @@ class NutritionAgent:
         self,
         user_text: str,
         user_id: str,
+        lat: float | None = None,
+        lng: float | None = None,
     ) -> tuple[str, list[Button] | str]:
-        return run_resources_turn(
-            user_text,
-            user_id,
-            ai=_ai,
-            rag=_rag,
-            get_profile_context=lambda uid: self._format_profile_context(self._get_profile(uid)),
-            should_retrieve_public_kb=_should_retrieve_public_kb,
-            parse_resources_json=_parse_resources_json,
-            resource_suggested_buttons=_resource_suggested_buttons,
-            resources_action_type=_resources_action_type,
-            wants_wic_store_by_location=_wants_wic_store_by_location,
-            is_synthetic_resources_hub_opener=_is_synthetic_resources_hub_opener,
-            resources_conversation_summary=_state.resources_conversation_summary,
-            resources_mode_users=_state.resources_mode_users,
-            eligibility_state=_state.eligibility_state,
-            pending_store_type=_state.pending_store_type,
-            resources_lead_system_prompt=resources_lead_system_prompt,
-            resources_lead_json_repair_prompt=resources_lead_json_repair_prompt,
-            eligibility_check_prompt=eligibility_check_prompt,
-            main_system_prompt=main_system_prompt,
-            user_session=_user_session,
-        )
+        """Find Resources: tool selector, resource_tools.run_tool, then synthesize."""
+        session = _user_session(user_id)
+        profile_context = self._format_profile_context(self._get_profile(user_id))
+
+        if lat is None or lng is None:
+            cached = _state.user_last_location.get(user_id)
+            if cached:
+                lat, lng = cached
+
+        kb_block = ""
+        try:
+            retrieval_q = (user_text or "").strip() or "Massachusetts WIC SNAP food assistance resources"
+            if _should_retrieve_public_kb(retrieval_q, session, "resources"):
+                ctx, _, _ = _rag.get_context(retrieval_q, user_id=user_id)
+                if ctx and str(ctx).strip():
+                    kb_block = "\n\n[KNOWLEDGE BASE]\n" + str(ctx).strip()
+        except Exception:
+            pass
+
+        um = (user_text or "").strip() or "(empty)"
+        selector_query = f"[USER PROFILE]\n{profile_context}\n[USER MESSAGE]\n{um}{kb_block}"
+        raw = _ai.ask(resources_tool_selector_prompt, selector_query, session + "_tool_sel")
+        decision = _parse_tool_decision(raw)
+
+        tool = (decision.get("tool") or "none").strip().lower()
+        params = decision.get("params") or {}
+        reply = (decision.get("reply") or "").strip()
+
+        if tool == "start_eligibility":
+            _state.resources_mode_users.discard(user_id)
+            _state.eligibility_state.add(user_id)
+            elig_msg = _ai.ask(
+                eligibility_check_prompt,
+                "Start the eligibility check now. Ask one question at a time.",
+                session,
+            )
+            return ((reply + "\n\n" + elig_msg) if reply else elig_msg), []
+
+        if tool in ("search_wic_stores", "search_general_stores"):
+            if lat is None or lng is None:
+                _state.pending_store_search[user_id] = {
+                    "tool": tool,
+                    "params": params,
+                    "user_text": user_text or "",
+                }
+                msg = reply or "Tap the button below to share your location — I'll find stores near you."
+                return msg, "request_location"
+            tool_result = _run_resource_tool(tool, params, lat=lat, lng=lng)
+
+        elif tool in ("explain_program", "affordable_overview"):
+            tool_result = _run_resource_tool(tool, params)
+
+        else:
+            if not reply:
+                reply = "How can I help with local food resources today?"
+            buttons = _generate_buttons(reply, session, fallback_buttons=RESOURCES_FALLBACK_BUTTONS)
+            return reply, buttons
+
+        ut = (user_text or "").strip()
+        synth_query = f"[USER MESSAGE]\n{ut}\n\n[TOOL RESULT]\n{tool_result}"
+        final = _ai.ask(resources_synthesizer_prompt, synth_query, session + "_synth")
+        if not (final or "").strip():
+            final = tool_result
+
+        buttons = _generate_buttons(final.strip(), session, fallback_buttons=RESOURCES_FALLBACK_BUTTONS)
+        return final.strip(), buttons
 
     def _remember_user_message(self, user_id: str, user_message: str) -> dict:
         """Save structured facts from raw user text and return the refreshed profile."""
@@ -656,12 +716,15 @@ class NutritionAgent:
             full_query = (
                 f"[USER PROFILE]\n{ctx.profile_context}\n[QUESTION]\n{ctx.user_message}"
             )
-            response = _rag.query_rag(
-                full_query,
-                session_id=ctx.session,
-                user_id=ctx.user_id,
-                memory_source_message=ctx.user_message,
-            )
+            if _should_use_rag_food_safety(ctx.user_message, ctx.session):
+                response = _rag.query_rag(
+                    full_query,
+                    session_id=ctx.session,
+                    user_id=ctx.user_id,
+                    memory_source_message=ctx.user_message,
+                )
+            else:
+                response = _ai.ask(main_system_prompt, full_query, ctx.session)
             remembered_profile = self._get_profile(ctx.user_id)
         else:
             remembered_profile = self._remember_user_message(
@@ -917,10 +980,26 @@ class NutritionAgent:
             )
 
         elif interaction_id == "find_wic_stores":
-            return self._request_location_response(user_id, "find_wic_stores")
+            _state.pending_store_search[user_id] = {
+                "tool": "search_wic_stores",
+                "params": {},
+                "user_text": interaction_title or "find WIC stores near me",
+            }
+            return (
+                "Tap the button below to share your location — I'll find WIC-authorized stores near you.",
+                "request_location",
+            )
 
         elif interaction_id == "find_all_stores":
-            return self._request_location_response(user_id, "find_all_stores")
+            _state.pending_store_search[user_id] = {
+                "tool": "search_general_stores",
+                "params": {},
+                "user_text": interaction_title or "find grocery stores near me",
+            }
+            return (
+                "Tap the button below to share your location — I'll find nearby grocery stores.",
+                "request_location",
+            )
 
         elif interaction_id in self._STATIC_PROMPT_BUTTONS:
             query = self._STATIC_PROMPT_BUTTONS[interaction_id]
@@ -945,23 +1024,57 @@ class NutritionAgent:
         lat: float,
         lng: float,
         user_id: str,
-    ) -> tuple[str, list[Button]]:
-        """Handle a location message — finds nearest WIC stores from CSV."""
+    ) -> tuple[str, list[Button] | str]:
+        """Handle location: pending tool context, legacy store-type buttons, or default WIC search."""
         _debug_log(f"run_location start user_id={user_id} lat={lat} lng={lng}")
         disclaimer_gate = self._handle_disclaimer_gate_for_location(user_id)
         if disclaimer_gate is not None:
             _debug_log(f"run_location returning disclaimer gate for user_id={user_id}")
             return disclaimer_gate
-        _state.pending_store_type.pop(user_id, None)
-        _state.resources_mode_users.discard(user_id)
-        _state.resources_conversation_summary.pop(user_id, None)
-        try:
-            from location_service import LocationService
-            svc    = LocationService()
-            stores = svc.find_nearby_wic_stores(lat, lng)
-            response = svc.format_for_bot(stores)
-        except Exception as e:
-            response = f"Sorry, I couldn't find stores right now. Please try again later. ({e})"
+        session = _user_session(user_id)
+        _state.user_last_location[user_id] = (lat, lng)
 
-        buttons = _make_buttons(WELCOME_BUTTONS)
-        return response, buttons
+        ctx = _state.pending_store_search.pop(user_id, None)
+        if ctx and isinstance(ctx, dict) and "tool" in ctx:
+            _state.resources_mode_users.add(user_id)
+            text, btns = self._resources_turn(
+                ctx.get("user_text", ""),
+                user_id,
+                lat=lat,
+                lng=lng,
+            )
+            return self._finalize_buttons_response(text, btns, session)
+
+        store_type = _state.pending_store_type.pop(user_id, None)
+        _state.resources_conversation_summary.pop(user_id, None)
+
+        if store_type in ("find_wic_stores", "find_all_stores"):
+            tool = "search_general_stores" if store_type == "find_all_stores" else "search_wic_stores"
+            user_text = (
+                "find grocery stores near me"
+                if store_type == "find_all_stores"
+                else "find WIC stores near me"
+            )
+            try:
+                tool_result = _run_resource_tool(tool, {}, lat=lat, lng=lng)
+            except Exception as e:
+                err = f"Sorry, I couldn't find stores right now. Please try again. ({e})"
+                return err, _make_buttons(WELCOME_BUTTONS)
+            synth_query = (
+                f"[USER MESSAGE]\n{user_text}\n\n[TOOL RESULT]\n{tool_result}"
+            )
+            final = _ai.ask(
+                resources_synthesizer_prompt, synth_query, session + "_synth_loc"
+            ).strip()
+            if not final:
+                final = tool_result
+            buttons = _generate_buttons(
+                final, session, fallback_buttons=RESOURCES_FALLBACK_BUTTONS
+            )
+            return self._finalize_buttons_response(final, buttons, session)
+
+        try:
+            result = _run_resource_tool("search_wic_stores", {}, lat=lat, lng=lng)
+        except Exception as e:
+            result = f"Sorry, I couldn't find stores right now. Please try again. ({e})"
+        return result, _make_buttons(WELCOME_BUTTONS)
