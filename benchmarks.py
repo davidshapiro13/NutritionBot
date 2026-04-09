@@ -96,7 +96,9 @@ class Benchmark():
                 file.write("Answer: " + result["answer"] + "\n")
                 file.write("Jury Score: " + str(int(result["score"])) + "\n\n")
                 for jurer in result["reasoning"]:
-                    file.write(jurer["reason"] + " | Score: " + jurer["score"] + "\n\n")
+                    reason = str(jurer.get("reason", ""))
+                    score = str(jurer.get("score", ""))
+                    file.write(reason + " | Score: " + score + "\n\n")
 
             file.write("Overall score: " + str(overall_score) + "%")
 
@@ -107,8 +109,10 @@ class Benchmark():
             print(problem["topic"])
             if problem["tag"] == "Onboard":
                 print("ONBOARDING!!!!")
-                model.onboard()
-            answer = model.answer(problem["questions"])
+                memory = model.onboard()
+                answer = model.answer(problem["questions"], memory=memory)
+            else:
+                answer = model.answer(problem["questions"])
             decisions = self.LLM_as_Jury(problem["questions"], problem["rubric"], answer)
             print(decisions)
             result = self.aggregate(decisions)
