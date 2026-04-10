@@ -48,7 +48,7 @@ from prompts import (
     resources_tool_selector_prompt,
     resources_synthesizer_prompt,
 )
-from web_search import WebSearch
+
 from wa_service_sdk import Button
 from user_memory import UserMemory
 from agent_state import STATE as _state
@@ -257,8 +257,6 @@ def _profile_acknowledgement(profile: dict) -> str:
     if _normalize_text(profile.get("asking_for")) in {"child", "parent", "spouse", "other"}:
         return _ai.ask(thanks_tailor_prompt, "user is writing about somone else", "thank-you")
     return _ai.ask(thanks_tailor_prompt, "user is writing about themselves", "thank-you")
-
-
 
 
 def _parse_resources_json(raw: str) -> dict | None:
