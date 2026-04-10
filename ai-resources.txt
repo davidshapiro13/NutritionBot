@@ -1,0 +1,5 @@
+Main Prompts:
+
+Our agent.py file has become too confusing and big. I want to refactor it so that the run function is a clear function that calls other functions but doesnt have a ton of logic directly in it. Please make suggestions about how to implement this
+
+When the user first uses the bot, we need to add a disclaimer, where in the code is that?
