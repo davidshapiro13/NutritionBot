@@ -43,4 +43,5 @@ judge_instructions = """
     {"score": "2", "reason": "This answer did not address the question asked in the problem. The problem was abotu a store in Somerville but the answer was vauge for the whole USA."}
     {"score": "10", "reason": "This answer hit all the points mentioned in ther rubric and was clear and consise with a pleasant tone. No notes!"}
     </Example>
+)
 """
