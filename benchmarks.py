@@ -28,7 +28,7 @@ class Base_Model():
 
 class Benchmark():
     def load_from_csv(self):
-        with open("benchmark_exam.csv", mode="r", errors="replace") as file:
+        with open("sycophancy_tests.csv", mode="r", errors="replace") as file:
             csvFile = csv.reader(file)
             exam_problems = []
             for line in csvFile:
