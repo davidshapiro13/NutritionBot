@@ -27,6 +27,54 @@ class Base_Model():
         return response
 
 class Benchmark():
+    def _parse_judge_response(self, response, model):
+        parsed = response
+
+        if isinstance(parsed, str):
+            not_proper_json = True
+            while not_proper_json:
+                try:
+                    parsed = ast.literal_eval(parsed)
+                    not_proper_json = False
+                except Exception:
+                    print("FAIL: ", parsed)
+                    parsed = client.generate(
+                        model=model,
+                        system=invalid_json_prompt,
+                        query=parsed,
+                        session_id="fix json",
+                        rag_usage=False,
+                    )["result"]
+
+        if not isinstance(parsed, dict):
+            parsed = {"score": 1, "reason": f"Judge returned invalid payload: {parsed}"}
+
+        if "score" not in parsed:
+            for key in parsed:
+                if key.lower() == "score":
+                    parsed["score"] = parsed[key]
+                    break
+
+        if "reason" not in parsed:
+            for key in parsed:
+                if key.lower() == "reason":
+                    parsed["reason"] = parsed[key]
+                    break
+
+        parsed["score"] = self._coerce_score(parsed.get("score"))
+        parsed["reason"] = str(parsed.get("reason", "")).strip()
+        return parsed
+
+    def _coerce_score(self, raw_score):
+        if isinstance(raw_score, (int, float)):
+            numeric_score = int(round(raw_score))
+        else:
+            text = str(raw_score).strip()
+            digits = "".join(ch for ch in text if ch.isdigit())
+            numeric_score = int(digits) if digits else 1
+
+        return max(1, min(10, numeric_score))
+
     def load_from_csv(self):
         with open("benchmark_exam.csv", mode="r", errors="replace") as file:
             csvFile = csv.reader(file)
@@ -63,25 +111,12 @@ class Benchmark():
                 query = answer,
                 session_id = "Judgement",
                 rag_usage = False)["result"]
-            
-            not_proper_json = True
-            while not_proper_json:
-                try:
-                    response = ast.literal_eval(response)
-                    not_proper_json = False
-                except:
-                    print("FAIL: ", response)
-                    response = client.generate(
-                        model = model,
-                        system = invalid_json_prompt,
-                        query = response,
-                        session_id = "fix json",
-                        rag_usage = False)["result"]
-            decisions.append(response)
+
+            decisions.append(self._parse_judge_response(response, model))
         return decisions
 
     def aggregate(self, decisions):
-        score = sum(int(decision["score"]) for decision in decisions)
+        score = sum(self._coerce_score(decision.get("score")) for decision in decisions)
         avg_score = round(score / len(decisions))
         return avg_score
 
@@ -102,9 +137,11 @@ class Benchmark():
 
             file.write("Overall score: " + str(overall_score) + "%")
 
-    def evaluate(self, model=Base_Model(), file_name="benchmark_results.txt"):
+    def evaluate(self, model=Base_Model(), file_name="benchmark_results.txt", problem_limit=None):
         exam_results = []
         exam_problems = self.load_from_csv()
+        if problem_limit is not None:
+            exam_problems = exam_problems[:problem_limit]
         for problem in exam_problems:
             print(problem["topic"])
             if problem["tag"] == "Onboard":
