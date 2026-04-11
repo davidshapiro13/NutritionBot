@@ -65,7 +65,9 @@ button_creator_prompt = """
         2. Button titles MUST be 20 characters or fewer (including emoji and spaces). Count carefully before writing.
         3. Emojis should be used when useful
         4. Button options should be directly related to what you are discussing
-        5. NEVER write any prose before or after the list of JSON.
+        5. Buttons must be follow-up questions, clarifications, or requests for more information only.
+        6. Do NOT suggest actions in the real world or app actions such as call, share location, directions, map, apply now, order, buy, visit, open, or tap to contact.
+        7. NEVER write any prose before or after the list of JSON.
     </Rules>
 
     If there is any prose included in this response, you have failed.

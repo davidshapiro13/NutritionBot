@@ -3,3 +3,7 @@ Main Prompts:
 Our agent.py file has become too confusing and big. I want to refactor it so that the run function is a clear function that calls other functions but doesnt have a ton of logic directly in it. Please make suggestions about how to implement this
 
 When the user first uses the bot, we need to add a disclaimer, where in the code is that?
+
+We are failing a lot of the agentic evals because the location service is asked for - what do you suggest to get around this?
+
+we have store info in our RAG - that is all that I'd want to consult for this question - no need for my location to be shared

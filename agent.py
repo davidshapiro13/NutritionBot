@@ -28,6 +28,7 @@ import os
 from AI import AI
 from rag_pipeline import RAGPipeline
 import json
+from benchmark_locations import lookup_benchmark_coordinates as _lookup_benchmark_coordinates
 
 from prompts import (
     main_system_prompt,
@@ -99,6 +100,21 @@ FIRST_USE_DISCLAIMER = (
     "Please tap Agree to continue."
 )
 
+_DISALLOWED_BUTTON_PATTERNS = (
+    r"\bcall\b",
+    r"\blocation\b",
+    r"\bmap\b",
+    r"\bdirections?\b",
+    r"\bapply\b",
+    r"\border\b",
+    r"\bbuy\b",
+    r"\bvisit\b",
+    r"\bopen\b",
+    r"\bcontact\b",
+    r"\btext\b",
+    r"\bemail\b",
+)
+
 
 def _generate_buttons(
     response: str,
@@ -108,6 +124,13 @@ def _generate_buttons(
     """Ask LLM to generate contextual follow-up buttons based on a response."""
     import json as _json
     fb = fallback_buttons if fallback_buttons is not None else WELCOME_BUTTONS
+
+    def _is_allowed_button_title(title: str) -> bool:
+        normalized = (title or "").strip().lower()
+        if not normalized or len(normalized) > 20:
+            return False
+        return not any(re.search(pattern, normalized) for pattern in _DISALLOWED_BUTTON_PATTERNS)
+
     try:
         raw = _ai.ask(button_creator_prompt, response, session_id + "_btn")
         # Strip markdown code fences
@@ -134,7 +157,7 @@ def _generate_buttons(
                 info = item
             title = str(info.get("title", ""))
             bid   = str(info.get("id", "btn"))
-            if not title or len(title) > 20:
+            if not _is_allowed_button_title(title):
                 continue
             buttons.append(Button(id=bid, title=title))
         return buttons[:3] if buttons else _make_buttons(fb)
@@ -203,6 +226,36 @@ def _should_retrieve_public_kb(user_message: str, session_id: str, lane: str) ->
     except Exception:
         pass
     return True
+
+
+def _is_exact_store_fact_question(user_message: str) -> bool:
+    """Return True for store-fact lookups that should use RAG, not location search."""
+    text = (user_message or "").strip().lower()
+    if not text:
+        return False
+
+    asks_store_fact = bool(
+        re.search(
+            r"\b(phone number|phone|call|hours|open|close|closing|opening|when does|what time|"
+            r"wic|accept wic|take wic|cover wic|covered by wic)\b",
+            text,
+        )
+    )
+    mentions_specific_store = bool(
+        re.search(
+            r"\b(stop\s*&?\s*shop|market basket|whole foods|h[\-\s]?mart|pemberton farms|cvs|walgreens|shaw'?s|hannaford)\b",
+            text,
+        )
+    ) or bool(re.search(r"\b\d{1,6}\s+.+\b(street|st|avenue|ave|boulevard|blvd|road|rd|drive|dr|lane|ln|parkway|pkwy)\b", text))
+
+    asks_proximity = bool(
+        re.search(
+            r"\b(closest|nearest|nearby|near me|around me|closer|distance|how far|from my house|from where i live)\b",
+            text,
+        )
+    )
+
+    return asks_store_fact and mentions_specific_store and not asks_proximity
 
 
 def _classify_intent(user_message: str, session_id: str) -> str:
@@ -359,10 +412,31 @@ class NutritionAgent:
         session = _user_session(user_id)
         profile_context = self._format_profile_context(self._get_profile(user_id))
 
+        if _is_exact_store_fact_question(user_text):
+            full_query = f"[USER PROFILE]\n{profile_context}\n[QUESTION]\n{user_text}"
+            response = _rag.query_rag(
+                full_query,
+                session_id=session,
+                user_id=user_id,
+                memory_source_message=user_text,
+            )
+            clean = re.sub(r"\[Source:[^\]]+\]", "", response).strip()
+            buttons = _generate_buttons(
+                clean,
+                session,
+                fallback_buttons=RESOURCES_FALLBACK_BUTTONS,
+            )
+            return clean, buttons
+
         if lat is None or lng is None:
             cached = _state.user_last_location.get(user_id)
             if cached:
                 lat, lng = cached
+        if lat is None or lng is None:
+            coords = _lookup_benchmark_coordinates(user_text or "")
+            if coords:
+                lat, lng = coords
+                _state.user_last_location[user_id] = coords
 
         kb_block = ""
         try:
