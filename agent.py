@@ -1282,12 +1282,7 @@ class NutritionAgent:
         try:
             result = _run_resource_tool("search_wic_stores", {}, lat=lat, lng=lng)
         except Exception as e:
-<<<<<<< onboarding-and-user-memory
-            result = f"Sorry, I couldn't find stores right now. Please try again. ({e})"
-        return self._menu_response(result, user_id)
-=======
             response = f"Sorry, I couldn't find stores right now. Please try again later. ({e})"
 
         buttons = _make_buttons(WELCOME_BUTTONS)
         return response, buttons
->>>>>>> main
