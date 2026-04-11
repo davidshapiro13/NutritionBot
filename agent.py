@@ -48,7 +48,7 @@ from prompts import (
     resources_tool_selector_prompt,
     resources_synthesizer_prompt,
 )
-from resource_tools import run_tool as _run_resource_tool
+
 from wa_service_sdk import Button
 from user_memory import UserMemory
 from agent_state import STATE as _state
@@ -261,15 +261,14 @@ def _profile_acknowledgement(profile: dict) -> str:
     return _ai.ask(thanks_tailor_prompt, "user is writing about themselves", "thank-you")
 
 
-
-def _parse_tool_decision(raw: str) -> dict:
-    """Extract tool selection JSON from LLM output."""
+def _parse_resources_json(raw: str) -> dict | None:
+    """Extract a single JSON object from model output; return dict or None."""
     text = (raw or "").strip().strip("`").strip()
     if text.lower().startswith("json"):
         text = text[4:].lstrip()
     start = text.find("{")
     if start < 0:
-        return {"tool": "none", "params": {}, "reply": ""}
+        return None
     depth = 0
     for i in range(start, len(text)):
         if text[i] == "{":
@@ -280,10 +279,30 @@ def _parse_tool_decision(raw: str) -> dict:
                 chunk = text[start : i + 1]
                 try:
                     out = json.loads(chunk)
-                    return out if isinstance(out, dict) else {"tool": "none", "params": {}, "reply": ""}
+                    return out if isinstance(out, dict) else None
                 except Exception:
-                    return {"tool": "none", "params": {}, "reply": ""}
-    return {"tool": "none", "params": {}, "reply": ""}
+                    return None
+    return None
+
+
+def _resource_suggested_buttons(items: list | None) -> list[Button]:
+    out: list[Button] = []
+    if not items:
+        return out
+    for i, item in enumerate(items[:3]):
+        if isinstance(item, str):
+            title = item[:20]
+        elif isinstance(item, dict):
+            title = str(item.get("title", ""))[:20]
+        else:
+            title = ""
+        if title:
+            out.append(Button(id=f"resources_dyn_{i}", title=title))
+    return out
+
+
+def _resources_action_type(action: dict) -> str:
+    return (action.get("type") or "").strip().upper()
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -354,8 +373,6 @@ class NutritionAgent:
         self,
         user_text: str,
         user_id: str,
-        lat: float | None = None,
-        lng: float | None = None,
     ) -> tuple[str, list[Button] | str]:
         """Find Resources: tool selector, resource_tools.run_tool, then synthesize."""
         session = _user_session(user_id)
@@ -1036,6 +1053,64 @@ class NutritionAgent:
                 activate_mode=True,
             )
 
+        elif interaction_id == "find_stores":
+            _resources_mode_users.add(user_id)
+            text, btns = self._resources_turn(
+                "The user opened Find Resources from the main menu.", user_id
+            )
+            if btns != "request_location":
+                text = _append_button_intro(text, btns if isinstance(btns, list) else [], session)
+            return text, btns
+
+        elif interaction_id.startswith("resources_dyn_"):
+            label = (interaction_title or "").strip() or interaction_id
+            text, btns = self._resources_turn(label, user_id)
+            if btns != "request_location":
+                text = _append_button_intro(text, btns if isinstance(btns, list) else [], session)
+            return text, btns
+
+        elif interaction_id == "wic_info":
+            _resources_mode_users.add(user_id)
+            text, btns = self._resources_turn(
+                "The user tapped WIC Help and wants to know about WIC in Massachusetts.", user_id
+            )
+            if btns != "request_location":
+                text = _append_button_intro(text, btns if isinstance(btns, list) else [], session)
+            return text, btns
+
+        elif interaction_id in ("elig_still_unsure", "elig_answers"):
+            _resources_mode_users.discard(user_id)
+            _resources_conversation_summary.pop(user_id, None)
+            _eligibility_state.add(user_id)
+            response = _ai.ask(
+                eligibility_check_prompt,
+                "Start the eligibility check now. Ask one question at a time.",
+                session,
+            )
+            return response, []
+
+        elif interaction_id in (
+            "affordable_shopping",
+            "check_eligibility",
+            "elig_wic",
+            "elig_snap",
+            "elig_not_sure",
+            "elig_i_qualify",
+        ):
+            _resources_mode_users.add(user_id)
+            legacy_hint = {
+                "affordable_shopping": "User wants affordable groceries, pantries, and HIP.",
+                "check_eligibility": "User wants to explore WIC, SNAP, or program eligibility.",
+                "elig_wic": "User asked specifically about WIC eligibility.",
+                "elig_snap": "User asked specifically about SNAP eligibility.",
+                "elig_not_sure": "User is not sure which program fits; guide them gently.",
+                "elig_i_qualify": "User thinks they may qualify and wants concrete next steps.",
+            }.get(interaction_id, interaction_title or interaction_id)
+            text, btns = self._resources_turn(legacy_hint, user_id)
+            if btns != "request_location":
+                text = _append_button_intro(text, btns if isinstance(btns, list) else [], session)
+            return text, btns
+
         elif interaction_id == "find_wic_stores":
             _state.pending_store_search[user_id] = {
                 "tool": "search_wic_stores",
@@ -1133,5 +1208,12 @@ class NutritionAgent:
         try:
             result = _run_resource_tool("search_wic_stores", {}, lat=lat, lng=lng)
         except Exception as e:
+<<<<<<< onboarding-and-user-memory
             result = f"Sorry, I couldn't find stores right now. Please try again. ({e})"
         return self._menu_response(result, user_id)
+=======
+            response = f"Sorry, I couldn't find stores right now. Please try again later. ({e})"
+
+        buttons = _make_buttons(WELCOME_BUTTONS)
+        return response, buttons
+>>>>>>> main
