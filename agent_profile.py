@@ -2,6 +2,50 @@ from wa_service_sdk import Button
 import re
 
 
+AGE_GROUP_BUTTONS = [
+    Button(id="profile_age_0_17", title="0-17"),
+    Button(id="profile_age_18_64", title="18-64"),
+    Button(id="profile_age_65_plus", title="65+"),
+]
+
+
+def _remove_button_invite(text: str) -> str:
+    """Strip menu/button CTA when we immediately ask an onboarding question."""
+    cleaned = text.strip()
+    patterns = [
+        r"\s*Use the buttons below for eating tips, food safety, or local resources\s*[—-]\s*or type any question\.?\s*$",
+        r"\s*End by inviting them to tap the buttons below or type a question\.?\s*$",
+        r"\s*Tap the buttons below or type a question\.?\s*$",
+        r"\s*Tap a button below or type your question\.?\s*$",
+    ]
+    for pattern in patterns:
+        cleaned = re.sub(pattern, "", cleaned, flags=re.IGNORECASE).strip()
+    return cleaned
+
+
+def profile_buttons_for_target(target: str) -> list[Button]:
+    if target == "age_group":
+        return AGE_GROUP_BUTTONS.copy()
+    return []
+
+
+def profile_button_value(interaction_id: str, interaction_title: str | None = None) -> str | None:
+    mapping = {
+        "profile_age_0_17": "0-17",
+        "profile_age_18_64": "18-64",
+        "profile_age_65_plus": "65+",
+    }
+    if interaction_id in mapping:
+        return mapping[interaction_id]
+    title = (interaction_title or "").strip().lower()
+    reverse_titles = {
+        "0-17": "0-17",
+        "18-64": "18-64",
+        "65+": "65+",
+    }
+    return reverse_titles.get(title)
+
+
 def build_profile_question(
     profile: dict,
     user_message: str,
@@ -57,12 +101,12 @@ def maybe_start_profile_from_welcome(
         return None
     if target != "asking_for":
         return None
-    nutrition_ob_state[user_id] = {
-        "target": target,
-        "pending_question": "Give me practical, personalized healthy eating advice based on this user's profile.",
-    }
+    nutrition_ob_state[user_id] = {"target": target}
     question = build_profile_question_fn(profile, user_message, target, session)
-    return f"{welcome_response}\n\n{question}", []
+    intro = _remove_button_invite(welcome_response)
+    if intro:
+        return f"{intro}\n\n{question}", profile_buttons_for_target(target)
+    return question, profile_buttons_for_target(target)
 
 
 def answer_saved_profile_task(
@@ -101,6 +145,7 @@ def continue_profile_conversation(
     user_message: str,
     session: str,
     remember_user_message,
+    save_profile_value,
     choose_profile_target,
     looks_like_profile_answer,
     build_profile_question_fn,
@@ -121,6 +166,22 @@ def continue_profile_conversation(
             return "other"
         return None
 
+    def _resolve_age_group_value(message: str) -> str | None:
+        lower = message.strip().lower()
+        if re.search(r"\b(0\s*-\s*17|0 to 17)\b", lower):
+            return "child"
+        if re.search(r"\b(18\s*-\s*64|18 to 64)\b", lower):
+            return "adult"
+        if re.search(r"\b(65\s*\+|65 and up|65 or older)\b", lower):
+            return "elder"
+        if re.search(r"\b(child|kid|toddler|baby|infant)\b", lower):
+            return "child"
+        if re.search(r"\b(older adult|elder|senior)\b", lower):
+            return "elder"
+        if re.search(r"\b(adult)\b", lower):
+            return "adult"
+        return None
+
     state = nutrition_ob_state.get(user_id)
     target = (state or {}).get("target")
     if not state or not target or not looks_like_profile_answer(target, user_message):
@@ -132,13 +193,20 @@ def continue_profile_conversation(
         if asking_for_value:
             profile = dict(profile)
             profile["asking_for"] = asking_for_value
+            save_profile_value(user_id, "asking_for", asking_for_value)
+    if target == "age_group" and not profile.get("age_group"):
+        age_group_value = _resolve_age_group_value(user_message)
+        if age_group_value:
+            profile = dict(profile)
+            profile["age_group"] = age_group_value
+            save_profile_value(user_id, "age_group", age_group_value)
     next_target = choose_profile_target(profile)
     if next_target:
         next_state = dict(state)
         next_state["target"] = next_target
         nutrition_ob_state[user_id] = next_state
         question = build_profile_question_fn(profile, user_message, next_target, session)
-        return question, []
+        return question, profile_buttons_for_target(next_target)
 
     nutrition_ob_state.pop(user_id, None)
     return answer_saved_profile_task_fn(user_id, profile, session, state)
@@ -163,8 +231,21 @@ def maybe_append_profile_nudge(
     if not target:
         nutrition_ob_state.pop(user_id, None)
         return response, []
-    if len(normalize_text(user_message).split()) < 3:
+    # Keep passive profile-building rare; explicit onboarding/menu flows do the heavy lifting.
+    allowed_targets = {"asking_for", "age_group"}
+    if target not in allowed_targets:
+        return response, []
+    normalized = normalize_text(user_message)
+    if len(normalized.split()) < 6:
+        return response, []
+    lower = normalized.lower()
+    personalization_signals = (
+        r"\b(for me|for my|my child|my kid|my son|my daughter|my baby|"
+        r"i need|help me|meal plan|eat better|diet|weight|pregnan|"
+        r"diabet|allerg|gluten|vegetarian|vegan)\b"
+    )
+    if not re.search(personalization_signals, lower):
         return response, []
     question = build_profile_question_fn(profile, user_message, target, session)
     nutrition_ob_state[user_id] = {"target": target}
-    return f"{response}\n\n{question}", []
+    return f"{response}\n\n{question}", profile_buttons_for_target(target)
