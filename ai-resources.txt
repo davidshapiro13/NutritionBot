@@ -7,3 +7,5 @@ When the user first uses the bot, we need to add a disclaimer, where in the code
 We are failing a lot of the agentic evals because the location service is asked for - what do you suggest to get around this?
 
 we have store info in our RAG - that is all that I'd want to consult for this question - no need for my location to be shared
+
+Please add the image functionality in the NutritionBot file where it says "elif isinstance(event, ImageEvent)". Then add the ability for me to wirte a prompt for what to do with the image in the agent file appropraitely

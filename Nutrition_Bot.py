@@ -6,6 +6,7 @@ from wa_service_sdk import (
     TextEvent,
     InteractiveEvent,
     LocationEvent,
+    ImageEvent,
     create_message,
     create_buttoned_message,
     create_location_request_message,
@@ -55,7 +56,6 @@ async def handle_event(event: BaseEvent):
         text, buttons = _agent.run_location(
             event.latitude, event.longitude, event.user_id
         )
-
     else:
         text = WELCOME_FALLBACK_MESSAGE
         buttons = _make_buttons(WELCOME_BUTTONS)
