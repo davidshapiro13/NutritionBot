@@ -80,11 +80,6 @@ WELCOME_BUTTONS = [
     {"id": "find_stores",     "title": "📍 Find Resources"},
 ]
 
-RESOURCES_FALLBACK_BUTTONS = [
-    {"id": "find_wic_stores",     "title": "📍 WIC Stores"},
-    {"id": "check_eligibility",   "title": "✅ Check Eligibility"},
-]
-
 # Fallback only if button JSON fails after Food Safety hub / food-safety answers.
 FOOD_SAFETY_HUB_BUTTON_FALLBACK = [
     {"id": "fs_leftovers",   "title": "🍲 Leftovers safe?"},
@@ -187,57 +182,42 @@ Answer with exactly one word:
 Output only yes or no, lowercase, no punctuation or explanation.
 """
 
-resources_tool_selector_prompt = """
-You select which tool to call for the Find Resources lane of a Massachusetts food-assistance chatbot.
+resources_lead_system_prompt = """
+You lead the "Find Resources" conversation for a WhatsApp nutrition assistant in Massachusetts.
 
-Available tools:
-- search_wic_stores     : find nearby stores from the official Massachusetts WIC-authorized list (requires GPS). Use for ANY nearby store or named-chain request (e.g. "nearest Stop & Shop", "Market Basket near me", "WIC stores") — pass params.chain when they name a chain. This is the trusted local list for MA.
-- search_general_stores : Google Places grocery search (requires API key). Use only when the user wants generic "any supermarket" with no chain, or explicitly asks beyond the WIC list.
-- explain_program       : return eligibility and benefit details for "wic", "snap", or "senior_nutrition".
-- affordable_overview   : overview of affordable options for anyone in MA — Market Basket, food pantries, community fridges, HIP farmers market program.
-- start_eligibility     : start a guided screening conversation to find which program the user qualifies for. Use ONLY when the user explicitly wants to answer questions to check eligibility.
-- none                  : answer conversationally using the context provided; no backend tool needed.
+You help with: affordable grocery options (Market Basket, pantries, HIP), WIC and SNAP basics, eligibility screening (you do NOT decide legal eligibility—be careful), senior nutrition programs, and finding nearby WIC-authorized stores when the user is ready to share location.
 
 Rules:
-- Nearby store or named chain (Stop & Shop, Walmart, etc.) → search_wic_stores and set params.chain if they named one (CSV is WIC-authorized vendors in MA).
-- If user mentions WIC explicitly → still search_wic_stores (chain optional).
-- Generic "any grocery near me" with no chain → search_wic_stores without chain.
-- Set params.max_results based on how the user asks:
-    - "nearest" / "closest" / "the one" → 1
-    - "a few" / "some" → 3
-    - explicit number (e.g. "3 stores") → that number
-    - default (no indication) → 5
-- Keep "reply" to 1–2 short sentences, plain text
-- If tool is a store search, set reply to a brief message saying you will find stores once they share location
-- Output ONLY the JSON object, no prose, no markdown fences
+- Keep "reply" concise: plain text, at most 5 short sentences, no markdown headings.
+- Suggest 0–3 follow-up buttons only when they help; each button title max 20 characters including emoji.
+- Use actions when the user clearly needs a concrete backend step (see below). You may combine actions with your reply.
+- If the user only needs a short clarification, use no actions and optional suggested_buttons.
+- Never invent phone numbers, office addresses, or income limits beyond general public rules stated in your training; when unsure, say programs vary and suggest official MA sources.
+- If the input includes [KNOWLEDGE BASE SNIPPETS], you may use those facts verbatim in your reply (e.g. WIC store names, addresses, phone numbers from the list). Do not add stores or numbers that are not in that block.
 
-Output format:
+Action types (JSON objects in the "actions" array):
+- {"type": "START_ELIGIBILITY"} — user wants to answer questions to see what programs might fit (screening conversation).
+- {"type": "AFFORDABLE_OVERVIEW"} — user wants general affordable shopping / pantry / HIP style information (not program screening).
+- {"type": "REQUEST_WIC_LOCATION"} — user wants nearby WIC-authorized stores; they will be asked to share GPS on the next message.
+- {"type": "REQUEST_ALL_STORES"} — user wants nearby grocery-style help; same location flow (WIC list is used by the app today).
+- {"type": "EXPLAIN_PROGRAM", "program": "wic"} or "snap" — give accurate WIC or SNAP eligibility overview paragraphs (backend will inject vetted wording).
+
+Output format — reply with ONE JSON object only, no markdown fences, no other text:
 {
-  "tool": "search_wic_stores" | "search_general_stores" | "explain_program" | "affordable_overview" | "start_eligibility" | "none",
-  "params": {},
-  "reply": "short message to show the user"
+  "reply": "string shown to the user",
+  "conversation_summary": "one line, max 120 chars, state for your next turn",
+  "suggested_buttons": [ {"title": "..."} ],
+  "actions": [ {"type": "..." } ]
 }
 
-For explain_program → params must include "program": "wic" | "snap" | "senior_nutrition"
-For store searches → params may include "chain": "Stop & Shop" (only if user named one)
-All other tools → params is {}
+If you have no buttons, use "suggested_buttons": [].
+If you have no actions, use "actions": [].
 """
 
-resources_synthesizer_prompt = """
-You are finalizing a response for a Massachusetts food-assistance WhatsApp chatbot.
-
-You receive:
-- [USER MESSAGE]: what the user asked
-- [TOOL RESULT]: data returned by a backend tool (store list, program info, overview text, etc.)
-
-Your job: write a clear, friendly reply that incorporates the tool result naturally.
-
-Rules:
-- Plain text only, no markdown headings or bullet symbols
-- Max 5 sentences
-- If the tool result contains a store list with addresses, reproduce it as-is — do not paraphrase addresses or distances
-- End with one brief offer to help further
-- Output only the reply text, no labels or preamble
+resources_lead_json_repair_prompt = """
+The previous answer was not valid JSON. Output ONLY one JSON object with keys:
+reply (string), conversation_summary (string), suggested_buttons (array of objects with title only), actions (array of objects with type and optional program).
+No markdown, no prose.
 """
 
 profile_nudge_prompt = """
