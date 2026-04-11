@@ -58,6 +58,8 @@ from agent_profile import (
     continue_profile_conversation,
     maybe_append_profile_nudge,
     maybe_start_profile_from_welcome,
+    profile_buttons_for_target,
+    profile_button_value,
     save_and_reload_profile,
 )
 from agent_helpers import (
@@ -465,7 +467,7 @@ class NutritionAgent:
         target = _choose_profile_target(profile) or "asking_for"
         _state.nutrition_ob_state[user_id] = {"target": target}
         question = self._build_profile_question(profile, seed_message, target, session)
-        return question, []
+        return question, profile_buttons_for_target(target)
 
     def _maybe_start_profile_from_welcome(
         self,
@@ -506,6 +508,7 @@ class NutritionAgent:
             user_message=user_message,
             session=session,
             remember_user_message=self._remember_user_message,
+            save_profile_value=lambda uid, field, value: _mem.save(uid, f"{field}: {value}"),
             choose_profile_target=_choose_profile_target,
             looks_like_profile_answer=_looks_like_profile_answer,
             build_profile_question_fn=self._build_profile_question,
@@ -545,7 +548,26 @@ class NutritionAgent:
             profile_context=self._format_profile_context(profile),
         )
 
-    def _finalize_buttons_response(
+    def _reset_navigation_state(self, user_id: str) -> None:
+        self._leave_food_safety_mode(user_id)
+        self._clear_resources_mode(user_id)
+        _state.eligibility_state.discard(user_id)
+        _state.nutrition_ob_state.pop(user_id, None)
+        _state.pending_store_type.pop(user_id, None)
+        _state.pending_store_search.pop(user_id, None)
+
+    def _menu_response(self, text: str, user_id: str) -> tuple[str, list[Button]]:
+        self._reset_navigation_state(user_id)
+        return text, _make_buttons(WELCOME_BUTTONS)
+
+    def _question_response(
+        self,
+        text: str,
+        buttons: list[Button] | None = None,
+    ) -> tuple[str, list[Button]]:
+        return text, buttons or []
+
+    def _task_response(
         self,
         text: str,
         buttons: list[Button] | str,
@@ -559,8 +581,25 @@ class NutritionAgent:
             )
         return text, buttons
 
+    def _profile_flow_response(
+        self,
+        text: str,
+        buttons: list[Button],
+        user_id: str,
+        session: str,
+    ) -> tuple[str, list[Button] | str]:
+        if not buttons:
+            return self._question_response(text)
+        button_ids = [getattr(button, "id", "") for button in buttons]
+        if button_ids == [item["id"] for item in WELCOME_BUTTONS]:
+            return self._menu_response(text, user_id)
+        return self._task_response(text, buttons, session)
+
     def _disclaimer_prompt(self) -> tuple[str, list[Button]]:
-        return FIRST_USE_DISCLAIMER, _make_buttons(DISCLAIMER_BUTTONS)
+        return self._question_response(
+            FIRST_USE_DISCLAIMER,
+            _make_buttons(DISCLAIMER_BUTTONS),
+        )
 
     def _has_disclaimer_consent(self, user_id: str) -> bool:
         return user_id in _state.accepted_disclaimer_users
@@ -591,7 +630,7 @@ class NutritionAgent:
             return self.run("", user_id)
         if interaction_id == "disclaimer_decline":
             _debug_log(f"user_id={user_id} declined disclaimer")
-            return (
+            return self._question_response(
                 "You need to agree to the disclaimer before using Nura.",
                 _make_buttons(DISCLAIMER_BUTTONS),
             )
@@ -660,14 +699,10 @@ class NutritionAgent:
         ]
         if any(kw in response.lower() for kw in recommendation_keywords):
             _state.eligibility_state.discard(ctx.user_id)
-            buttons = _generate_buttons(
-                response,
-                ctx.session + "_elig_end",
-                fallback_buttons=WELCOME_BUTTONS,
-            )
+            return self._menu_response(response, ctx.user_id)
         else:
             buttons = []
-        return response, buttons
+        return self._question_response(response, buttons)
 
     def _handle_greeting_turn(
         self,
@@ -676,9 +711,7 @@ class NutritionAgent:
         if not _is_greeting(ctx.user_message):
             return None
 
-        _state.food_safety_flow_users.discard(ctx.user_id)
-        _state.resources_mode_users.discard(ctx.user_id)
-        _state.resources_conversation_summary.pop(ctx.user_id, None)
+        self._reset_navigation_state(ctx.user_id)
         user_line = ctx.user_message.strip() or "The user just opened the chat."
         response = WELCOME_FALLBACK_MESSAGE
 
@@ -690,8 +723,8 @@ class NutritionAgent:
             user_message=user_line,
         )
         if welcome_with_profile is not None:
-            return welcome_with_profile
-        return response, _make_buttons(WELCOME_BUTTONS)
+            return self._question_response(*welcome_with_profile)
+        return self._menu_response(response, ctx.user_id)
 
     def _handle_resources_mode_turn(
         self,
@@ -701,7 +734,7 @@ class NutritionAgent:
             return None
         self._remember_user_message(ctx.user_id, ctx.user_message)
         text, btns = self._resources_turn(ctx.user_message, ctx.user_id)
-        return self._finalize_buttons_response(text, btns, ctx.session)
+        return self._task_response(text, btns, ctx.session)
 
     def _handle_food_safety_mode_turn(
         self,
@@ -714,7 +747,7 @@ class NutritionAgent:
             ctx.user_id,
             ctx.profile_context,
         )
-        return self._finalize_buttons_response(response, buttons, ctx.session)
+        return self._task_response(response, buttons, ctx.session)
 
     def _handle_new_text_intent(
         self,
@@ -727,7 +760,7 @@ class NutritionAgent:
             _state.food_safety_flow_users.discard(ctx.user_id)
             self._remember_user_message(ctx.user_id, ctx.user_message)
             text, btns = self._resources_turn(ctx.user_message, ctx.user_id)
-            return self._finalize_buttons_response(text, btns, ctx.session)
+            return self._task_response(text, btns, ctx.session)
 
         if intent == "food_safety":
             full_query = (
@@ -774,7 +807,9 @@ class NutritionAgent:
             intent=intent,
         )
         buttons = nudge_buttons or _generate_buttons(response, ctx.session)
-        return self._finalize_buttons_response(response, buttons, ctx.session)
+        if nudge_buttons:
+            return self._question_response(response, nudge_buttons)
+        return self._task_response(response, buttons, ctx.session)
 
     def _handle_food_safety_button(
         self,
@@ -801,7 +836,7 @@ class NutritionAgent:
             session + "_fshub_btn",
             fallback_buttons=FOOD_SAFETY_HUB_BUTTON_FALLBACK,
         )
-        return self._finalize_buttons_response(response, buttons, session)
+        return self._task_response(response, buttons, session)
 
     def _handle_nutrition_button(
         self,
@@ -822,7 +857,7 @@ class NutritionAgent:
                 target,
                 session,
             )
-            return question, []
+            return self._question_response(question, profile_buttons_for_target(target))
         nutrition_open = (
             f"[USER PROFILE]\n{profile_context}\n[QUESTION]\n"
             "Give me practical, personalized healthy eating advice based on this user's profile."
@@ -848,7 +883,7 @@ class NutritionAgent:
                 "I’m here to help with eating better. What would you like to work on first—meals, snacks, or something else?"
             )
         buttons = _generate_buttons(response, session)
-        return self._finalize_buttons_response(response, buttons, session)
+        return self._task_response(response, buttons, session)
 
     def _handle_resources_prompt(
         self,
@@ -860,7 +895,7 @@ class NutritionAgent:
         if activate_mode:
             self._enter_resources_mode(user_id)
         text, btns = self._resources_turn(prompt_text, user_id)
-        return self._finalize_buttons_response(text, btns, session)
+        return self._task_response(text, btns, session)
 
     def _handle_unknown_tool_follow_up(
         self,
@@ -871,12 +906,12 @@ class NutritionAgent:
     ) -> tuple[str, list[Button] | str]:
         if user_id in _state.resources_mode_users:
             text, btns = self._resources_turn(follow_up, user_id)
-            return self._finalize_buttons_response(text, btns, session)
+            return self._task_response(text, btns, session)
         if user_id in _state.food_safety_flow_users:
             response, buttons = self._food_safety_answer_turn(
                 follow_up, user_id, profile_context
             )
-            return self._finalize_buttons_response(response, buttons, session)
+            return self._task_response(response, buttons, session)
         return self.run(follow_up, user_id)
 
     def run(self, user_message: str, user_id: str) -> tuple[str, list[Button] | str]:
@@ -888,6 +923,9 @@ class NutritionAgent:
             return disclaimer_gate
         ctx = self._build_turn_context(user_message, user_id)
 
+        if ctx.user_message.strip().lower() in {"menu", "start", "help"}:
+            return self._menu_response(WELCOME_FALLBACK_MESSAGE, user_id)
+
         eligibility_reply = self._handle_eligibility_turn(ctx)
         if eligibility_reply is not None:
             return eligibility_reply
@@ -898,7 +936,12 @@ class NutritionAgent:
             ctx.session,
         )
         if profile_reply is not None:
-            return profile_reply
+            return self._profile_flow_response(
+                profile_reply[0],
+                profile_reply[1],
+                user_id,
+                ctx.session,
+            )
 
         greeting_reply = self._handle_greeting_turn(ctx)
         if greeting_reply is not None:
@@ -931,6 +974,20 @@ class NutritionAgent:
         session = _user_session(user_id)
         profile = self._get_profile(user_id)
         profile_context = self._format_profile_context(profile)
+        profile_button_text = profile_button_value(interaction_id, interaction_title)
+        if profile_button_text and user_id in _state.nutrition_ob_state:
+            profile_reply = self._continue_profile_conversation(
+                user_id,
+                profile_button_text,
+                session,
+            )
+            if profile_reply is not None:
+                return self._profile_flow_response(
+                    profile_reply[0],
+                    profile_reply[1],
+                    user_id,
+                    session,
+                )
 
         if interaction_id in ("nutrition", "find_stores"):
             self._leave_food_safety_mode(user_id)
@@ -975,7 +1032,7 @@ class NutritionAgent:
                 "Start the eligibility check now. Ask one question at a time.",
                 session,
             )
-            return response, []
+            return self._question_response(response)
 
         elif interaction_id in (
             "affordable_shopping",
@@ -1092,7 +1149,7 @@ class NutritionAgent:
                 profile_context,
             )
 
-        return self._finalize_buttons_response(response, buttons, session)
+        return self._task_response(response, buttons, session)
 
     def run_location(
         self,
@@ -1118,7 +1175,7 @@ class NutritionAgent:
                 lat=lat,
                 lng=lng,
             )
-            return self._finalize_buttons_response(text, btns, session)
+            return self._task_response(text, btns, session)
 
         store_type = _state.pending_store_type.pop(user_id, None)
         _state.resources_conversation_summary.pop(user_id, None)
@@ -1134,7 +1191,7 @@ class NutritionAgent:
                 tool_result = _run_resource_tool(tool, {}, lat=lat, lng=lng)
             except Exception as e:
                 err = f"Sorry, I couldn't find stores right now. Please try again. ({e})"
-                return err, _make_buttons(WELCOME_BUTTONS)
+                return self._menu_response(err, user_id)
             synth_query = (
                 f"[USER MESSAGE]\n{user_text}\n\n[TOOL RESULT]\n{tool_result}"
             )
@@ -1146,12 +1203,17 @@ class NutritionAgent:
             buttons = _generate_buttons(
                 final, session, fallback_buttons=RESOURCES_FALLBACK_BUTTONS
             )
-            return self._finalize_buttons_response(final, buttons, session)
+            return self._task_response(final, buttons, session)
 
         try:
             result = _run_resource_tool("search_wic_stores", {}, lat=lat, lng=lng)
         except Exception as e:
+<<<<<<< onboarding-and-user-memory
+            result = f"Sorry, I couldn't find stores right now. Please try again. ({e})"
+        return self._menu_response(result, user_id)
+=======
             response = f"Sorry, I couldn't find stores right now. Please try again later. ({e})"
 
         buttons = _make_buttons(WELCOME_BUTTONS)
         return response, buttons
+>>>>>>> main
