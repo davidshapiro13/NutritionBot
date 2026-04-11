@@ -14,6 +14,11 @@ Tracked fields (extracted automatically after each conversation turn):
     gender            - male / female / other
     asking_for        - self / child / parent / spouse / other
 
+  [WIC screening] (structured eligibility flow; last completed run overwrites)
+    wic_screening_population_match, wic_screening_ma_resident,
+    wic_screening_public_assistance, wic_screening_household_size,
+    wic_screening_income_vs_limit, wic_screening_outcome
+
   [Health & Diet]
     health_conditions - e.g. heart disease, diabetes, pregnancy, hypertension
     allergies         - e.g. peanuts, dairy, shellfish, gluten
@@ -57,6 +62,12 @@ SINGLE_VALUE_FIELDS = {
     "gender",
     "asking_for",
     "main_goal",
+    "wic_screening_population_match",
+    "wic_screening_ma_resident",
+    "wic_screening_public_assistance",
+    "wic_screening_household_size",
+    "wic_screening_income_vs_limit",
+    "wic_screening_outcome",
 }
 
 

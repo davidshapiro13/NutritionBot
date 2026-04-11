@@ -12,6 +12,7 @@ class AgentState:
     resources_mode_users: set[str] = field(default_factory=set)
     resources_conversation_summary: dict[str, str] = field(default_factory=dict)
     accepted_disclaimer_users: set[str] = field(default_factory=set)
+    eligibility_checked_users: set[str] = field(default_factory=set)
 
 
 STATE = AgentState()

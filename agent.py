@@ -28,6 +28,19 @@ import os
 from AI import AI
 from rag_pipeline import RAGPipeline
 import json
+import importlib.util
+from pathlib import Path
+
+_elig_spec = importlib.util.spec_from_file_location(
+    "eligibility_check",
+    Path(__file__).parent / "wic-tool" / "eligibility_check.py",
+)
+_elig_mod = importlib.util.module_from_spec(_elig_spec)
+_elig_spec.loader.exec_module(_elig_mod)
+_start_eligibility_check = _elig_mod.start_eligibility_check
+_handle_eligibility_answer = _elig_mod.handle_eligibility_answer
+_is_in_eligibility_flow = _elig_mod.is_in_eligibility_flow
+_clear_eligibility_session = _elig_mod.clear_eligibility_session
 
 from prompts import (
     main_system_prompt,
@@ -49,6 +62,7 @@ from prompts import (
     resources_synthesizer_prompt,
 )
 
+from resource_tools import run_tool as _run_resource_tool
 from wa_service_sdk import Button
 from user_memory import UserMemory
 from agent_state import STATE as _state
@@ -88,6 +102,25 @@ _ai  = AI()
 _rag = RAGPipeline()
 _rag.build_public_index()
 _mem = UserMemory(embed_model=None)
+
+
+def _save_eligibility_memory(user_id: str, lines: list[str] | None) -> None:
+    if not lines:
+        return
+    _mem.save(user_id, "\n".join(lines))
+
+
+def _wic_screening_outcome_is_not_eligible(lines: list[str] | None) -> bool:
+    if not lines:
+        return False
+    for line in lines:
+        low = line.strip().lower()
+        if low.startswith("wic_screening_outcome:"):
+            v = line.split(":", 1)[1].strip().lower()
+            return v.startswith("not_eligible")
+    return False
+
+
 BLANK_PROFILE = "(no profile info)"
 DISCLAIMER_BUTTONS = [
     {"id": "disclaimer_agree", "title": "Agree"},
@@ -373,6 +406,8 @@ class NutritionAgent:
         self,
         user_text: str,
         user_id: str,
+        lat: float | None = None,
+        lng: float | None = None,
     ) -> tuple[str, list[Button] | str]:
         """Find Resources: tool selector, resource_tools.run_tool, then synthesize."""
         session = _user_session(user_id)
@@ -396,7 +431,7 @@ class NutritionAgent:
         um = (user_text or "").strip() or "(empty)"
         selector_query = f"[USER PROFILE]\n{profile_context}\n[USER MESSAGE]\n{um}{kb_block}"
         raw = _ai.ask(resources_tool_selector_prompt, selector_query, session + "_tool_sel")
-        decision = _parse_tool_decision(raw)
+        decision = _parse_resources_json(raw) or {}
 
         tool = (decision.get("tool") or "none").strip().lower()
         params = decision.get("params") or {}
@@ -404,13 +439,9 @@ class NutritionAgent:
 
         if tool == "start_eligibility":
             _state.resources_mode_users.discard(user_id)
-            _state.eligibility_state.add(user_id)
-            elig_msg = _ai.ask(
-                eligibility_check_prompt,
-                "Start the eligibility check now. Ask one question at a time.",
-                session,
-            )
-            return ((reply + "\n\n" + elig_msg) if reply else elig_msg), []
+            msg, btns = _start_eligibility_check(user_id)
+            intro = (reply + "\n\n") if reply else ""
+            return intro + msg, _make_buttons(btns)
 
         if tool in ("search_wic_stores", "search_general_stores"):
             if lat is None or lng is None:
@@ -551,7 +582,7 @@ class NutritionAgent:
     def _reset_navigation_state(self, user_id: str) -> None:
         self._leave_food_safety_mode(user_id)
         self._clear_resources_mode(user_id)
-        _state.eligibility_state.discard(user_id)
+        _clear_eligibility_session(user_id)
         _state.nutrition_ob_state.pop(user_id, None)
         _state.pending_store_type.pop(user_id, None)
         _state.pending_store_search.pop(user_id, None)
@@ -664,10 +695,6 @@ class NutritionAgent:
     def _enter_food_safety_mode(self, user_id: str) -> None:
         _state.food_safety_flow_users.add(user_id)
 
-    def _start_eligibility_flow(self, user_id: str) -> None:
-        self._clear_resources_mode(user_id)
-        _state.eligibility_state.add(user_id)
-
     def _request_location_response(self, user_id: str, store_type: str) -> tuple[str, str]:
         _state.pending_store_type[user_id] = store_type
         if store_type == "find_wic_stores":
@@ -679,30 +706,6 @@ class NutritionAgent:
             "Tap the button below to share your location and I'll find nearby stores for you. 📍",
             "request_location",
         )
-
-    def _handle_eligibility_turn(
-        self,
-        ctx: TurnContext,
-    ) -> tuple[str, list[Button] | str] | None:
-        if ctx.user_id not in _state.eligibility_state:
-            return None
-
-        response = _ai.ask(eligibility_check_prompt, ctx.user_message, ctx.session)
-        recommendation_keywords = [
-            "qualify",
-            "eligible",
-            "recommend",
-            "apply",
-            "snap",
-            "wic",
-            "senior nutrition",
-        ]
-        if any(kw in response.lower() for kw in recommendation_keywords):
-            _state.eligibility_state.discard(ctx.user_id)
-            return self._menu_response(response, ctx.user_id)
-        else:
-            buttons = []
-        return self._question_response(response, buttons)
 
     def _handle_greeting_turn(
         self,
@@ -921,14 +924,38 @@ class NutritionAgent:
         if disclaimer_gate is not None:
             _debug_log(f"run returning disclaimer gate for user_id={user_id}")
             return disclaimer_gate
+
+        if user_id not in _state.eligibility_checked_users:
+            if not _is_in_eligibility_flow(user_id):
+                msg, btns = _start_eligibility_check(user_id)
+                return self._question_response(msg, _make_buttons(btns))
+
         ctx = self._build_turn_context(user_message, user_id)
 
         if ctx.user_message.strip().lower() in {"menu", "start", "help"}:
             return self._menu_response(WELCOME_FALLBACK_MESSAGE, user_id)
 
-        eligibility_reply = self._handle_eligibility_turn(ctx)
-        if eligibility_reply is not None:
-            return eligibility_reply
+        if _is_in_eligibility_flow(user_id):
+            current_step = _elig_mod._sessions.get(user_id, {}).get("step")
+            if current_step == "q4a":
+                msg, btns, done, mem_lines = _handle_eligibility_answer(
+                    user_id, ctx.user_message
+                )
+                if done:
+                    _save_eligibility_memory(user_id, mem_lines)
+                    _state.eligibility_checked_users.add(user_id)
+                    self._reset_navigation_state(user_id)
+                    if _wic_screening_outcome_is_not_eligible(mem_lines):
+                        return self._task_response(
+                            msg, _make_buttons(btns), ctx.session
+                        )
+                    return self._menu_response(msg, user_id)
+                return self._question_response(msg, _make_buttons(btns))
+            msg, btns = _start_eligibility_check(user_id)
+            return self._question_response(
+                "Please use the buttons to answer. Let's start again!\n\n" + msg,
+                _make_buttons(btns),
+            )
 
         profile_reply = self._continue_profile_conversation(
             user_id,
@@ -971,6 +998,12 @@ class NutritionAgent:
         if disclaimer_gate is not None:
             _debug_log(f"run_tool returning disclaimer gate for user_id={user_id}")
             return disclaimer_gate
+
+        if user_id not in _state.eligibility_checked_users and not interaction_id.startswith("elig_"):
+            if not _is_in_eligibility_flow(user_id):
+                msg, btns = _start_eligibility_check(user_id)
+                return self._question_response(msg, _make_buttons(btns))
+
         session = _user_session(user_id)
         profile = self._get_profile(user_id)
         profile_context = self._format_profile_context(profile)
@@ -988,6 +1021,25 @@ class NutritionAgent:
                     user_id,
                     session,
                 )
+
+        if interaction_id.startswith("elig_"):
+            msg, btns, done, mem_lines = _handle_eligibility_answer(
+                user_id, interaction_id
+            )
+            if done:
+                _save_eligibility_memory(user_id, mem_lines)
+                _state.eligibility_checked_users.add(user_id)
+                self._reset_navigation_state(user_id)
+                if _wic_screening_outcome_is_not_eligible(mem_lines):
+                    return self._task_response(
+                        msg, _make_buttons(btns), session
+                    )
+                return self._menu_response(msg, user_id)
+            return self._question_response(msg, _make_buttons(btns))
+
+        elif interaction_id in ("check_eligibility", "wic_not_sure"):
+            msg, btns = _start_eligibility_check(user_id)
+            return self._question_response(msg, _make_buttons(btns))
 
         if interaction_id in ("nutrition", "find_stores"):
             self._leave_food_safety_mode(user_id)
@@ -1026,17 +1078,12 @@ class NutritionAgent:
             )
 
         elif interaction_id in ("elig_still_unsure", "elig_answers"):
-            self._start_eligibility_flow(user_id)
-            response = _ai.ask(
-                eligibility_check_prompt,
-                "Start the eligibility check now. Ask one question at a time.",
-                session,
-            )
-            return self._question_response(response)
+            self._clear_resources_mode(user_id)
+            msg, btns = _start_eligibility_check(user_id)
+            return self._question_response(msg, _make_buttons(btns))
 
         elif interaction_id in (
             "affordable_shopping",
-            "check_eligibility",
             "elig_wic",
             "elig_snap",
             "elig_not_sure",
@@ -1052,64 +1099,6 @@ class NutritionAgent:
                 session,
                 activate_mode=True,
             )
-
-        elif interaction_id == "find_stores":
-            _resources_mode_users.add(user_id)
-            text, btns = self._resources_turn(
-                "The user opened Find Resources from the main menu.", user_id
-            )
-            if btns != "request_location":
-                text = _append_button_intro(text, btns if isinstance(btns, list) else [], session)
-            return text, btns
-
-        elif interaction_id.startswith("resources_dyn_"):
-            label = (interaction_title or "").strip() or interaction_id
-            text, btns = self._resources_turn(label, user_id)
-            if btns != "request_location":
-                text = _append_button_intro(text, btns if isinstance(btns, list) else [], session)
-            return text, btns
-
-        elif interaction_id == "wic_info":
-            _resources_mode_users.add(user_id)
-            text, btns = self._resources_turn(
-                "The user tapped WIC Help and wants to know about WIC in Massachusetts.", user_id
-            )
-            if btns != "request_location":
-                text = _append_button_intro(text, btns if isinstance(btns, list) else [], session)
-            return text, btns
-
-        elif interaction_id in ("elig_still_unsure", "elig_answers"):
-            _resources_mode_users.discard(user_id)
-            _resources_conversation_summary.pop(user_id, None)
-            _eligibility_state.add(user_id)
-            response = _ai.ask(
-                eligibility_check_prompt,
-                "Start the eligibility check now. Ask one question at a time.",
-                session,
-            )
-            return response, []
-
-        elif interaction_id in (
-            "affordable_shopping",
-            "check_eligibility",
-            "elig_wic",
-            "elig_snap",
-            "elig_not_sure",
-            "elig_i_qualify",
-        ):
-            _resources_mode_users.add(user_id)
-            legacy_hint = {
-                "affordable_shopping": "User wants affordable groceries, pantries, and HIP.",
-                "check_eligibility": "User wants to explore WIC, SNAP, or program eligibility.",
-                "elig_wic": "User asked specifically about WIC eligibility.",
-                "elig_snap": "User asked specifically about SNAP eligibility.",
-                "elig_not_sure": "User is not sure which program fits; guide them gently.",
-                "elig_i_qualify": "User thinks they may qualify and wants concrete next steps.",
-            }.get(interaction_id, interaction_title or interaction_id)
-            text, btns = self._resources_turn(legacy_hint, user_id)
-            if btns != "request_location":
-                text = _append_button_intro(text, btns if isinstance(btns, list) else [], session)
-            return text, btns
 
         elif interaction_id == "find_wic_stores":
             _state.pending_store_search[user_id] = {
@@ -1208,12 +1197,5 @@ class NutritionAgent:
         try:
             result = _run_resource_tool("search_wic_stores", {}, lat=lat, lng=lng)
         except Exception as e:
-<<<<<<< onboarding-and-user-memory
             result = f"Sorry, I couldn't find stores right now. Please try again. ({e})"
         return self._menu_response(result, user_id)
-=======
-            response = f"Sorry, I couldn't find stores right now. Please try again later. ({e})"
-
-        buttons = _make_buttons(WELCOME_BUTTONS)
-        return response, buttons
->>>>>>> main
