@@ -64,6 +64,7 @@ from prompts import (
     resources_tool_selector_prompt,
     resources_synthesizer_prompt,
 )
+from resource_tools import run_tool as _run_resource_tool
 
 from wa_service_sdk import Button
 from user_memory import UserMemory
@@ -493,7 +494,7 @@ class NutritionAgent:
         um = (user_text or "").strip() or "(empty)"
         selector_query = f"[USER PROFILE]\n{profile_context}\n[USER MESSAGE]\n{um}{kb_block}"
         raw = _ai.ask(resources_tool_selector_prompt, selector_query, session + "_tool_sel")
-        decision = _parse_resources_json(raw) or {}
+        decision = _parse_resources_json(raw) or {"tool": "none", "params": {}, "reply": ""}
 
         tool = (decision.get("tool") or "none").strip().lower()
         params = decision.get("params") or {}
