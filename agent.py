@@ -25,10 +25,25 @@ Usage (from Nutrition_Bot.py):
 """
 
 import os
+import importlib.util
+from pathlib import Path
 from AI import AI
 from rag_pipeline import RAGPipeline
 import json
 from benchmark_locations import lookup_benchmark_coordinates as _lookup_benchmark_coordinates
+
+# Load the wic-tool/eligibility_check.py state machine (dash in directory name
+# prevents a normal `from wic_tool import ...`).
+_elig_spec = importlib.util.spec_from_file_location(
+    "eligibility_check",
+    Path(__file__).parent / "wic-tool" / "eligibility_check.py",
+)
+_elig_mod = importlib.util.module_from_spec(_elig_spec)
+_elig_spec.loader.exec_module(_elig_mod)
+_start_eligibility_check = _elig_mod.start_eligibility_check
+_handle_eligibility_answer = _elig_mod.handle_eligibility_answer
+_is_in_eligibility_flow = _elig_mod.is_in_eligibility_flow
+_clear_eligibility_session = _elig_mod.clear_eligibility_session
 
 from prompts import (
     main_system_prompt,
@@ -64,6 +79,8 @@ from agent_profile import (
     profile_button_value,
     save_and_reload_profile,
 )
+from resource_tools import lookup_wic_store_fact as _lookup_wic_store_fact
+from resource_tools import run_tool as _run_resource_tool
 from agent_helpers import (
     TurnContext,
     choose_profile_target as _choose_profile_target,
@@ -435,14 +452,18 @@ class NutritionAgent:
         profile_context = self._format_profile_context(self._get_profile(user_id))
 
         if _is_exact_store_fact_question(user_text):
-            full_query = f"[USER PROFILE]\n{profile_context}\n[QUESTION]\n{user_text}"
-            response = _rag.query_rag(
-                full_query,
-                session_id=session,
-                user_id=user_id,
-                memory_source_message=user_text,
-            )
-            clean = re.sub(r"\[Source:[^\]]+\]", "", response).strip()
+            looked_up = _lookup_wic_store_fact(user_text)
+            if looked_up:
+                clean = looked_up.strip()
+            else:
+                full_query = f"[USER PROFILE]\n{profile_context}\n[QUESTION]\n{user_text}"
+                response = _rag.query_rag(
+                    full_query,
+                    session_id=session,
+                    user_id=user_id,
+                    memory_source_message=user_text,
+                )
+                clean = re.sub(r"\[Source:[^\]]+\]", "", response).strip()
             buttons = _generate_buttons(
                 clean,
                 session,
@@ -563,6 +584,7 @@ class NutritionAgent:
             choose_profile_target=_choose_profile_target,
             build_profile_question_fn=self._build_profile_question,
             nutrition_ob_state=_state.nutrition_ob_state,
+            nutrition_ob_done_users=_state.nutrition_ob_done_users,
         )
 
     def _answer_saved_profile_task(self, user_id: str, profile: dict, session: str, state: dict) -> tuple[str, list[Button]]:
@@ -591,6 +613,7 @@ class NutritionAgent:
             build_profile_question_fn=self._build_profile_question,
             answer_saved_profile_task_fn=self._answer_saved_profile_task,
             nutrition_ob_state=_state.nutrition_ob_state,
+            nutrition_ob_done_users=_state.nutrition_ob_done_users,
         )
 
     def _maybe_append_profile_nudge(
@@ -613,6 +636,7 @@ class NutritionAgent:
             normalize_text=_normalize_text,
             build_profile_question_fn=self._build_profile_question,
             nutrition_ob_state=_state.nutrition_ob_state,
+            nutrition_ob_done_users=_state.nutrition_ob_done_users,
         )
 
     def _build_turn_context(self, user_message: str, user_id: str) -> TurnContext:
@@ -704,7 +728,7 @@ class NutritionAgent:
         if interaction_id == "disclaimer_agree":
             _debug_log(f"user_id={user_id} accepted disclaimer via button")
             _state.accepted_disclaimer_users.add(user_id)
-            return self.run("", user_id)
+            return self._start_post_disclaimer_eligibility(user_id)
         if interaction_id == "disclaimer_decline":
             _debug_log(f"user_id={user_id} declined disclaimer")
             return self._question_response(
@@ -744,6 +768,90 @@ class NutritionAgent:
     def _start_eligibility_flow(self, user_id: str) -> None:
         self._clear_resources_mode(user_id)
         _state.eligibility_state.add(user_id)
+
+    # ── Post-disclaimer eligibility (state-machine based) ─────────────────────
+
+    def _start_post_disclaimer_eligibility(
+        self, user_id: str
+    ) -> tuple[str, list[Button] | str]:
+        """After disclaimer Agree: kick off the pre-screen eligibility check,
+        unless the user already has a completed WIC screening on file."""
+        profile = self._get_profile(user_id)
+        outcome = (profile.get("wic_screening_outcome") or "").strip().lower()
+
+        if outcome.startswith("eligible"):
+            msg = (
+                "Welcome back! You've already confirmed you qualify for WIC in Massachusetts. "
+                "How can I help you today?"
+            )
+            return self._menu_response(msg, user_id)
+
+        if outcome.startswith("not_eligible"):
+            msg = (
+                "Welcome back! If your situation has changed, feel free to begin the "
+                "eligibility check again from the Find Resources menu. "
+                "In the meantime, how can I help you today?"
+            )
+            return self._menu_response(msg, user_id)
+
+        # No completed screening on file → run the pre-screen
+        _state.eligibility_v2_state.add(user_id)
+        msg, btns = _start_eligibility_check(user_id)
+        return self._question_response(msg, _make_buttons(btns))
+
+    def _finish_eligibility_v2(
+        self,
+        user_id: str,
+        msg: str,
+        btns: list[dict],
+        memory_lines: list[str] | None,
+    ) -> tuple[str, list[Button] | str]:
+        """Wrap up an eligibility_v2 turn when done=True: save memory, return result."""
+        _state.eligibility_v2_state.discard(user_id)
+        if memory_lines:
+            try:
+                _mem.save(user_id, "\n".join(memory_lines))
+            except Exception:
+                pass
+        # If the state machine returned WELCOME_BUTTONS, use the standard menu response
+        button_ids = [b.get("id") for b in btns]
+        welcome_ids = [item["id"] for item in WELCOME_BUTTONS]
+        if button_ids == welcome_ids:
+            return self._menu_response(msg, user_id)
+        return self._question_response(msg, _make_buttons(btns))
+
+    def _handle_eligibility_v2_tool(
+        self,
+        interaction_id: str,
+        user_id: str,
+    ) -> tuple[str, list[Button] | str] | None:
+        """Intercept button clicks while user is in the state-machine eligibility flow."""
+        if user_id not in _state.eligibility_v2_state:
+            return None
+        if not (
+            interaction_id.startswith("elig_pre_")
+            or interaction_id.startswith("elig_q")
+            or interaction_id.startswith("elig_inc_")
+        ):
+            return None
+        msg, btns, done, mem_lines = _handle_eligibility_answer(user_id, interaction_id)
+        if done:
+            return self._finish_eligibility_v2(user_id, msg, btns, mem_lines)
+        return self._question_response(msg, _make_buttons(btns))
+
+    def _handle_eligibility_v2_text(
+        self,
+        user_message: str,
+        user_id: str,
+    ) -> tuple[str, list[Button] | str] | None:
+        """Intercept free-text while user is in the state-machine eligibility flow
+        (used for Q4a household-size input)."""
+        if user_id not in _state.eligibility_v2_state:
+            return None
+        msg, btns, done, mem_lines = _handle_eligibility_answer(user_id, user_message)
+        if done:
+            return self._finish_eligibility_v2(user_id, msg, btns, mem_lines)
+        return self._question_response(msg, _make_buttons(btns))
 
     def _request_location_response(self, user_id: str, store_type: str) -> tuple[str, str]:
         _state.pending_store_type[user_id] = store_type
@@ -792,15 +900,17 @@ class NutritionAgent:
         user_line = ctx.user_message.strip() or "The user just opened the chat."
         response = WELCOME_FALLBACK_MESSAGE
 
-        welcome_with_profile = self._maybe_start_profile_from_welcome(
-            user_id=ctx.user_id,
-            profile=ctx.profile,
-            session=ctx.session,
-            welcome_response=response,
-            user_message=user_line,
-        )
-        if welcome_with_profile is not None:
-            return self._question_response(*welcome_with_profile)
+        # Temporarily disable welcome-triggered onboarding so first-run flow stays:
+        # disclaimer -> eligibility -> main menu.
+        # welcome_with_profile = self._maybe_start_profile_from_welcome(
+        #     user_id=ctx.user_id,
+        #     profile=ctx.profile,
+        #     session=ctx.session,
+        #     welcome_response=response,
+        #     user_message=user_line,
+        # )
+        # if welcome_with_profile is not None:
+        #     return self._question_response(*welcome_with_profile)
         return self._menu_response(response, ctx.user_id)
 
     def _handle_resources_mode_turn(
@@ -998,6 +1108,11 @@ class NutritionAgent:
         if disclaimer_gate is not None:
             _debug_log(f"run returning disclaimer gate for user_id={user_id}")
             return disclaimer_gate
+
+        elig_v2 = self._handle_eligibility_v2_text(user_message, user_id)
+        if elig_v2 is not None:
+            return elig_v2
+
         ctx = self._build_turn_context(user_message, user_id)
 
         if ctx.user_message.strip().lower() in {"menu", "start", "help"}:
@@ -1048,6 +1163,11 @@ class NutritionAgent:
         if disclaimer_gate is not None:
             _debug_log(f"run_tool returning disclaimer gate for user_id={user_id}")
             return disclaimer_gate
+
+        elig_v2 = self._handle_eligibility_v2_tool(interaction_id, user_id)
+        if elig_v2 is not None:
+            return elig_v2
+
         session = _user_session(user_id)
         profile = self._get_profile(user_id)
         profile_context = self._format_profile_context(profile)
@@ -1111,9 +1231,15 @@ class NutritionAgent:
             )
             return self._question_response(response)
 
+        elif interaction_id == "check_eligibility":
+            _state.resources_mode_users.discard(user_id)
+            _state.resources_conversation_summary.pop(user_id, None)
+            _state.eligibility_v2_state.add(user_id)
+            msg, btns = _start_eligibility_check(user_id)
+            return self._question_response(msg, _make_buttons(btns))
+
         elif interaction_id in (
             "affordable_shopping",
-            "check_eligibility",
             "elig_wic",
             "elig_snap",
             "elig_not_sure",
@@ -1189,6 +1315,16 @@ class NutritionAgent:
             return text, btns
 
         elif interaction_id == "find_wic_stores":
+            cached = _state.user_last_location.get(user_id)
+            if cached:
+                _state.resources_mode_users.add(user_id)
+                text, btns = self._resources_turn(
+                    interaction_title or "find WIC stores near me",
+                    user_id,
+                    lat=cached[0],
+                    lng=cached[1],
+                )
+                return self._task_response(text, btns, session)
             _state.pending_store_search[user_id] = {
                 "tool": "search_wic_stores",
                 "params": {},
@@ -1200,6 +1336,16 @@ class NutritionAgent:
             )
 
         elif interaction_id == "find_all_stores":
+            cached = _state.user_last_location.get(user_id)
+            if cached:
+                _state.resources_mode_users.add(user_id)
+                text, btns = self._resources_turn(
+                    interaction_title or "find grocery stores near me",
+                    user_id,
+                    lat=cached[0],
+                    lng=cached[1],
+                )
+                return self._task_response(text, btns, session)
             _state.pending_store_search[user_id] = {
                 "tool": "search_general_stores",
                 "params": {},

@@ -23,6 +23,15 @@ import requests
 # ── WIC CSV ───────────────────────────────────────────────────────────────────
 
 CSV_PATH = Path(__file__).parent / "rag_data" / "ma_wic_approved_stores.csv"
+_ADDRESS_RE = re.compile(
+    r"\b\d{1,6}\s+[A-Za-z0-9.\-'\s]+?\s+"
+    r"(?:Street|St|Avenue|Ave|Boulevard|Blvd|Road|Rd|Drive|Dr|Lane|Ln|Way|Court|Ct|"
+    r"Place|Pl|Parkway|Pkwy|Terrace|Ter|Circle|Cir|Highway|Hwy)\b"
+    r"(?:,\s*[A-Za-z.\-'\s]+)?"
+    r"(?:,\s*MA\b|\s+MA\b)?"
+    r"(?:\s+\d{5})?",
+    re.IGNORECASE,
+)
 
 
 # ── Internal helpers ──────────────────────────────────────────────────────────
@@ -41,6 +50,12 @@ def _haversine_miles(lat1: float, lng1: float, lat2: float, lng2: float) -> floa
 
 def _normalize_chain(value: str | None) -> str:
     text = (value or "").lower().replace("&", " and ")
+    text = re.sub(r"[^a-z0-9]+", " ", text)
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def _normalize_address(value: str | None) -> str:
+    text = (value or "").lower()
     text = re.sub(r"[^a-z0-9]+", " ", text)
     return re.sub(r"\s+", " ", text).strip()
 
@@ -71,7 +86,9 @@ def _load_wic_stores() -> list[dict]:
             stores.append({
                 "name": row.get("store", "").strip(),
                 "address": row.get("address", "").strip(),
+                "address_norm": _normalize_address(row.get("address", "")),
                 "city": row.get("city", "").strip(),
+                "city_norm": _normalize_chain(row.get("city", "")),
                 "zip": row.get("zip", "").strip(),
                 "phone": row.get("phone", "").strip(),
                 "self_checkout": row.get("self_checkout", "").strip(),
@@ -82,6 +99,105 @@ def _load_wic_stores() -> list[dict]:
 
 
 _WIC_STORES: list[dict] = _load_wic_stores()
+_KNOWN_CITIES: set[str] = {store["city_norm"] for store in _WIC_STORES if store.get("city_norm")}
+
+
+def _store_name_aliases(store_name: str) -> list[str]:
+    aliases = {store_name}
+    aliases.add(re.sub(r"\([^)]*\)", "", store_name))
+    aliases.add(re.sub(r"#\s*\d+", "", store_name))
+    aliases.add(re.sub(r"\([^)]*\)|#\s*\d+", "", store_name))
+    out: list[str] = []
+    seen: set[str] = set()
+    for alias in aliases:
+        normalized = _normalize_chain(alias)
+        if normalized and normalized not in seen:
+            seen.add(normalized)
+            out.append(normalized)
+    return out
+
+
+def _name_matches_query(store_name: str, query_norm: str) -> bool:
+    if not query_norm:
+        return False
+    for alias in _store_name_aliases(store_name):
+        if alias in query_norm or query_norm in alias:
+            return True
+    return False
+
+
+def _extract_city_from_query(query_text: str) -> str | None:
+    query_norm = _normalize_chain(query_text)
+    for city in sorted(_KNOWN_CITIES, key=len, reverse=True):
+        if city and re.search(rf"\b{re.escape(city)}\b", query_norm):
+            return city
+    return None
+
+
+def lookup_wic_store_fact(query_text: str) -> str | None:
+    """Look up one WIC-authorized store from the local CSV for phone/address/fact questions."""
+    query = (query_text or "").strip()
+    if not query:
+        return None
+
+    query_norm = _normalize_chain(query)
+    address_match = _ADDRESS_RE.search(query)
+    address_norm = _normalize_address(address_match.group(0)) if address_match else ""
+    zip_match = re.search(r"\b\d{5}\b", query)
+    zip_code = zip_match.group(0) if zip_match else ""
+    city_norm = _extract_city_from_query(query)
+
+    asks_phone = bool(re.search(r"\b(phone|phone number|call)\b", query_norm))
+    asks_address = bool(re.search(r"\b(address|located|where is|where s|location)\b", query_norm))
+    asks_wic = bool(re.search(r"\b(wic|accept wic|take wic|wic authorized|wic approved|covered by wic)\b", query_norm))
+    asks_hours = bool(re.search(r"\b(hours|open|close|closing|opening|when does|what time)\b", query_norm))
+
+    scored: list[tuple[int, dict]] = []
+    for store in _WIC_STORES:
+        score = 0
+        if address_norm and (address_norm == store["address_norm"] or address_norm in store["address_norm"] or store["address_norm"] in address_norm):
+            score += 7
+        if zip_code and zip_code == store["zip"]:
+            score += 3
+        if city_norm and city_norm == store["city_norm"]:
+            score += 2
+        if _name_matches_query(store["name"], query_norm):
+            score += 4
+        if score > 0:
+            scored.append((score, store))
+
+    if not scored:
+        return None
+
+    scored.sort(key=lambda item: item[0], reverse=True)
+    best_score, best = scored[0]
+    second_score = scored[1][0] if len(scored) > 1 else -1
+    if best_score < 4:
+        return None
+    if best_score == second_score and best_score < 7:
+        return None
+
+    address_line = f"{best['address']}, {best['city']} {best['zip']}".strip()
+    is_wic = "This store is on the Massachusetts WIC-approved list."
+    if asks_phone:
+        if best["phone"]:
+            return f"The phone number for {best['name']} at {address_line} is {best['phone']}. {is_wic}"
+        return f"I found {best['name']} at {address_line}, but the local WIC store list does not include a phone number. {is_wic}"
+    if asks_address:
+        return f"{best['name']} is at {address_line}. {is_wic}"
+    if asks_hours:
+        hours_line = "The local WIC store list does not include store hours."
+        if best["phone"]:
+            return f"{hours_line} {best['name']} is at {address_line}, and the phone number listed is {best['phone']}. {is_wic}"
+        return f"{hours_line} {best['name']} is at {address_line}. {is_wic}"
+    if asks_wic:
+        if best["phone"]:
+            return f"Yes. {best['name']} at {address_line} is on the Massachusetts WIC-approved list. Phone: {best['phone']}."
+        return f"Yes. {best['name']} at {address_line} is on the Massachusetts WIC-approved list."
+
+    if best["phone"]:
+        return f"I found {best['name']} at {address_line}. Phone: {best['phone']}. {is_wic}"
+    return f"I found {best['name']} at {address_line}. {is_wic}"
 
 
 # ── Tool functions ────────────────────────────────────────────────────────────
@@ -94,6 +210,7 @@ def search_wic_stores(
     max_miles: float = 10.0,
 ) -> str:
     """Return nearby WIC-authorized stores from the local MA CSV."""
+    # Named chains are sparser in the CSV; use a wider radius than generic WIC search.
     if (chain or "").strip():
         max_miles = max(max_miles, 25.0)
     results: list[dict] = []
@@ -142,8 +259,10 @@ def search_general_stores(
     max_results: int = 5,
     radius_meters: int = 8000,
 ) -> str:
+    # Use a wider radius when searching for a specific chain
     if chain:
         radius_meters = 25000
+    """Return nearby grocery stores via Google Places API (not WIC-specific)."""
     api_key = os.getenv("GOOGLE_PLACES_API_KEY", "")
     if not api_key:
         return (
@@ -218,6 +337,7 @@ _PROGRAM_TEXT: dict[str, str] = {
 
 
 def explain_program(program: str) -> str:
+    """Return factual eligibility and benefits text for a food assistance program."""
     key = (program or "").strip().lower()
     text = _PROGRAM_TEXT.get(key)
     if text:
@@ -227,6 +347,7 @@ def explain_program(program: str) -> str:
 
 
 def affordable_overview() -> str:
+    """Return an overview of affordable grocery options in Massachusetts."""
     return (
         "There are several ways to stretch your food budget in Massachusetts:\n\n"
         "Market Basket is consistently one of the most affordable grocery chains in the region "
@@ -238,6 +359,8 @@ def affordable_overview() -> str:
         "If you receive SNAP or WIC, many stores also offer member discounts or dedicated low-cost sections."
     )
 
+
+# ── Tool schema for Claude API tool_use ──────────────────────────────────────
 
 RESOURCE_TOOLS = [
     {
@@ -251,9 +374,9 @@ RESOURCE_TOOLS = [
         "input_schema": {
             "type": "object",
             "properties": {
-                "lat": {"type": "number", "description": "User latitude"},
-                "lng": {"type": "number", "description": "User longitude"},
-                "chain": {"type": "string", "description": "Optional store chain name, e.g. 'Stop & Shop'"},
+                "lat":         {"type": "number", "description": "User latitude"},
+                "lng":         {"type": "number", "description": "User longitude"},
+                "chain":       {"type": "string", "description": "Optional store chain name, e.g. 'Stop & Shop'"},
                 "max_results": {"type": "integer", "description": "Max stores to return (default 5)"},
             },
             "required": ["lat", "lng"],
@@ -293,7 +416,13 @@ RESOURCE_TOOLS = [
 ]
 
 
+# ── Tool dispatcher ───────────────────────────────────────────────────────────
+
 def run_tool(tool_name: str, tool_input: dict, lat: float | None = None, lng: float | None = None) -> str:
+    """
+    Called by the agent tool-calling loop.
+    lat/lng are the user's shared coordinates (injected externally for location tools).
+    """
     if tool_name == "search_wic_stores":
         effective_lat = tool_input.get("lat") or lat
         effective_lng = tool_input.get("lng") or lng
@@ -307,6 +436,7 @@ def run_tool(tool_name: str, tool_input: dict, lat: float | None = None, lng: fl
         )
 
     if tool_name == "search_general_stores":
+        # Always redirect to WIC CSV search regardless of tool selected
         effective_lat = tool_input.get("lat") or lat
         effective_lng = tool_input.get("lng") or lng
         if effective_lat is None or effective_lng is None:
