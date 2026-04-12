@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from agent import NutritionAgent
 from prompts import WELCOME_FALLBACK_MESSAGE, WELCOME_BUTTONS
 
@@ -11,6 +13,12 @@ from wa_service_sdk import (
     create_buttoned_message,
     create_location_request_message,
     Button,
+    MediaDownloadError,
+    MediaExpiredError,
+    MediaTooLargeError,
+    MediaUnavailableError,
+    download_media,
+    save_media_bytes,
 )
 
 _agent = NutritionAgent()
@@ -56,6 +64,39 @@ async def handle_event(event: BaseEvent):
         text, buttons = _agent.run_location(
             event.latitude, event.longitude, event.user_id
         )
+    elif isinstance(event, ImageEvent):
+        if not event.media_uri:
+            text = "I couldn't access that image. Please try sending it again."
+            buttons = _make_buttons(WELCOME_BUTTONS)
+        else:
+            image_path: Path | None = None
+            try:
+                media_bytes = download_media(event.media_uri)
+                image_path = save_media_bytes(
+                    media_bytes,
+                    media_id=event.image_id,
+                    media_uri=event.media_uri,
+                    file_extension=event.file_extension,
+                    mime_type=event.mime_type,
+                )
+                text, buttons = _agent.run_image(
+                    str(image_path),
+                    event.user_id,
+                    caption=event.caption,
+                    mime_type=event.mime_type,
+                )
+            except (MediaExpiredError, MediaUnavailableError):
+                text = "That image is no longer available. Please send it again."
+                buttons = _make_buttons(WELCOME_BUTTONS)
+            except (MediaDownloadError, MediaTooLargeError):
+                text = "I couldn't download that image. Please try again with a smaller or clearer photo."
+                buttons = _make_buttons(WELCOME_BUTTONS)
+            except Exception:
+                text = "I couldn't analyze that image right now. Please try again in a moment."
+                buttons = _make_buttons(WELCOME_BUTTONS)
+            finally:
+                if image_path and image_path.exists():
+                    image_path.unlink(missing_ok=True)
     else:
         text = WELCOME_FALLBACK_MESSAGE
         buttons = _make_buttons(WELCOME_BUTTONS)

@@ -314,6 +314,27 @@ thanks_tailor_prompt = """
 Thank the user for the information and say something to the effect of 'Thanks! That helps me tailor this for you' or 'Thanks! That helps me understand better' but put in your own words. Should be very short. A sentence at most.
 """
 
+image_analysis_prompt = """
+You are analyzing a user-provided image for a Massachusetts nutrition assistant.
+
+You will receive:
+- [USER PROFILE] saved context about the user
+- [USER CAPTION] the user's optional caption or question about the image
+- an uploaded image already attached in the same session
+
+Your job:
+1. Use the user profile and caption to interpret the image in context.
+2. Focus on nutrition, food safety, ingredients, labels, meals, groceries, or food-related Massachusetts resource context.
+3. If the image is unclear, say what is uncertain instead of pretending.
+4. If the image is outside the assistant's scope, redirect back to nutrition or food safety.
+5. Keep the response short, plain-language, and helpful.
+
+Style:
+- 4 to 5 sentences maximum
+- No markdown headings
+- End with at most one brief follow-up question
+"""
+
 # ── Fixed Messages ─────────────────────────────────────────────────────────────
 
 # Used when the LLM welcome fails or returns empty/too short; normal welcome is AI-generated.

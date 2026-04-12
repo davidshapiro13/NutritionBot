@@ -8,7 +8,7 @@ class AI():
         self.last_queries = query_num
         self.rag_enabled = False
 
-    def ask(self, system_prompt, query_prompt, session):
+    def ask(self, system_prompt, query_prompt, session, media=None):
         output = self.client.generate(
             model = self.model_name,
             system = system_prompt,
@@ -16,6 +16,7 @@ class AI():
             lastk = self.last_queries,
             session_id = session,
             rag_usage = self.rag_enabled,
-            rag_threshold = 0.5
+            rag_threshold = 0.5,
+            media = media,
         )['result']
         return output

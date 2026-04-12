@@ -25,6 +25,7 @@ Usage (from Nutrition_Bot.py):
 """
 
 import os
+import mimetypes
 from AI import AI
 from rag_pipeline import RAGPipeline
 import json
@@ -45,6 +46,7 @@ from prompts import (
     rag_router_prompt,
     kb_retrieval_router_prompt,
     thanks_tailor_prompt,
+    image_analysis_prompt,
     RESOURCES_FALLBACK_BUTTONS,
     resources_tool_selector_prompt,
     resources_synthesizer_prompt,
@@ -1033,6 +1035,70 @@ class NutritionAgent:
             return food_safety_reply
 
         return self._handle_new_text_intent(ctx)
+
+    def run_image(
+        self,
+        image_path: str,
+        user_id: str,
+        caption: str | None = None,
+        mime_type: str | None = None,
+    ) -> tuple[str, list[Button] | str]:
+        """Handle an image by uploading it into the user's session and prompting with context."""
+        _debug_log(f"run_image start user_id={user_id} image_path={image_path!r}")
+        disclaimer_gate = self._handle_disclaimer_gate_for_text(user_id)
+        if disclaimer_gate is not None:
+            return disclaimer_gate
+
+        session = _user_session(user_id)
+        profile = self._get_profile(user_id)
+        profile_context = self._format_profile_context(profile)
+        user_caption = (caption or "").strip() or "(no caption provided)"
+        try:
+            resolved_mime = mime_type or mimetypes.guess_type(image_path)[0]
+            if not resolved_mime:
+                return (
+                    "I couldn't read that image type. Please send a JPG, PNG, or HEIC image.",
+                    _make_buttons(WELCOME_BUTTONS),
+                )
+            if not resolved_mime.startswith("image/"):
+                return (
+                    "I can only analyze images right now. Please send a JPG, PNG, or HEIC image.",
+                    _make_buttons(WELCOME_BUTTONS),
+                )
+
+            upload_result = _ai.client.upload_media(
+                file_path=image_path,
+                session_id=session,
+                content_type=resolved_mime,
+            )
+            _debug_log(f"run_image upload_result user_id={user_id} result={upload_result!r}")
+            upload_error = upload_result.get("error")
+            if upload_error or not upload_result.get("ok"):
+                _debug_log(
+                    f"run_image upload error user_id={user_id} "
+                    f"error={upload_error or upload_result}"
+                )
+                return (
+                    "I couldn't read that image right now. Please try sending it again.",
+                    _make_buttons(WELCOME_BUTTONS),
+                )
+
+            query = (
+                f"[USER PROFILE]\n{profile_context}\n"
+                f"[USER CAPTION]\n{user_caption}"
+            )
+            media_refs = [{"id": upload_result["id"], "type": upload_result["type"]}]
+            response = _ai.ask(image_analysis_prompt, query, session, media=media_refs)
+            _debug_log(f"run_image llm_response user_id={user_id} response={response!r}")
+            clean = re.sub(r"\[Source:[^\]]+\]", "", response).strip()
+            buttons = _generate_buttons(clean, session, fallback_buttons=WELCOME_BUTTONS)
+            return self._task_response(clean, buttons, session)
+        except Exception as exc:
+            _debug_log(f"run_image exception user_id={user_id} error={exc!r}")
+            return (
+                "I couldn't analyze that image right now. Please try again in a moment.",
+                _make_buttons(WELCOME_BUTTONS),
+            )
 
     def run_tool(
         self,
