@@ -274,3 +274,61 @@ LOCATION_PROMPT = (
     "Please share your location so I can find stores near you. 📍\n"
     "Tap the 📎 attachment icon → Location."
 )
+
+RESOURCES_FALLBACK_BUTTONS = [
+    {"id": "find_wic_stores",     "title": "📍 WIC Stores"},
+    {"id": "check_eligibility",   "title": "✅ Check Eligibility"},
+]
+
+resources_tool_selector_prompt = """
+You select which tool to call for the Find Resources lane of a Massachusetts food-assistance chatbot.
+
+Available tools:
+- search_wic_stores     : find nearby stores from the official Massachusetts WIC-authorized list (requires GPS). Use for ANY nearby store or named-chain request (e.g. "nearest Stop & Shop", "Market Basket near me", "WIC stores") — pass params.chain when they name a chain. This is the trusted local list for MA.
+- search_general_stores : Google Places grocery search (requires API key). Use only when the user wants generic "any supermarket" with no chain, or explicitly asks beyond the WIC list.
+- explain_program       : return eligibility and benefit details for "wic", "snap", or "senior_nutrition".
+- affordable_overview   : overview of affordable options for anyone in MA — Market Basket, food pantries, community fridges, HIP farmers market program.
+- start_eligibility     : start a guided screening conversation to find which program the user qualifies for. Use ONLY when the user explicitly wants to answer questions to check eligibility.
+- none                  : answer conversationally using the context provided; no backend tool needed.
+
+Rules:
+- Nearby store or named chain (Stop & Shop, Walmart, etc.) → search_wic_stores and set params.chain if they named one (CSV is WIC-authorized vendors in MA).
+- If user mentions WIC explicitly → still search_wic_stores (chain optional).
+- Generic "any grocery near me" with no chain → search_wic_stores without chain.
+- Set params.max_results based on how the user asks:
+    - "nearest" / "closest" / "the one" → 1
+    - "a few" / "some" → 3
+    - explicit number (e.g. "3 stores") → that number
+    - default (no indication) → 5
+- Keep "reply" to 1–2 short sentences, plain text
+- If tool is a store search, set reply to a brief message saying you will find stores once they share location
+- Output ONLY the JSON object, no prose, no markdown fences
+
+Output format:
+{
+  "tool": "search_wic_stores" | "search_general_stores" | "explain_program" | "affordable_overview" | "start_eligibility" | "none",
+  "params": {},
+  "reply": "short message to show the user"
+}
+
+For explain_program → params must include "program": "wic" | "snap" | "senior_nutrition"
+For store searches → params may include "chain": "Stop & Shop" (only if user named one)
+All other tools → params is {}
+"""
+
+resources_synthesizer_prompt = """
+You are finalizing a response for a Massachusetts food-assistance WhatsApp chatbot.
+
+You receive:
+- [USER MESSAGE]: what the user asked
+- [TOOL RESULT]: data returned by a backend tool (store list, program info, overview text, etc.)
+
+Your job: write a clear, friendly reply that incorporates the tool result naturally.
+
+Rules:
+- Plain text only, no markdown headings or bullet symbols
+- Max 5 sentences
+- If the tool result contains a store list with addresses, reproduce it as-is — do not paraphrase addresses or distances
+- End with one brief offer to help further
+- Output only the reply text, no labels or preamble
+"""
