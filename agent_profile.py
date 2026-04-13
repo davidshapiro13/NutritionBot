@@ -94,11 +94,8 @@ def maybe_start_profile_from_welcome(
     choose_profile_target,
     build_profile_question_fn,
     nutrition_ob_state: dict[str, dict],
-    nutrition_ob_done_users: set[str],
 ) -> tuple[str, list[Button]] | None:
     """For new users, kick off profile-building directly from the welcome flow."""
-    if user_id in nutrition_ob_done_users:
-        return None
     target = choose_profile_target(profile)
     if not target:
         return None
@@ -154,7 +151,6 @@ def continue_profile_conversation(
     build_profile_question_fn,
     answer_saved_profile_task_fn,
     nutrition_ob_state: dict[str, dict],
-    nutrition_ob_done_users: set[str],
 ) -> tuple[str, list[Button]] | None:
     def _resolve_asking_for_value(message: str) -> str | None:
         lower = message.strip().lower()
@@ -188,38 +184,32 @@ def continue_profile_conversation(
 
     state = nutrition_ob_state.get(user_id)
     target = (state or {}).get("target")
-    if not state or not target:
-        return None
-    if not looks_like_profile_answer(target, user_message):
-        nutrition_ob_state.pop(user_id, None)
-        nutrition_ob_done_users.add(user_id)
+    if not state or not target or not looks_like_profile_answer(target, user_message):
         return None
 
     profile = remember_user_message(user_id, user_message)
-    answered = False
     if target == "asking_for" and not profile.get("asking_for"):
         asking_for_value = _resolve_asking_for_value(user_message)
         if asking_for_value:
             profile = dict(profile)
             profile["asking_for"] = asking_for_value
             save_profile_value(user_id, "asking_for", asking_for_value)
-            answered = True
     if target == "age_group" and not profile.get("age_group"):
         age_group_value = _resolve_age_group_value(user_message)
         if age_group_value:
             profile = dict(profile)
             profile["age_group"] = age_group_value
             save_profile_value(user_id, "age_group", age_group_value)
-            answered = True
-    if target not in {"asking_for", "age_group"}:
-        answered = bool((user_message or "").strip())
+    next_target = choose_profile_target(profile)
+    if next_target:
+        next_state = dict(state)
+        next_state["target"] = next_target
+        nutrition_ob_state[user_id] = next_state
+        question = build_profile_question_fn(profile, user_message, next_target, session)
+        return question, profile_buttons_for_target(next_target)
 
     nutrition_ob_state.pop(user_id, None)
-    nutrition_ob_done_users.add(user_id)
-    if answered:
-        return answer_saved_profile_task_fn(user_id, profile, session, state)
-
-    return None
+    return answer_saved_profile_task_fn(user_id, profile, session, state)
 
 
 def maybe_append_profile_nudge(
@@ -234,11 +224,8 @@ def maybe_append_profile_nudge(
     normalize_text,
     build_profile_question_fn,
     nutrition_ob_state: dict[str, dict],
-    nutrition_ob_done_users: set[str],
 ) -> tuple[str, list[Button]]:
     if intent != "nutrition_advice":
-        return response, []
-    if user_id in nutrition_ob_done_users:
         return response, []
     target = choose_profile_target(profile)
     if not target:
