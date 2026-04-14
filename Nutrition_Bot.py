@@ -1,4 +1,5 @@
 from pathlib import Path
+import time
 
 from agent import NutritionAgent
 from prompts import WELCOME_FALLBACK_MESSAGE, WELCOME_BUTTONS
@@ -70,8 +71,11 @@ async def handle_event(event: BaseEvent):
             buttons = _make_buttons(WELCOME_BUTTONS)
         else:
             image_path: Path | None = None
+            t0 = time.monotonic()
             try:
+                t_dl = time.monotonic()
                 media_bytes = download_media(event.media_uri)
+                t_dl_done = time.monotonic()
                 image_path = save_media_bytes(
                     media_bytes,
                     media_id=event.image_id,
@@ -79,11 +83,21 @@ async def handle_event(event: BaseEvent):
                     file_extension=event.file_extension,
                     mime_type=event.mime_type,
                 )
+                t_save_done = time.monotonic()
                 text, buttons = _agent.run_image(
                     str(image_path),
                     event.user_id,
                     caption=event.caption,
                     mime_type=event.mime_type,
+                )
+                t_done = time.monotonic()
+                print(
+                    "[DEBUG] image timings "
+                    f"user_id={event.user_id} "
+                    f"download_ms={int((t_dl_done - t_dl) * 1000)} "
+                    f"save_ms={int((t_save_done - t_dl_done) * 1000)} "
+                    f"agent_ms={int((t_done - t_save_done) * 1000)} "
+                    f"total_ms={int((t_done - t0) * 1000)}"
                 )
             except (MediaExpiredError, MediaUnavailableError):
                 text = "That image is no longer available. Please send it again."
@@ -92,6 +106,11 @@ async def handle_event(event: BaseEvent):
                 text = "I couldn't download that image. Please try again with a smaller or clearer photo."
                 buttons = _make_buttons(WELCOME_BUTTONS)
             except Exception:
+                t_err = time.monotonic()
+                print(
+                    "[DEBUG] image error timing "
+                    f"user_id={event.user_id} total_ms={int((t_err - t0) * 1000)}"
+                )
                 text = "I couldn't analyze that image right now. Please try again in a moment."
                 buttons = _make_buttons(WELCOME_BUTTONS)
             finally:

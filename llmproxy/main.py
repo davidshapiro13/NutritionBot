@@ -35,6 +35,13 @@ class ClientConfig:
 
         endpoint = os.getenv("LLMPROXY_ENDPOINT")
         api_key  = os.getenv("LLMPROXY_API_KEY")
+        timeout_raw = os.getenv("LLMPROXY_TIMEOUT", "").strip()
+        timeout = 118.0
+        if timeout_raw:
+            try:
+                timeout = float(timeout_raw)
+            except ValueError:
+                raise ValueError("LLMPROXY_TIMEOUT must be a number of seconds (e.g., 30 or 45.5).")
 
         if not endpoint or not api_key:
             raise ValueError(
@@ -46,7 +53,7 @@ class ClientConfig:
                 "    LLMPROXY_API_KEY=your-api-key\n"
             )
 
-        return ClientConfig(endpoint=endpoint, api_key=api_key)
+        return ClientConfig(endpoint=endpoint, api_key=api_key, timeout=timeout)
 
 
 
