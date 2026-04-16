@@ -1,5 +1,5 @@
-from pathlib import Path
 import time
+from pathlib import Path
 
 from agent import NutritionAgent
 from prompts import WELCOME_FALLBACK_MESSAGE, WELCOME_BUTTONS
@@ -51,6 +51,7 @@ def _make_buttons(buttons_data: list[dict]) -> list[Button]:
 
 
 async def handle_event(event: BaseEvent):
+    request_start = time.monotonic()
     if isinstance(event, TextEvent):
         text, buttons = _agent.run(event.text, event.user_id)
 
@@ -84,21 +85,22 @@ async def handle_event(event: BaseEvent):
                     mime_type=event.mime_type,
                 )
                 t_save_done = time.monotonic()
-                text, buttons = _agent.run_image(
+                image_reply_text, image_reply_buttons = _agent.run_image(
                     str(image_path),
                     event.user_id,
                     caption=event.caption,
                     mime_type=event.mime_type,
                 )
-                t_done = time.monotonic()
                 print(
-                    "[DEBUG] image timings "
+                    "[DEBUG] image pipeline result "
                     f"user_id={event.user_id} "
-                    f"download_ms={int((t_dl_done - t_dl) * 1000)} "
-                    f"save_ms={int((t_save_done - t_dl_done) * 1000)} "
-                    f"agent_ms={int((t_done - t_save_done) * 1000)} "
-                    f"total_ms={int((t_done - t0) * 1000)}"
+                    f"reply_len={len(image_reply_text or '')} "
+                    f"reply_buttons={bool(image_reply_buttons)}"
                 )
+                t_done = time.monotonic()
+                print(image_reply_text)
+                text = image_reply_text
+                buttons = image_reply_buttons
             except (MediaExpiredError, MediaUnavailableError):
                 text = "That image is no longer available. Please send it again."
                 buttons = _make_buttons(WELCOME_BUTTONS)
@@ -125,6 +127,18 @@ async def handle_event(event: BaseEvent):
         buttons = _make_buttons(WELCOME_BUTTONS)
 
     text = _truncate_preserving_sources(text, _MAX_MESSAGE_CHARS)
+    total_ms = int((time.monotonic() - request_start) * 1000)
+    print(
+        "[DEBUG] webhook response ready "
+        f"user_id={getattr(event, 'user_id', 'unknown')} "
+        f"type={getattr(event, 'type', 'unknown')} "
+        f"buttons={bool(buttons)} total_ms={total_ms}"
+    )
+    print(
+        "[DEBUG] webhook response text "
+        f"user_id={getattr(event, 'user_id', 'unknown')} "
+        f"text={text!r}"
+    )
 
     if buttons == "request_location":
         return create_location_request_message(user_id=event.user_id, text=text)

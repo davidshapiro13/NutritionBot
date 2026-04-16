@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import mimetypes
 import os
+import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
@@ -333,23 +334,35 @@ class LLMProxy:
                 "status_code": None,
             }
 
-        upload_result = self._upload_media(
-            file_path=file_path,
-            session_id=session_id,
-            content_type=content_type,
-        )
-        if "error" in upload_result or not upload_result.get("ok"):
+        last_upload_result: Dict[str, Any] = {}
+        max_attempts = 2
+        for attempt in range(max_attempts):
+            upload_result = self._upload_media(
+                file_path=file_path,
+                session_id=session_id,
+                content_type=content_type,
+            )
+            last_upload_result = upload_result
+            if "error" not in upload_result and upload_result.get("ok"):
+                break
+            if attempt < max_attempts - 1 and self._is_rate_limited_upload(upload_result):
+                # Brief backoff for transient upload-init throttling.
+                time.sleep(1.2)
+                continue
+            break
+
+        if "error" in last_upload_result or not last_upload_result.get("ok"):
             return {
                 "error": "Media upload failed",
-                "status_code": upload_result.get("status_code"),
-                "upload": upload_result,
+                "status_code": last_upload_result.get("status_code"),
+                "upload": last_upload_result,
             }
 
-        media_id = self._extract_media_id(upload_result.get("upload_init", {}))
+        media_id = self._extract_media_id(last_upload_result.get("upload_init", {}))
         if not media_id:
             return {
                 "error": "upload_init did not return a media identifier",
-                "upload": upload_result,
+                "upload": last_upload_result,
                 "status_code": None,
             }
 
@@ -357,7 +370,7 @@ class LLMProxy:
             "ok": True,
             "id": media_id,
             "type": content_type,
-            "upload": upload_result,
+            "upload": last_upload_result,
         }
 
     def _upload_media(
@@ -387,7 +400,11 @@ class LLMProxy:
             size_bytes=size_bytes,
         )
         if "error" in init_result:
-            return {"error": "upload_init failed", "upload_init": init_result}
+            return {
+                "error": "upload_init failed",
+                "upload_init": init_result,
+                "status_code": init_result.get("status_code"),
+            }
 
         upload_url = self._extract_upload_url(init_result)
         if not upload_url:
@@ -408,7 +425,22 @@ class LLMProxy:
             "upload_result": upload_result,
             "content_type": resolved_content_type,
             "size_bytes": size_bytes,
+            "status_code": upload_result.get("status_code"),
         }
+
+    @staticmethod
+    def _is_rate_limited_upload(upload_result: Dict[str, Any]) -> bool:
+        if not isinstance(upload_result, dict):
+            return False
+        if upload_result.get("status_code") == 429:
+            return True
+        upload_init = upload_result.get("upload_init")
+        if isinstance(upload_init, dict) and upload_init.get("status_code") == 429:
+            return True
+        err = str(upload_result.get("error", "")).lower()
+        init_err = str(upload_init.get("error", "")).lower() if isinstance(upload_init, dict) else ""
+        combined = f"{err} {init_err}"
+        return "429" in combined or "limit exceeded" in combined
 
     @staticmethod
     def _extract_upload_url(payload: Dict[str, Any]) -> Optional[str]:

@@ -1074,10 +1074,40 @@ class NutritionAgent:
             _debug_log(f"run_image upload_result user_id={user_id} result={upload_result!r}")
             upload_error = upload_result.get("error")
             if upload_error or not upload_result.get("ok"):
+                upload_payload = upload_result.get("upload") if isinstance(upload_result, dict) else None
+                upload_status = None
+                upload_init = None
+                if isinstance(upload_payload, dict):
+                    upload_status = upload_payload.get("status_code")
+                    upload_init = upload_payload.get("upload_init")
+                _debug_log(
+                    "run_image upload failure summary "
+                    f"user_id={user_id} "
+                    f"session={session} "
+                    f"image_path={image_path!r} "
+                    f"mime={resolved_mime!r} "
+                    f"error={upload_error!r} "
+                    f"status_code={upload_result.get('status_code')!r} "
+                    f"upload_status_code={upload_status!r} "
+                    f"upload_init={upload_init!r}"
+                )
                 _debug_log(
                     f"run_image upload error user_id={user_id} "
                     f"error={upload_error or upload_result}"
                 )
+                rate_limited = False
+                if upload_result.get("status_code") == 429 or upload_status == 429:
+                    rate_limited = True
+                if isinstance(upload_init, dict):
+                    init_status = upload_init.get("status_code")
+                    init_error = str(upload_init.get("error", "")).lower()
+                    if init_status == 429 or "429" in init_error or "limit exceeded" in init_error:
+                        rate_limited = True
+                if rate_limited:
+                    return (
+                        "Image service is busy right now. Please wait a few seconds and send the image again.",
+                        _make_buttons(WELCOME_BUTTONS),
+                    )
                 return (
                     "I couldn't read that image right now. Please try sending it again.",
                     _make_buttons(WELCOME_BUTTONS),
@@ -1088,7 +1118,17 @@ class NutritionAgent:
                 f"[USER CAPTION]\n{user_caption}"
             )
             media_refs = [{"id": upload_result["id"], "type": upload_result["type"]}]
-            response = _ai.ask(image_analysis_prompt, query, session, media=media_refs)
+            image_model = os.getenv("IMAGE_MODEL", "").strip() or None
+            image_lastk_raw = os.getenv("IMAGE_LASTK", "").strip()
+            image_lastk = int(image_lastk_raw) if image_lastk_raw.isdigit() else None
+            response = _ai.ask(
+                image_analysis_prompt,
+                query,
+                session,
+                media=media_refs,
+                model_override=image_model,
+                lastk_override=image_lastk,
+            )
             _debug_log(f"run_image llm_response user_id={user_id} response={response!r}")
             clean = re.sub(r"\[Source:[^\]]+\]", "", response).strip()
             buttons = _generate_buttons(clean, session, fallback_buttons=WELCOME_BUTTONS)
