@@ -339,6 +339,12 @@ _PROGRAM_TEXT: dict[str, str] = {
 def explain_program(program: str) -> str:
     """Return factual eligibility and benefits text for a food assistance program."""
     key = (program or "").strip().lower()
+    if key in ("snap", "senior_nutrition"):
+        return (
+            "In this chat's Find Resources section I focus on WIC in Massachusetts. "
+            "For SNAP or senior nutrition details, use official mass.gov pages.\n\n"
+            + _PROGRAM_TEXT["wic"]
+        )
     text = _PROGRAM_TEXT.get(key)
     if text:
         return text
@@ -347,26 +353,18 @@ def explain_program(program: str) -> str:
 
 
 def affordable_overview() -> str:
-    """Return an overview of affordable grocery options in Massachusetts."""
-    return (
-        "There are several ways to stretch your food budget in Massachusetts:\n\n"
-        "Market Basket is consistently one of the most affordable grocery chains in the region "
-        "and does not require any special eligibility.\n\n"
-        "Food pantries and community fridges offer free groceries — no income proof needed at most sites. "
-        "Search online for food pantries near you or ask your local Council on Aging for referrals.\n\n"
-        "Farmers markets that accept SNAP also participate in the HIP program, which matches your "
-        "SNAP spending on fresh produce dollar-for-dollar (up to $40–80/month depending on household size).\n\n"
-        "If you receive SNAP or WIC, many stores also offer member discounts or dedicated low-cost sections."
-    )
+    """Legacy tool name: Find Resources is WIC-only; reuse WIC program copy."""
+    return explain_program("wic")
 
 
 def start_eligibility() -> str:
-    """Return the opening prompt for guided eligibility screening."""
+    """Opening message for WIC-only, one-question-at-a-time eligibility screening."""
     return (
-        "Great, let's check what you might qualify for in Massachusetts. "
-        "I will ask one short question at a time.\n\n"
-        "First question: Are you currently pregnant, recently postpartum, "
-        "breastfeeding, or caring for a child under 5?"
+        "Let's do a quick WIC eligibility check for Massachusetts—one short question at a time. "
+        "This is general information only—not a legal eligibility decision.\n\n"
+        "First: right now, does WIC apply to your situation because you are pregnant, "
+        "breastfeeding (through your baby's first birthday), up to 6 weeks after delivery, "
+        "or you're applying for a child under 5 you care for?"
     )
 
 
@@ -413,9 +411,7 @@ RESOURCE_TOOLS = [
     {
         "name": "affordable_overview",
         "description": (
-            "Return an overview of affordable grocery options in Massachusetts available to anyone, "
-            "including Market Basket, food pantries, community fridges, and the HIP farmers market program. "
-            "Use when the user asks about saving money on food or general affordable options."
+            "Legacy name: in this app returns WIC program information only. Prefer explain_program with program wic."
         ),
         "input_schema": {
             "type": "object",
@@ -426,8 +422,8 @@ RESOURCE_TOOLS = [
     {
         "name": "start_eligibility",
         "description": (
-            "Start a guided, one-question-at-a-time screening conversation for "
-            "WIC/SNAP/senior nutrition fit in Massachusetts."
+            "Start a guided, one-question-at-a-time WIC eligibility conversation in Massachusetts only "
+            "(not SNAP or senior programs)."
         ),
         "input_schema": {
             "type": "object",

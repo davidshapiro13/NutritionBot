@@ -40,6 +40,22 @@ RAG_DATA_DIR = Path(__file__).parent / "rag_data"
 EMBED_MODEL  = "all-MiniLM-L6-v2"
 
 # User-visible short tags for trailing "Sources:" (exact filename → label).
+_LEAKED_LENGTH_META = re.compile(
+    r"\n*\(?\s*Total\s+characters?\s*:\s*\d+\s*\)?\s*$",
+    re.IGNORECASE,
+)
+
+
+def _strip_leaked_length_metadata(text: str) -> str:
+    """Drop '(Total characters: N)' lines models sometimes add when prompts mention a length cap."""
+    t = (text or "").rstrip()
+    while True:
+        n = _LEAKED_LENGTH_META.sub("", t).rstrip()
+        if n == t:
+            return n
+        t = n
+
+
 KB_SOURCE_DISPLAY_NAMES: dict[str, str] = {
     "food_safety_knowledge_base.txt": "food_safety",
     "Cold Food Storage Chart.pdf": "cold_storage",
@@ -277,7 +293,8 @@ class RAGPipeline:
         length_instruction = (
             "Keep your answer under 500 characters. "
             "3-5 sentences max. Plain text only, no bullet points or markdown. "
-            "Do not list source filenames or URLs in your answer; citations are added separately."
+            "Do not list source filenames or URLs in your answer; citations are added separately. "
+            "Never state character counts, word counts, or how long your answer is."
         )
 
         web_source_labels: list[str] = []
@@ -328,20 +345,25 @@ class RAGPipeline:
             rag_usage=False,
             lastk=10,
         )
-        answer = response.get("result", str(response))
+        answer = _strip_leaked_length_metadata(response.get("result", str(response)))
 
         # If still over 500 chars, ask LLM to condense it
         if len(answer) > 500:
             condense_response = llm.generate(
                 model="us.anthropic.claude-3-haiku-20240307-v1:0",
-                system="You are a text editor. Condense the given text to under 500 characters while keeping all key facts accurate. Plain text only, no markdown.",
+                system=(
+                    "You are a text editor. Condense the given text to under 500 characters while "
+                    "keeping all key facts accurate. Plain text only, no markdown. Never append "
+                    "character counts or notes about length."
+                ),
                 query=f"Condense this to under 500 characters:\n\n{answer}",
                 session_id=session_id + "_condense",
                 rag_usage=False,
                 lastk=0,
             )
-            condensed = condense_response.get("result", answer)
+            condensed = _strip_leaked_length_metadata(condense_response.get("result", answer))
             answer = condensed if len(condensed) <= 500 else condensed[:496] + "…"
+        answer = _strip_leaked_length_metadata(answer)
 
         # Auto-extract structured user facts and save to memory
         if user_id:

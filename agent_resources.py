@@ -108,9 +108,8 @@ def run_resources_turn(
         action_type = resources_action_type(action)
         if action_type == "AFFORDABLE_OVERVIEW":
             aff_q = (
-                "Tell me about affordable grocery options available to everyone in Massachusetts "
-                "regardless of income or eligibility. Include Market Basket, food pantries, "
-                "community fridges, and farmers markets with the HIP program. Keep it concise."
+                "Briefly explain WIC-authorized grocery shopping in Massachusetts and who WIC serves. "
+                "Do not focus on food pantries, SNAP, or HIP. Keep it concise."
             )
             block = ai.ask(main_system_prompt, aff_q, session + "_r_aff").strip()
             if block:
@@ -125,9 +124,9 @@ def run_resources_turn(
                 )
             elif program == "snap":
                 q = (
-                    "In 3-4 sentences, explain who qualifies for SNAP in Massachusetts: "
-                    "income-based, available to most low-income households, also unlocks the HIP program "
-                    "for fresh produce. End by asking if they think they qualify."
+                    "In 2 sentences, say this lane focuses on WIC only, then in 3-4 sentences explain "
+                    "who qualifies for WIC in Massachusetts (same WIC rules as for program wic). "
+                    "Do not give SNAP benefit rules."
                 )
             else:
                 continue
