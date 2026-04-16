@@ -48,6 +48,7 @@ _clear_eligibility_session = _elig_mod.clear_eligibility_session
 from prompts import (
     main_system_prompt,
     button_creator_prompt,
+    button_title_repair_prompt,
     eligibility_check_prompt,
     intent_classifier_prompt,
     profile_nudge_prompt,
@@ -61,13 +62,21 @@ from prompts import (
     kb_retrieval_router_prompt,
     thanks_tailor_prompt,
     RESOURCES_FALLBACK_BUTTONS,
+    WIC_POST_SCREENING_BUTTONS,
+    NUTRITION_FALLBACK_BUTTONS,
     resources_tool_selector_prompt,
     resources_synthesizer_prompt,
 )
 
 from wa_service_sdk import Button
-from user_memory import UserMemory
+
+try:
+    from wa_service_sdk.responses import MAX_BUTTON_TITLE_CHARS, MAX_INTERNAL_ID_CHARS
+except ImportError:
+    MAX_BUTTON_TITLE_CHARS = 20
+    MAX_INTERNAL_ID_CHARS = 120
 from agent_state import STATE as _state
+from resource_tools import run_tool as _run_resource_tool, start_eligibility as _wic_eligibility_opening
 from agent_profile import (
     answer_saved_profile_task,
     build_profile_question,
@@ -105,7 +114,8 @@ import re
 _ai  = AI()
 _rag = RAGPipeline()
 _rag.build_public_index()
-_mem = UserMemory(embed_model=None)
+# Same UserMemory as RAGPipeline (shared SentenceTransformer + per-user FAISS cache).
+_mem = _rag.memory
 BLANK_PROFILE = "(no profile info)"
 DISCLAIMER_BUTTONS = [
     {"id": "disclaimer_agree", "title": "Agree"},
@@ -124,7 +134,8 @@ _DISALLOWED_BUTTON_PATTERNS = (
     r"\blocation\b",
     r"\bmap\b",
     r"\bdirections?\b",
-    r"\bapply\b",
+    # Allow "apply" in titles (WIC apply / eligibility); block only bot-action phrasing.
+    r"\bapply\s+now\b",
     r"\border\b",
     r"\bbuy\b",
     r"\bvisit\b",
@@ -135,50 +146,107 @@ _DISALLOWED_BUTTON_PATTERNS = (
 )
 
 
+def _parse_llm_button_items(raw: str) -> list[dict] | None:
+    """Parse first LLM reply into up to 3 dicts with id and title; None on failure."""
+    import json as _json
+
+    text = (raw or "").strip()
+    text = re.sub(r"^```(?:json)?\s*|\s*```\s*$", "", text, flags=re.IGNORECASE | re.DOTALL)
+    text = text.strip().strip("`").strip()
+    if text.startswith("json"):
+        text = text[4:].strip()
+    m = re.search(r"\[.*\]", text, re.DOTALL)
+    if m:
+        text = m.group(0)
+    try:
+        items = ast.literal_eval(text)
+    except Exception:
+        try:
+            items = _json.loads(text)
+        except Exception:
+            return None
+    if not isinstance(items, list) or not items:
+        return None
+    out: list[dict] = []
+    for item in items[:3]:
+        if isinstance(item, str):
+            try:
+                info = ast.literal_eval(item)
+            except Exception:
+                try:
+                    info = _json.loads(item)
+                except Exception:
+                    continue
+        elif isinstance(item, dict):
+            info = item
+        else:
+            continue
+        title = str(info.get("title", "")).strip()
+        bid = str(info.get("id", "btn")).strip() or "btn"
+        if not title:
+            continue
+        out.append({"id": bid, "title": title})
+    return out if out else None
+
+
+def _any_button_title_over_limit(items: list[dict], limit: int = MAX_BUTTON_TITLE_CHARS) -> bool:
+    return any(len(str(d.get("title", "")).strip()) > limit for d in items)
+
+
+def _repair_button_items_with_llm(items: list[dict], session_id: str) -> list[dict] | None:
+    """One rewrite pass so every title is a full short phrase ≤ limit (no mechanical truncation)."""
+    try:
+        payload = json.dumps(items[:3], ensure_ascii=False)
+        raw = _ai.ask(button_title_repair_prompt, payload, session_id + "_btnfix")
+        fixed = _parse_llm_button_items(raw)
+        if not fixed:
+            return None
+        if _any_button_title_over_limit(fixed):
+            return None
+        return fixed[:3]
+    except Exception:
+        return None
+
+
 def _generate_buttons(
     response: str,
     session_id: str,
     fallback_buttons: list[dict] | None = None,
 ) -> list[Button]:
     """Ask LLM to generate contextual follow-up buttons based on a response."""
-    import json as _json
     fb = fallback_buttons if fallback_buttons is not None else WELCOME_BUTTONS
 
     def _is_allowed_button_title(title: str) -> bool:
         normalized = (title or "").strip().lower()
-        if not normalized or len(normalized) > 20:
+        if not normalized or len(normalized) > MAX_BUTTON_TITLE_CHARS:
             return False
         return not any(re.search(pattern, normalized) for pattern in _DISALLOWED_BUTTON_PATTERNS)
 
     try:
         raw = _ai.ask(button_creator_prompt, response, session_id + "_btn")
-        # Strip markdown code fences
-        raw = raw.strip().strip("`").strip()
-        if raw.startswith("json"):
-            raw = raw[4:].strip()
-        # Extract the list portion in case LLM added prose
-        m = re.search(r"\[.*\]", raw, re.DOTALL)
-        if m:
-            raw = m.group(0)
-        # Try ast first, fall back to json.loads
-        try:
-            items = ast.literal_eval(raw)
-        except Exception:
-            items = _json.loads(raw)
+        items = _parse_llm_button_items(raw)
+        if not items:
+            retry_hint = (
+                "\n\n[SYSTEM] Your previous reply could not be parsed as a JSON array. "
+                'Output ONLY: [{"id":"snake_case","title":"20chars max"},...] — 2 or 3 items, no markdown, no prose.'
+            )
+            raw = _ai.ask(button_creator_prompt, (response or "")[:6000] + retry_hint, session_id + "_btn_retry")
+            items = _parse_llm_button_items(raw)
+        if not items:
+            return _make_buttons(fb)
+        if _any_button_title_over_limit(items):
+            repaired = _repair_button_items_with_llm(items, session_id)
+            if repaired:
+                items = repaired
         buttons = []
-        for item in items:
-            if isinstance(item, str):
-                try:
-                    info = ast.literal_eval(item)
-                except Exception:
-                    info = _json.loads(item)
-            else:
-                info = item
+        for info in items:
             title = str(info.get("title", ""))
-            bid   = str(info.get("id", "btn"))
+            bid = str(info.get("id", "btn")).strip() or "btn"
+            if len(bid) > MAX_INTERNAL_ID_CHARS:
+                bid = bid[:MAX_INTERNAL_ID_CHARS]
             if not _is_allowed_button_title(title):
                 continue
-            buttons.append(Button(id=bid, title=title))
+            buttons.append(Button(id=bid, title=title.strip()))
         return buttons[:3] if buttons else _make_buttons(fb)
     except Exception:
         print("Error")
@@ -221,7 +289,7 @@ def _should_retrieve_public_kb(user_message: str, session_id: str, lane: str) ->
         if _wants_wic_store_by_location(text):
             return True
         if re.search(
-            r"\b(wic|snap|ebt|hip program|food pantry|pantry|community fridge|farmers market|market basket|eligib|qualif|benefit|apply|application|store|stores|retailer|resource)\b",
+            r"\b(wic|wic-authorized|market basket|farmers market|eligib|qualif|benefit|apply|application|store|stores|retailer|resource)\b",
             text,
         ):
             return True
@@ -321,7 +389,7 @@ def _append_button_intro(response: str, buttons: list[Button], session_id: str) 
     if "\n\nSources:" in response:
         main, _, rest = response.rpartition("\n\nSources:")
         sources_block = "\n\nSources:" + rest
-    intro = "You can tap one of these next:"
+    intro = "You can tap the button or ask another question:"
     return f"{main.rstrip()}\n\n{intro}{sources_block}"
 
 
@@ -355,6 +423,33 @@ def _parse_resources_json(raw: str) -> dict | None:
     return None
 
 
+def _normalize_resources_decision_wic_only(
+    tool: str, params: dict | None, reply: str
+) -> tuple[str, dict, str]:
+    """Find Resources is WIC-only: coerce tools/params and drop non-WIC tool names."""
+    t = (tool or "none").strip().lower()
+    p = dict(params or {})
+    r = (reply or "").strip()
+
+    if t == "affordable_overview":
+        return "explain_program", {"program": "wic"}, r
+
+    allowed = {
+        "search_wic_stores",
+        "search_general_stores",
+        "explain_program",
+        "start_eligibility",
+        "none",
+    }
+    if t not in allowed:
+        return "none", {}, r
+
+    if t == "explain_program":
+        p["program"] = "wic"
+
+    return t, p, r
+
+
 def _resource_suggested_buttons(items: list | None) -> list[Button]:
     out: list[Button] = []
     if not items:
@@ -375,6 +470,204 @@ def _resources_action_type(action: dict) -> str:
     return (action.get("type") or "").strip().upper()
 
 
+# ── WIC eligibility screening (after start_eligibility tool: buttons + typed HH size) ──
+WIC_STEP_CATEGORY = "category"
+WIC_STEP_RESIDENCY = "residency"
+WIC_STEP_ADJUNCTIVE = "adjunctive"
+WIC_STEP_HOUSEHOLD_INPUT = "household_input"
+WIC_STEP_INCOME = "income"
+
+# Massachusetts WIC gross income standards (185% FPL–style table; yearly + monthly).
+_WIC_YEARLY: dict[int, int] = {
+    1: 28_953,
+    2: 39_128,
+    3: 49_303,
+    4: 59_478,
+    5: 69_653,
+    6: 79_828,
+    7: 90_003,
+    8: 100_178,
+}
+_WIC_MONTHLY: dict[int, int] = {
+    1: 2_413,
+    2: 3_261,
+    3: 4_109,
+    4: 4_957,
+    5: 5_805,
+    6: 6_653,
+    7: 7_501,
+    8: 8_349,
+}
+_WIC_YEARLY_PER_EXTRA = 10_175
+_WIC_MONTHLY_PER_EXTRA = 848  # 10175/12 rounded; matches published add-on column
+
+
+def _wic_clear_tracking(user_id: str) -> None:
+    _state.wic_eligibility_steps.pop(user_id, None)
+    _state.wic_eligibility_answers.pop(user_id, None)
+
+
+def _wic_category_buttons() -> list[Button]:
+    return _make_buttons(
+        [
+            {"id": "wic_elig_cat_yes", "title": "Yes, applies to me"},
+            {"id": "wic_elig_cat_no", "title": "No, none of those"},
+            {"id": "wic_elig_cat_unsure", "title": "Not sure"},
+        ]
+    )
+
+
+def _wic_residency_buttons() -> list[Button]:
+    return _make_buttons(
+        [
+            {"id": "wic_elig_ma_yes", "title": "Yes, I live in MA"},
+            {"id": "wic_elig_ma_no", "title": "No, not in MA"},
+            {"id": "wic_elig_ma_unsure", "title": "Not sure"},
+        ]
+    )
+
+
+def _wic_adjunctive_buttons() -> list[Button]:
+    return _make_buttons(
+        [
+            {"id": "wic_elig_adj_yes", "title": "Yes, one of those"},
+            {"id": "wic_elig_adj_no", "title": "No"},
+            {"id": "wic_elig_adj_unsure", "title": "Not sure"},
+        ]
+    )
+
+
+def _wic_parse_household_size_text(text: str) -> int | None:
+    """Parse a household count from free text (1–60)."""
+    t = (text or "").strip()
+    if not t:
+        return None
+    low = t.lower()
+    words = {
+        "one": 1,
+        "two": 2,
+        "three": 3,
+        "four": 4,
+        "five": 5,
+        "six": 6,
+        "seven": 7,
+        "eight": 8,
+        "nine": 9,
+        "ten": 10,
+        "eleven": 11,
+        "twelve": 12,
+    }
+    if low in words:
+        return words[low]
+    m = re.match(r"^(\d{1,2})\s*$", t)
+    if m:
+        n = int(m.group(1))
+        if 1 <= n <= 60:
+            return n
+    m = re.search(r"\b(\d{1,2})\b", t)
+    if m:
+        n = int(m.group(1))
+        if 1 <= n <= 60:
+            return n
+    return None
+
+
+def _wic_monthly_income_limit(hh_size: int) -> int:
+    """Gross monthly income guideline for household size (MA WIC table; 9+ extrapolated)."""
+    if hh_size <= 0:
+        return _WIC_MONTHLY[1]
+    if hh_size <= 8:
+        return _WIC_MONTHLY[hh_size]
+    return _WIC_MONTHLY[8] + (hh_size - 8) * _WIC_MONTHLY_PER_EXTRA
+
+
+def _wic_yearly_income_limit(hh_size: int) -> int:
+    if hh_size <= 0:
+        return _WIC_YEARLY[1]
+    if hh_size <= 8:
+        return _WIC_YEARLY[hh_size]
+    return _WIC_YEARLY[8] + (hh_size - 8) * _WIC_YEARLY_PER_EXTRA
+
+
+def _wic_income_buttons_monthly(monthly: int) -> list[Button]:
+    """Under/Over use the same dollar cutoff shown in the question (≤20 char titles)."""
+    m_str = f"${monthly:,}/mo"
+    under = f"Under {m_str}"
+    over = f"Over {m_str}"
+    if len(under) > MAX_BUTTON_TITLE_CHARS:
+        under = f"Under ${monthly}/mo"[:MAX_BUTTON_TITLE_CHARS]
+    if len(over) > MAX_BUTTON_TITLE_CHARS:
+        over = f"Over ${monthly}/mo"[:MAX_BUTTON_TITLE_CHARS]
+    return _make_buttons(
+        [
+            {"id": "wic_elig_inc_under", "title": under},
+            {"id": "wic_elig_inc_over", "title": over},
+            {"id": "wic_elig_inc_unsure", "title": "Not sure"},
+        ]
+    )
+
+
+def _wic_income_question_text(hh_size: int) -> str:
+    monthly = _wic_monthly_income_limit(hh_size)
+    yearly = _wic_yearly_income_limit(hh_size)
+    tail = ""
+    if hh_size >= 9:
+        tail = (
+            " For households larger than 9, limits increase by about $848 per month (about $10,175 per year) "
+            "for each extra person—confirm the exact figure with WIC or mass.gov/wic."
+        )
+    return (
+        f"For {hh_size} people in your household, WIC often compares your gross monthly income before taxes "
+        f"to about ${monthly:,}/month (roughly ${yearly:,}/year). Is your usual gross monthly household income "
+        f"under that amount, over it, or are you not sure? General information only—not a legal determination.{tail}"
+    )
+
+
+def _wic_step_expected_prefix(step: str) -> str | None:
+    return {
+        WIC_STEP_CATEGORY: "wic_elig_cat_",
+        WIC_STEP_RESIDENCY: "wic_elig_ma_",
+        WIC_STEP_ADJUNCTIVE: "wic_elig_adj_",
+        WIC_STEP_HOUSEHOLD_INPUT: None,
+        WIC_STEP_INCOME: "wic_elig_inc_",
+    }.get(step)
+
+
+def _wic_eligibility_map_text_to_id(step: str, text: str) -> str | None:
+    t = (text or "").strip().lower()
+    if not t:
+        return None
+    if step == WIC_STEP_CATEGORY:
+        if t in {"yes", "y", "yeah", "yep"}:
+            return "wic_elig_cat_yes"
+        if t in {"no", "n", "nope", "nah"}:
+            return "wic_elig_cat_no"
+        if "not sure" in t or t == "unsure" or "maybe" in t or t == "?" or "不知道" in t:
+            return "wic_elig_cat_unsure"
+    if step == WIC_STEP_RESIDENCY:
+        if t in {"yes", "y", "yeah", "yep"} or "massachusetts" in t or t == "ma":
+            return "wic_elig_ma_yes"
+        if t in {"no", "n", "nope"} or "not in ma" in t or "not massachusetts" in t:
+            return "wic_elig_ma_no"
+        if "not sure" in t or t == "unsure" or "maybe" in t or "不知道" in t:
+            return "wic_elig_ma_unsure"
+    if step == WIC_STEP_ADJUNCTIVE:
+        if t in {"yes", "y", "yeah", "yep"}:
+            return "wic_elig_adj_yes"
+        if t in {"no", "n", "nope"}:
+            return "wic_elig_adj_no"
+        if "not sure" in t or t == "unsure" or "maybe" in t or "不知道" in t:
+            return "wic_elig_adj_unsure"
+    if step == WIC_STEP_INCOME:
+        if "under" in t or "below" in t or "less" in t or t in {"yes", "y"}:
+            return "wic_elig_inc_under"
+        if "over" in t or "above" in t or "more than" in t:
+            return "wic_elig_inc_over"
+        if "not sure" in t or t == "unsure" or "maybe" in t or "不知道" in t:
+            return "wic_elig_inc_unsure"
+    return None
+
+
 # ══════════════════════════════════════════════════════════════════════════════
 # AGENT CLASS
 # ══════════════════════════════════════════════════════════════════════════════
@@ -382,12 +675,12 @@ def _resources_action_type(action: dict) -> str:
 
 class NutritionAgent:
     _RESOURCE_LEGACY_HINTS = {
-        "affordable_shopping": "User wants affordable groceries, pantries, and HIP.",
-        "check_eligibility": "User wants to explore WIC, SNAP, or program eligibility.",
+        "affordable_shopping": "User wants budget-friendly food shopping; answer using WIC foods and WIC-authorized stores only.",
+        "check_eligibility": "User wants to know if they might qualify for WIC in Massachusetts and how WIC works.",
         "elig_wic": "User asked specifically about WIC eligibility.",
-        "elig_snap": "User asked specifically about SNAP eligibility.",
-        "elig_not_sure": "User is not sure which program fits; guide them gently.",
-        "elig_i_qualify": "User thinks they may qualify and wants concrete next steps.",
+        "elig_snap": "User tapped a SNAP-related option; this lane is WIC-only—give a one-line boundary then WIC eligibility and WIC stores only (no SNAP rules or benefits).",
+        "elig_not_sure": "User is unsure about programs; explain WIC only and who typically qualifies for WIC in Massachusetts.",
+        "elig_i_qualify": "User thinks they may qualify; give WIC next steps (how to apply, WIC stores) only.",
     }
 
     _STATIC_PROMPT_BUTTONS = {
@@ -482,7 +775,7 @@ class NutritionAgent:
 
         kb_block = ""
         try:
-            retrieval_q = (user_text or "").strip() or "Massachusetts WIC SNAP food assistance resources"
+            retrieval_q = (user_text or "").strip() or "Massachusetts WIC authorized vendors and WIC program"
             if _should_retrieve_public_kb(retrieval_q, session, "resources"):
                 ctx, _, _ = _rag.get_context(retrieval_q, user_id=user_id)
                 if ctx and str(ctx).strip():
@@ -493,21 +786,22 @@ class NutritionAgent:
         um = (user_text or "").strip() or "(empty)"
         selector_query = f"[USER PROFILE]\n{profile_context}\n[USER MESSAGE]\n{um}{kb_block}"
         raw = _ai.ask(resources_tool_selector_prompt, selector_query, session + "_tool_sel")
-        decision = _parse_resources_json(raw) or {}
+        decision = _parse_tool_decision(raw)
 
         tool = (decision.get("tool") or "none").strip().lower()
         params = decision.get("params") or {}
         reply = (decision.get("reply") or "").strip()
+        tool, params, reply = _normalize_resources_decision_wic_only(tool, params, reply)
 
         if tool == "start_eligibility":
+            tool_result = _run_resource_tool(tool, params)
             _state.resources_mode_users.discard(user_id)
             _state.eligibility_state.add(user_id)
-            elig_msg = _ai.ask(
-                eligibility_check_prompt,
-                "Start the eligibility check now. Ask one question at a time.",
-                session,
-            )
-            return ((reply + "\n\n" + elig_msg) if reply else elig_msg), []
+            _state.wic_eligibility_users.add(user_id)
+            _state.wic_eligibility_steps[user_id] = WIC_STEP_CATEGORY
+            _state.wic_eligibility_answers[user_id] = {}
+            final = ((reply + "\n\n" + tool_result) if reply else tool_result).strip()
+            return final, _wic_category_buttons()
 
         if tool in ("search_wic_stores", "search_general_stores"):
             if lat is None or lng is None:
@@ -516,16 +810,18 @@ class NutritionAgent:
                     "params": params,
                     "user_text": user_text or "",
                 }
-                msg = reply or "Tap the button below to share your location — I'll find stores near you."
+                msg = reply or (
+                    "Tap the button below to share your location — I'll find WIC-authorized stores near you."
+                )
                 return msg, "request_location"
             tool_result = _run_resource_tool(tool, params, lat=lat, lng=lng)
 
-        elif tool in ("explain_program", "affordable_overview"):
+        elif tool == "explain_program":
             tool_result = _run_resource_tool(tool, params)
 
         else:
             if not reply:
-                reply = "How can I help with local food resources today?"
+                reply = "How can I help with WIC in Massachusetts today?"
             buttons = _generate_buttons(reply, session, fallback_buttons=RESOURCES_FALLBACK_BUTTONS)
             return reply, buttons
 
@@ -652,13 +948,32 @@ class NutritionAgent:
         self._leave_food_safety_mode(user_id)
         self._clear_resources_mode(user_id)
         _state.eligibility_state.discard(user_id)
+        _state.wic_eligibility_users.discard(user_id)
+        _wic_clear_tracking(user_id)
         _state.nutrition_ob_state.pop(user_id, None)
         _state.pending_store_type.pop(user_id, None)
         _state.pending_store_search.pop(user_id, None)
 
-    def _menu_response(self, text: str, user_id: str) -> tuple[str, list[Button]]:
+    def _menu_response(
+        self,
+        text: str,
+        user_id: str,
+        *,
+        menu_buttons: list[dict] | None = None,
+    ) -> tuple[str, list[Button]]:
+        """Reset lane state, then attach buttons.
+
+        ``menu_buttons``:
+          * ``None`` (default) — ``WELCOME_BUTTONS`` from ``prompts.py`` (Eating Better / Food Safety / Find Resources).
+          * ``[]`` — no buttons (text-only).
+          * Non-empty list — custom ``{id, title}`` rows (same shape as ``WELCOME_BUTTONS``; titles ≤20 chars).
+        """
         self._reset_navigation_state(user_id)
-        return text, _make_buttons(WELCOME_BUTTONS)
+        if menu_buttons is None:
+            return text, _make_buttons(WELCOME_BUTTONS)
+        if len(menu_buttons) == 0:
+            return text, []
+        return text, _make_buttons(menu_buttons)
 
     def _question_response(
         self,
@@ -864,6 +1179,153 @@ class NutritionAgent:
             "request_location",
         )
 
+    def _wic_eligibility_render_step(self, user_id: str) -> tuple[str, list[Button]]:
+        step = _state.wic_eligibility_steps.get(user_id) or WIC_STEP_CATEGORY
+        answers = _state.wic_eligibility_answers.get(user_id) or {}
+        if step == WIC_STEP_CATEGORY:
+            return _wic_eligibility_opening(), _wic_category_buttons()
+        if step == WIC_STEP_RESIDENCY:
+            return "Next: are you a Massachusetts resident?", _wic_residency_buttons()
+        if step == WIC_STEP_ADJUNCTIVE:
+            return (
+                "Does anyone in your household who needs WIC receive SNAP, MassHealth (Medicaid), TAFDC, "
+                "or certain other cash assistance programs that Massachusetts can count for WIC?",
+                _wic_adjunctive_buttons(),
+            )
+        if step == WIC_STEP_HOUSEHOLD_INPUT:
+            return (
+                "Rough income limits matter when nobody is on those programs. "
+                "How many people are in your household—everyone who lives together and shares income? "
+                "Reply with one whole number only (for example 1, 3, or 6).",
+                [],
+            )
+        if step == WIC_STEP_INCOME:
+            hh_size = int(answers.get("hh_size") or 1)
+            monthly = _wic_monthly_income_limit(hh_size)
+            return _wic_income_question_text(hh_size), _wic_income_buttons_monthly(monthly)
+        return _wic_eligibility_opening(), _wic_category_buttons()
+
+    def _wic_eligibility_goto_income(self, user_id: str, hh_size: int) -> tuple[str, list[Button]]:
+        answers = _state.wic_eligibility_answers.setdefault(user_id, {})
+        n = min(max(int(hh_size), 1), 60)
+        answers["hh_size"] = n
+        _state.wic_eligibility_steps[user_id] = WIC_STEP_INCOME
+        m = _wic_monthly_income_limit(n)
+        return self._question_response(_wic_income_question_text(n), _wic_income_buttons_monthly(m))
+
+    def _wic_eligibility_apply_interaction(
+        self, user_id: str, interaction_id: str
+    ) -> tuple[str, list[Button] | str]:
+        step = _state.wic_eligibility_steps.get(user_id) or WIC_STEP_CATEGORY
+        if step == WIC_STEP_HOUSEHOLD_INPUT:
+            return self._question_response(
+                "Please type one whole number for how many people live in your home (example: 3 or 6).",
+                [],
+            )
+
+        prefix = _wic_step_expected_prefix(step)
+        if prefix is not None and not interaction_id.startswith(prefix):
+            hint = "Please use one of the buttons below to continue (or reply yes / no / not sure)."
+            base, btns = self._wic_eligibility_render_step(user_id)
+            if hint not in base:
+                base = f"{hint}\n\n{base}"
+            return self._question_response(base, btns)
+
+        answers = _state.wic_eligibility_answers.setdefault(user_id, {})
+
+        if step == WIC_STEP_CATEGORY:
+            if interaction_id == "wic_elig_cat_no":
+                _state.eligibility_state.discard(user_id)
+                _state.wic_eligibility_users.discard(user_id)
+                _wic_clear_tracking(user_id)
+                return self._menu_response(
+                    "WIC in Massachusetts mainly supports pregnancy, recent pregnancy or postpartum (about six weeks), "
+                    "breastfeeding through baby's first birthday, and children under 5. From what you shared, you may "
+                    "not qualify under the usual WIC categories—WIC staff can say for sure. I recommend contacting a "
+                    "local WIC clinic if you have any doubt. You can still use this chat for WIC stores and general WIC "
+                    "information.",
+                    user_id,
+                    menu_buttons=[],
+                )
+            answers["category"] = "yes" if interaction_id == "wic_elig_cat_yes" else "unsure"
+            _state.wic_eligibility_steps[user_id] = WIC_STEP_RESIDENCY
+            return self._question_response(
+                "Next: are you a Massachusetts resident?",
+                _wic_residency_buttons(),
+            )
+
+        if step == WIC_STEP_RESIDENCY:
+            if interaction_id == "wic_elig_ma_no":
+                _state.eligibility_state.discard(user_id)
+                _state.wic_eligibility_users.discard(user_id)
+                _wic_clear_tracking(user_id)
+                return self._menu_response(
+                    "Massachusetts WIC is for people who live in Massachusetts. If you're elsewhere, I recommend "
+                    "searching for WIC in your state for how to apply. This chat can't determine eligibility outside MA; "
+                    "your local WIC office is the right next step.",
+                    user_id,
+                    menu_buttons=[],
+                )
+            answers["ma"] = "yes" if interaction_id == "wic_elig_ma_yes" else "unsure"
+            _state.wic_eligibility_steps[user_id] = WIC_STEP_ADJUNCTIVE
+            return self._question_response(
+                "Does anyone in your household who needs WIC receive SNAP, MassHealth (Medicaid), TAFDC, "
+                "or certain other cash assistance programs that Massachusetts can count for WIC?",
+                _wic_adjunctive_buttons(),
+            )
+
+        if step == WIC_STEP_ADJUNCTIVE:
+            if interaction_id == "wic_elig_adj_yes":
+                _state.eligibility_state.discard(user_id)
+                _state.wic_eligibility_users.discard(user_id)
+                _wic_clear_tracking(user_id)
+                return self._menu_response(
+                    "Many people qualify for WIC when a household member is enrolled in programs like SNAP, "
+                    "MassHealth (Medicaid), or TAFDC that Massachusetts counts for WIC (adjunctive eligibility). "
+                    "From what you shared, you may qualify—this is not a final eligibility decision. I strongly "
+                    "recommend you apply through a local WIC clinic or mass.gov/wic for the next steps.",
+                    user_id,
+                    menu_buttons=WIC_POST_SCREENING_BUTTONS,
+                )
+            answers["adjunctive"] = "no" if interaction_id == "wic_elig_adj_no" else "unsure"
+            _state.wic_eligibility_steps[user_id] = WIC_STEP_HOUSEHOLD_INPUT
+            return self._question_response(
+                "Rough income limits matter when nobody is on those programs. "
+                "How many people are in your household—everyone who lives together and shares income? "
+                "Reply with one whole number only (for example 1, 3, or 6).",
+                [],
+            )
+
+        if step == WIC_STEP_INCOME:
+            _state.eligibility_state.discard(user_id)
+            _state.wic_eligibility_users.discard(user_id)
+            _wic_clear_tracking(user_id)
+            if interaction_id == "wic_elig_inc_under":
+                return self._menu_response(
+                    "Based on the household size and income you indicated—and WIC's general rules—you may meet typical "
+                    "WIC income guidelines in Massachusetts. This is not a final eligibility decision. I recommend you "
+                    "apply and talk with WIC staff about your situation; they can help with paperwork and what's next.",
+                    user_id,
+                    menu_buttons=WIC_POST_SCREENING_BUTTONS,
+                )
+            if interaction_id == "wic_elig_inc_over":
+                return self._menu_response(
+                    "From what you shared, your income may be over the rough WIC cap we used for your household size. "
+                    "Families can still qualify in some situations, and limits change. I recommend you ask a WIC "
+                    "clinic or mass.gov/wic; they do the official eligibility determination.",
+                    user_id,
+                    menu_buttons=WIC_POST_SCREENING_BUTTONS,
+                )
+            return self._menu_response(
+                "When income is hard to pin down, WIC staff are the right people to help you apply and compare your "
+                "situation to current rules. I recommend contacting a local WIC clinic or mass.gov/wic for the next "
+                "steps—you may still qualify depending on details.",
+                user_id,
+                menu_buttons=WIC_POST_SCREENING_BUTTONS,
+            )
+
+        return self._question_response(*self._wic_eligibility_render_step(user_id))
+
     def _handle_eligibility_turn(
         self,
         ctx: TurnContext,
@@ -871,7 +1333,36 @@ class NutritionAgent:
         if ctx.user_id not in _state.eligibility_state:
             return None
 
-        response = _ai.ask(eligibility_check_prompt, ctx.user_message, ctx.session)
+        if ctx.user_id in _state.wic_eligibility_users:
+            step = _state.wic_eligibility_steps.get(ctx.user_id) or WIC_STEP_CATEGORY
+
+            if step == WIC_STEP_HOUSEHOLD_INPUT:
+                parsed = _wic_parse_household_size_text(ctx.user_message)
+                if parsed is not None and parsed >= 1:
+                    return self._wic_eligibility_goto_income(ctx.user_id, parsed)
+                if ctx.user_message.strip():
+                    return self._question_response(
+                        "That doesn't look like one whole number (1–60). Please send a single number only—for "
+                        "example 4 or 6.",
+                        [],
+                    )
+                return self._question_response(*self._wic_eligibility_render_step(ctx.user_id))
+
+            mapped = _wic_eligibility_map_text_to_id(step, ctx.user_message)
+            if mapped:
+                return self._wic_eligibility_apply_interaction(ctx.user_id, mapped)
+            base, btns = self._wic_eligibility_render_step(ctx.user_id)
+            hint = (
+                "Tap a button below to answer, or type a number if this step asked for one."
+                if not btns
+                else "Tap a button below to answer, or reply with yes, no, or not sure."
+            )
+            if ctx.user_message.strip():
+                return self._question_response(f"{hint}\n\n{base}", btns)
+            return self._question_response(base, btns)
+
+        prompt = eligibility_check_prompt
+        response = _ai.ask(prompt, ctx.user_message, ctx.session)
         recommendation_keywords = [
             "qualify",
             "eligible",
@@ -883,9 +1374,10 @@ class NutritionAgent:
         ]
         if any(kw in response.lower() for kw in recommendation_keywords):
             _state.eligibility_state.discard(ctx.user_id)
+            _state.wic_eligibility_users.discard(ctx.user_id)
+            _wic_clear_tracking(ctx.user_id)
             return self._menu_response(response, ctx.user_id)
-        else:
-            buttons = []
+        buttons: list[Button] = []
         return self._question_response(response, buttons)
 
     def _handle_greeting_turn(
@@ -1068,7 +1560,9 @@ class NutritionAgent:
             response = (
                 "I’m here to help with eating better. What would you like to work on first—meals, snacks, or something else?"
             )
-        buttons = _generate_buttons(response, session)
+        buttons = _generate_buttons(
+            response, session, fallback_buttons=NUTRITION_FALLBACK_BUTTONS
+        )
         return self._task_response(response, buttons, session)
 
     def _handle_resources_prompt(
@@ -1185,6 +1679,15 @@ class NutritionAgent:
                     session,
                 )
 
+        if interaction_id.startswith("wic_elig_"):
+            if user_id not in _state.wic_eligibility_users:
+                return self._menu_response(
+                    "That WIC screening button is no longer active. You can keep exploring WIC below.",
+                    user_id,
+                    menu_buttons=WIC_POST_SCREENING_BUTTONS,
+                )
+            return self._wic_eligibility_apply_interaction(user_id, interaction_id)
+
         if interaction_id in ("nutrition", "find_stores"):
             self._leave_food_safety_mode(user_id)
         if interaction_id == "nutrition":
@@ -1255,64 +1758,6 @@ class NutritionAgent:
                 activate_mode=True,
             )
 
-        elif interaction_id == "find_stores":
-            _resources_mode_users.add(user_id)
-            text, btns = self._resources_turn(
-                "The user opened Find Resources from the main menu.", user_id
-            )
-            if btns != "request_location":
-                text = _append_button_intro(text, btns if isinstance(btns, list) else [], session)
-            return text, btns
-
-        elif interaction_id.startswith("resources_dyn_"):
-            label = (interaction_title or "").strip() or interaction_id
-            text, btns = self._resources_turn(label, user_id)
-            if btns != "request_location":
-                text = _append_button_intro(text, btns if isinstance(btns, list) else [], session)
-            return text, btns
-
-        elif interaction_id == "wic_info":
-            _resources_mode_users.add(user_id)
-            text, btns = self._resources_turn(
-                "The user tapped WIC Help and wants to know about WIC in Massachusetts.", user_id
-            )
-            if btns != "request_location":
-                text = _append_button_intro(text, btns if isinstance(btns, list) else [], session)
-            return text, btns
-
-        elif interaction_id in ("elig_still_unsure", "elig_answers"):
-            _resources_mode_users.discard(user_id)
-            _resources_conversation_summary.pop(user_id, None)
-            _eligibility_state.add(user_id)
-            response = _ai.ask(
-                eligibility_check_prompt,
-                "Start the eligibility check now. Ask one question at a time.",
-                session,
-            )
-            return response, []
-
-        elif interaction_id in (
-            "affordable_shopping",
-            "check_eligibility",
-            "elig_wic",
-            "elig_snap",
-            "elig_not_sure",
-            "elig_i_qualify",
-        ):
-            _resources_mode_users.add(user_id)
-            legacy_hint = {
-                "affordable_shopping": "User wants affordable groceries, pantries, and HIP.",
-                "check_eligibility": "User wants to explore WIC, SNAP, or program eligibility.",
-                "elig_wic": "User asked specifically about WIC eligibility.",
-                "elig_snap": "User asked specifically about SNAP eligibility.",
-                "elig_not_sure": "User is not sure which program fits; guide them gently.",
-                "elig_i_qualify": "User thinks they may qualify and wants concrete next steps.",
-            }.get(interaction_id, interaction_title or interaction_id)
-            text, btns = self._resources_turn(legacy_hint, user_id)
-            if btns != "request_location":
-                text = _append_button_intro(text, btns if isinstance(btns, list) else [], session)
-            return text, btns
-
         elif interaction_id == "find_wic_stores":
             cached = _state.user_last_location.get(user_id)
             if cached:
@@ -1348,10 +1793,10 @@ class NutritionAgent:
             _state.pending_store_search[user_id] = {
                 "tool": "search_general_stores",
                 "params": {},
-                "user_text": interaction_title or "find grocery stores near me",
+                "user_text": interaction_title or "find WIC-authorized stores near me",
             }
             return (
-                "Tap the button below to share your location — I'll find nearby grocery stores.",
+                "Tap the button below to share your location — I'll find WIC-authorized stores near you.",
                 "request_location",
             )
 
@@ -1390,14 +1835,29 @@ class NutritionAgent:
 
         ctx = _state.pending_store_search.pop(user_id, None)
         if ctx and isinstance(ctx, dict) and "tool" in ctx:
+            # User already chose a store search; do not re-run the LLM tool selector (it can
+            # return none/eligibility and skip the store list).
             _state.resources_mode_users.add(user_id)
-            text, btns = self._resources_turn(
-                ctx.get("user_text", ""),
-                user_id,
-                lat=lat,
-                lng=lng,
+            tool = (ctx.get("tool") or "search_wic_stores").strip().lower()
+            params = dict(ctx.get("params") or {})
+            user_text = (ctx.get("user_text") or "").strip() or "find WIC stores near me"
+            if tool not in ("search_wic_stores", "search_general_stores"):
+                tool, params = "search_wic_stores", {}
+            try:
+                tool_result = _run_resource_tool(tool, params, lat=lat, lng=lng)
+            except Exception as e:
+                err = f"Sorry, I couldn't find stores right now. Please try again. ({e})"
+                return self._menu_response(err, user_id)
+            synth_query = f"[USER MESSAGE]\n{user_text}\n\n[TOOL RESULT]\n{tool_result}"
+            final = _ai.ask(
+                resources_synthesizer_prompt, synth_query, session + "_synth_pending"
+            ).strip()
+            if not final:
+                final = tool_result
+            buttons = _generate_buttons(
+                final.strip(), session, fallback_buttons=RESOURCES_FALLBACK_BUTTONS
             )
-            return self._task_response(text, btns, session)
+            return self._task_response(final, buttons, session)
 
         store_type = _state.pending_store_type.pop(user_id, None)
         _state.resources_conversation_summary.pop(user_id, None)
@@ -1405,7 +1865,7 @@ class NutritionAgent:
         if store_type in ("find_wic_stores", "find_all_stores"):
             tool = "search_general_stores" if store_type == "find_all_stores" else "search_wic_stores"
             user_text = (
-                "find grocery stores near me"
+                "find WIC-authorized stores near me"
                 if store_type == "find_all_stores"
                 else "find WIC stores near me"
             )
