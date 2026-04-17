@@ -303,7 +303,8 @@ class UserMemory:
         memory = self.extract(user_message)
         if memory:
             self.save(user_id, memory)
-            print(f"  [Memory saved]\n{memory}")
+            if os.getenv("MEMORY_DEBUG", "").strip().lower() in {"1", "true", "yes", "on"}:
+                print(f"  [Memory saved]\n{memory}")
         return memory
 
     def save_profile(self, user_id: str, profile: dict[str, str]) -> None:
@@ -334,3 +335,4 @@ class UserMemory:
                 field = "allergies"
             if field in valid_keys and value and str(value).strip():
                 self.save(user_id, f"{field}: {str(value).strip()}")
+import os
