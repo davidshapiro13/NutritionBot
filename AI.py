@@ -2,7 +2,7 @@ from llmproxy import LLMProxy
 
 class AI():
 
-    def __init__(self, model_name='gpt-5-mini', query_num=15):
+    def __init__(self, model_name='gpt-4.1-mini', query_num=15):
         self.client = LLMProxy()
         self.model_name = model_name
         self.last_queries = query_num

@@ -263,6 +263,98 @@ def _is_exact_store_fact_question(user_message: str) -> bool:
     return asks_store_fact and mentions_specific_store and not asks_proximity
 
 
+def _is_proximity_store_search(user_message: str) -> bool:
+    """Return True when user asks for nearby/closest stores."""
+    text = (user_message or "").strip().lower()
+    if not text:
+        return False
+    asks_store = bool(
+        re.search(
+            r"\b(store|stores|grocery|supermarket|market)\b",
+            text,
+        )
+    )
+    asks_proximity = bool(
+        re.search(
+            r"\b(closest|nearest|nearby|near me|around me|closer|distance|how far)\b",
+            text,
+        )
+    )
+    return asks_store and asks_proximity
+
+
+def _derive_store_keyword(user_message: str) -> str | None:
+    """Infer a focused keyword for general store searches from cuisine/specialty descriptors."""
+    text = (user_message or "").strip().lower()
+    if not text:
+        return None
+    cuisine_keywords = {
+        "korean": "korean grocery store",
+        "chinese": "chinese grocery store",
+        "japanese": "japanese grocery store",
+        "indian": "indian grocery store",
+        "mexican": "mexican grocery store",
+        "middle eastern": "middle eastern grocery store",
+        "halal": "halal grocery store",
+        "asian": "asian grocery store",
+    }
+    for token, keyword in cuisine_keywords.items():
+        if token in text:
+            return keyword
+
+    # Generic patterns for open-ended descriptors, e.g.:
+    # "closest brazilian grocery store", "I want to make ethiopian food"
+    explicit_match = re.search(
+        r"\b([a-z][a-z\s\-]{2,30})\s+(?:grocery\s+store|supermarket|market)\b",
+        text,
+    )
+    if explicit_match:
+        descriptor = re.sub(r"\s+", " ", explicit_match.group(1)).strip()
+        if descriptor and descriptor not in {"closest", "nearest", "nearby", "local"}:
+            return f"{descriptor} grocery store"
+
+    cuisine_match = re.search(
+        r"\b(?:make|cook|cooking)\s+([a-z][a-z\s\-]{2,30})\s+food\b",
+        text,
+    )
+    if cuisine_match:
+        descriptor = re.sub(r"\s+", " ", cuisine_match.group(1)).strip()
+        if descriptor:
+            return f"{descriptor} grocery store"
+    return None
+
+
+def _is_wic_item_coverage_question(user_message: str) -> bool:
+    """Return True for WIC eligibility questions about a food item/product."""
+    text = (user_message or "").strip().lower()
+    if not text:
+        return False
+
+    mentions_wic = bool(re.search(r"\bwic\b", text))
+    if not mentions_wic:
+        return False
+
+    asks_coverage = bool(
+        re.search(
+            r"\b(cover|covered|eligible|eligibility|approved|allowed|qualif|"
+            r"can i buy|can i get|does wic (cover|pay|include)|wic (cover|pay|include))\b",
+            text,
+        )
+    )
+    if not asks_coverage:
+        return False
+
+    # Keep store/location lookups on the store tool path.
+    asks_store_lookup = bool(
+        re.search(
+            r"\b(store|stores|nearest|nearby|near me|closest|address|hours|phone|"
+            r"open|close|location|map|directions)\b",
+            text,
+        )
+    )
+    return not asks_store_lookup
+
+
 def _classify_intent(user_message: str, session_id: str) -> str:
     """Classify user message into one of the four intents."""
     if _wants_wic_store_by_location(user_message):
@@ -436,7 +528,7 @@ class NutritionAgent:
         session = _user_session(user_id)
         profile_context = self._format_profile_context(self._get_profile(user_id))
 
-        if _is_exact_store_fact_question(user_text):
+        if _is_exact_store_fact_question(user_text) or _is_wic_item_coverage_question(user_text):
             full_query = f"[USER PROFILE]\n{profile_context}\n[QUESTION]\n{user_text}"
             response = _rag.query_rag(
                 full_query,
@@ -480,6 +572,15 @@ class NutritionAgent:
         tool = (decision.get("tool") or "none").strip().lower()
         params = decision.get("params") or {}
         reply = (decision.get("reply") or "").strip()
+
+        # Deterministic override for nearby ethnic/specialty grocery requests.
+        derived_keyword = _derive_store_keyword(user_text)
+        if _is_proximity_store_search(user_text) and derived_keyword:
+            tool = "search_general_stores"
+            params = dict(params)
+            params.setdefault("keyword", derived_keyword)
+            if "max_results" not in params and re.search(r"\b(closest|nearest)\b", (user_text or "").lower()):
+                params["max_results"] = 1
 
         if tool == "start_eligibility":
             _state.resources_mode_users.discard(user_id)
