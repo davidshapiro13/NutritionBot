@@ -214,6 +214,9 @@ def _should_retrieve_public_kb(user_message: str, session_id: str, lane: str) ->
         if len(text.split()) <= 4:
             return False
     if lane == "nutrition":
+        # Simple meal-idea questions should go straight to answer generation.
+        if "?" in text and len(text.split()) <= 8 and re.search(r"\b(breakfast|lunch|dinner|snack|meal)\b", text):
+            return False
         if re.search(
             r"\b(calorie|protein|fiber|sodium|cholesterol|vitamin|mineral|serving|portion|diet|meal plan|food safety|pregnan|diabetes|allerg|gluten|vegan|vegetarian)\b",
             text,
@@ -389,6 +392,27 @@ def _classify_intent(user_message: str, session_id: str) -> str:
         intent = "out_of_scope"
     valid = {"food_safety", "nutrition_advice", "find resources", "out_of_scope"}
     return intent if intent in valid else "nutrition_advice"
+
+
+def _should_extract_profile_from_message(user_message: str) -> bool:
+    """Only run memory extraction when a message likely contains durable profile facts."""
+    text = _normalize_text(user_message)
+    if not text:
+        return False
+    lower = text.lower()
+    profile_signals = (
+        r"\b(i am|i'm|for me|myself|my child|my kid|my son|my daughter|"
+        r"my mom|my mother|my dad|my father|my parent|my spouse|"
+        r"allerg|diabet|pregnan|gluten|vegan|vegetarian|halal|kosher|"
+        r"medication|blood pressure|hypertension|goal|prefer|preferences|"
+        r"dislike|don't like|budget|wic|snap)\b"
+    )
+    if re.search(profile_signals, lower):
+        return True
+    # Plain questions are rarely profile facts; skip the extra LLM extraction call.
+    if "?" in text:
+        return False
+    return len(text.split()) <= 12
 
 
 def _append_button_intro(response: str, buttons: list[Button], session_id: str) -> str:
@@ -623,6 +647,8 @@ class NutritionAgent:
 
     def _remember_user_message(self, user_id: str, user_message: str) -> dict:
         """Save structured facts from raw user text and return the refreshed profile."""
+        if not _should_extract_profile_from_message(user_message):
+            return self._get_profile(user_id)
         return save_and_reload_profile(
             user_id,
             user_message,
@@ -934,6 +960,9 @@ class NutritionAgent:
         ctx: TurnContext,
     ) -> tuple[str, list[Button] | str]:
         intent = _classify_intent(ctx.user_message, ctx.session)
+        _debug_log(
+            f"new_text_intent user_id={ctx.user_id} intent={intent} message={ctx.user_message!r}"
+        )
 
         if intent == "find resources":
             _state.resources_mode_users.add(ctx.user_id)
