@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 import json
+import mimetypes
 import os
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, Optional, TypedDict, Union
+from typing import Any, Dict, List, Optional, Union
 
 import requests
 from requests.adapters import HTTPAdapter
@@ -150,27 +151,51 @@ class LLMProxy:
         model: str,
         system: str,
         query: str,
+        websearch: bool = False,
+        output_schema: Optional[Any] = None,
         temperature: Optional[float] = None,
         lastk: Optional[int] = None,
         session_id: Optional[str] = "GenericSession",
         rag_threshold: Optional[float] = 0.5,
         rag_usage: Optional[bool] = False,
         rag_k: Optional[int] = 5,
+        media: Optional[List[Dict[str, str]]] = None,
     ) -> Dict:
         """
-        Calls the text generation endpoint and returns parsed fields plus the raw payload.
+        Calls the generation endpoint.
+        - Text-only call: unchanged behavior.
+        - Media call: expects pre-uploaded media refs in the shape
+          `{"id": "...", "type": "..."}`.
         """
+        resolved_session_id = session_id or "GenericSession"
+        media_refs = self._normalize_media_refs(media)
+        if isinstance(media_refs, dict) and "error" in media_refs:
+            return media_refs
+
+        options = {"websearch": bool(websearch)}
+        if output_schema is not None:
+            model_json_schema = getattr(output_schema, "model_json_schema", None)
+            if not callable(model_json_schema):
+                return {
+                    "error": "Invalid output_schema: expected a Pydantic model class with model_json_schema().",
+                    "status_code": None,
+                }
+            options["output_schema"] = model_json_schema()
+
         payload = {
             "model": model,
             "system": system,
             "query": query,
+            "options": options,
             "temperature": temperature,
             "lastk": lastk,
-            "session_id": session_id,
+            "session_id": resolved_session_id,
             "rag_threshold": rag_threshold,
             "rag_usage": rag_usage,
             "rag_k": rag_k,
+            "media": media_refs,
         }
+
         res = self._post_json("call", payload)
         if "error" in res:
             return res
@@ -235,6 +260,195 @@ class LLMProxy:
             except ValueError:
                 detail = resp.text
             return {"error": f"HTTP {resp.status_code}: {detail}", "status_code": resp.status_code}
+
+    def upload_init(
+        self,
+        content_type: str,
+        session_id: str,
+        size_bytes: int,
+    ) -> Dict:
+        """
+        Step 1 of URI upload flow: request an assigned/presigned upload URI.
+        """
+        payload = {
+            "content_type": content_type,
+            "session_id": session_id,
+            "size_bytes": size_bytes,
+        }
+        return self._post_json("upload_init", payload)
+
+    def upload_via_uri(
+        self,
+        upload_url: str,
+        file_path: Union[str, Path],
+        content_type: Optional[str] = None,
+    ) -> Dict:
+        """
+        Step 2 of URI upload flow: PUT file contents to assigned/presigned URI.
+        """
+        path = Path(file_path)
+        if not path.exists():
+            return {"ok": False, "error": f"File not found: {path}", "status_code": None}
+
+        resolved_content_type = content_type or mimetypes.guess_type(path.name)[0] or "application/octet-stream"
+
+        try:
+            with path.open("rb") as f:
+                resp = self.session.put(
+                    upload_url,
+                    data=f,
+                    headers={"Content-Type": resolved_content_type},
+                    timeout=self.config.timeout,
+                )
+        except requests.exceptions.RequestException as e:
+            return {"ok": False, "error": f"Network error: {e}", "status_code": None}
+
+        return {
+            "ok": 200 <= resp.status_code < 300,
+            "status_code": resp.status_code,
+            "response_text": resp.text[:500],
+            "content_type": resolved_content_type,
+            "file_path": str(path),
+        }
+
+    def upload_media(
+        self,
+        file_path: Union[str, Path],
+        session_id: str,
+        content_type: str,
+    ) -> Dict:
+        """
+        Upload media once and return a reusable media reference for `generate(...)`.
+        """
+        if not self._is_supported_media_type(content_type):
+            return {
+                "error": f"Unsupported media type: {content_type}. Only image/* and audio/* are supported",
+                "status_code": None,
+            }
+
+        upload_result = self._upload_media(
+            file_path=file_path,
+            session_id=session_id,
+            content_type=content_type,
+        )
+        if "error" in upload_result or not upload_result.get("ok"):
+            return {
+                "error": "Media upload failed",
+                "status_code": upload_result.get("status_code"),
+                "upload": upload_result,
+            }
+
+        media_id = self._extract_media_id(upload_result.get("upload_init", {}))
+        if not media_id:
+            return {
+                "error": "upload_init did not return a media identifier",
+                "upload": upload_result,
+                "status_code": None,
+            }
+
+        return {
+            "ok": True,
+            "id": media_id,
+            "type": content_type,
+            "upload": upload_result,
+        }
+
+    def _upload_media(
+        self,
+        file_path: Union[str, Path],
+        session_id: str,
+        content_type: str,
+    ) -> Dict:
+        """
+        Convenience wrapper for URI upload flow:
+        1) request assigned URI (upload_init)
+        2) upload file bytes to URI (PUT)
+        """
+        path = Path(file_path)
+        if not path.exists():
+            return {"error": f"File not found: {path}", "status_code": None}
+
+        if not content_type:
+            return {"error": "content_type is required (for example: image/jpeg)", "status_code": None}
+
+        resolved_content_type = content_type
+        size_bytes = path.stat().st_size
+
+        init_result = self.upload_init(
+            content_type=resolved_content_type,
+            session_id=session_id,
+            size_bytes=size_bytes,
+        )
+        if "error" in init_result:
+            return {"error": "upload_init failed", "upload_init": init_result}
+
+        upload_url = self._extract_upload_url(init_result)
+        if not upload_url:
+            return {
+                "error": "upload_init did not return an upload URL",
+                "upload_init": init_result,
+            }
+
+        upload_result = self.upload_via_uri(
+            upload_url=upload_url,
+            file_path=path,
+            content_type=resolved_content_type,
+        )
+
+        return {
+            "ok": bool(upload_result.get("ok")),
+            "upload_init": init_result,
+            "upload_result": upload_result,
+            "content_type": resolved_content_type,
+            "size_bytes": size_bytes,
+        }
+
+    @staticmethod
+    def _extract_upload_url(payload: Dict[str, Any]) -> Optional[str]:
+        for key in ("upload_url", "uri", "signed_url", "presigned_url", "url"):
+            value = payload.get(key)
+            if isinstance(value, str) and value:
+                return value
+        return None
+
+    @staticmethod
+    def _extract_media_id(payload: Dict[str, Any]) -> Optional[str]:
+        value = payload.get("media_id")
+        if isinstance(value, str) and value:
+            return value
+        return None
+
+    def _normalize_media_refs(
+        self,
+        media: Optional[List[Dict[str, str]]],
+    ) -> Union[Optional[List[Dict[str, str]]], Dict[str, Any]]:
+        if not media:
+            return None
+
+        media_refs: List[Dict[str, str]] = []
+        for idx, item in enumerate(media):
+            media_id = item.get("id")
+            content_type = item.get("type")
+
+            if not media_id or not content_type:
+                return {
+                    "error": f"Invalid media item at index {idx}: expected keys `id` and `type`",
+                    "status_code": None,
+                }
+
+            if not self._is_supported_media_type(content_type):
+                return {
+                    "error": f"Unsupported media type at index {idx}: {content_type}. Only image/* and audio/* are supported",
+                    "status_code": None,
+                }
+
+            media_refs.append({"id": media_id, "type": content_type})
+
+        return media_refs
+
+    @staticmethod
+    def _is_supported_media_type(content_type: str) -> bool:
+        return content_type.startswith("image/") or content_type.startswith("audio/")
 
     def upload_text(
         self,

@@ -7,3 +7,12 @@ When the user first uses the bot, we need to add a disclaimer, where in the code
 We are failing a lot of the agentic evals because the location service is asked for - what do you suggest to get around this?
 
 we have store info in our RAG - that is all that I'd want to consult for this question - no need for my location to be shared
+
+Please add the image functionality in the NutritionBot file where it says "elif isinstance(event, ImageEvent)". Then add the ability for me to wirte a prompt for what to do with the image in the agent file appropraitely
+
+Ok, patch it so tgat qyestions about if an item is covered by WIC go to the RAG query
+
+It says" The closest Korean grocery store to 126 Powerhouse Blvd in Somerville, MA is H Mart in Cambridge at 581 Massachusetts Ave. It offers a wide selection of Korean ingredients and is about a 10-minute drive from your location. Would you like tips on easy Korean recipes using WIC-friendly ingredients? You can tap one of these next:" but there is one in Davis- how can I get that>
+
+in model_selection.py, suggest how to keep track of the time it takes to answer each LLM generated question so we can evalaute model speed
+

@@ -256,13 +256,13 @@ def search_general_stores(
     lat: float,
     lng: float,
     chain: str | None = None,
+    keyword: str | None = None,
     max_results: int = 5,
     radius_meters: int = 8000,
 ) -> str:
-    # Use a wider radius when searching for a specific chain
+    """Return nearby grocery stores via Google Places API (not WIC-specific)."""
     if chain:
         radius_meters = 25000
-    """Return nearby grocery stores via Google Places API (not WIC-specific)."""
     api_key = os.getenv("GOOGLE_PLACES_API_KEY", "")
     if not api_key:
         return (
@@ -270,15 +270,20 @@ def search_general_stores(
             "Try Google Maps to find grocery stores near you."
         )
 
-    keyword = chain if chain else "grocery store supermarket"
+    search_keyword = keyword or chain or "grocery store supermarket"
     url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json"
     params = {
         "location": f"{lat},{lng}",
-        "radius": radius_meters,
-        "type": "grocery_or_supermarket",
-        "keyword": keyword,
+        "keyword": search_keyword,
         "key": api_key,
     }
+    # For descriptor/chain searches, ask Google to rank strictly by distance.
+    # This avoids prominence-biased ordering for "closest X grocery" requests.
+    if chain or keyword:
+        params["rankby"] = "distance"
+    else:
+        params["radius"] = radius_meters
+        params["type"] = "grocery_or_supermarket"
 
     try:
         resp = requests.get(url, params=params, timeout=8)
@@ -291,8 +296,35 @@ def search_general_stores(
         )
 
     places = data.get("results", [])
+    # Enforce nearest-first ordering using returned geometry coordinates.
+    def _place_distance_miles(place: dict) -> float:
+        loc = ((place.get("geometry") or {}).get("location") or {})
+        try:
+            place_lat = float(loc.get("lat"))
+            place_lng = float(loc.get("lng"))
+        except (TypeError, ValueError):
+            return float("inf")
+        return _haversine_miles(lat, lng, place_lat, place_lng)
+
+    places.sort(key=_place_distance_miles)
     if chain:
         places = [p for p in places if _chain_matches(p.get("name", ""), chain)]
+    if not places and keyword:
+        # Fallback: text search is often better for specialty markets.
+        text_url = "https://maps.googleapis.com/maps/api/place/textsearch/json"
+        text_params = {
+            "query": f"{keyword} near {lat},{lng}",
+            "location": f"{lat},{lng}",
+            "radius": radius_meters,
+            "key": api_key,
+        }
+        try:
+            text_resp = requests.get(text_url, params=text_params, timeout=8)
+            text_resp.raise_for_status()
+            text_data = text_resp.json()
+            places = text_data.get("results", [])
+        except Exception:
+            places = []
     places = places[:max_results]
 
     if not places:
@@ -306,7 +338,9 @@ def search_general_stores(
         address = place.get("vicinity", "")
         rating = place.get("rating")
         rating_str = f" | ⭐ {rating}" if rating else ""
-        lines.append(f"{i}. {name}{rating_str}\n   {address}")
+        dist = _place_distance_miles(place)
+        dist_str = f" | {dist:.1f} mi" if math.isfinite(dist) else ""
+        lines.append(f"{i}. {name}{rating_str}{dist_str}\n   {address}")
 
     return "\n".join(lines)
 
