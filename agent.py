@@ -25,6 +25,7 @@ Usage (from Nutrition_Bot.py):
 """
 
 import os
+import mimetypes
 from AI import AI
 from rag_pipeline import RAGPipeline
 import json
@@ -45,6 +46,7 @@ from prompts import (
     rag_router_prompt,
     kb_retrieval_router_prompt,
     thanks_tailor_prompt,
+    image_analysis_prompt,
     RESOURCES_FALLBACK_BUTTONS,
     resources_tool_selector_prompt,
     resources_synthesizer_prompt,
@@ -264,6 +266,98 @@ def _is_exact_store_fact_question(user_message: str) -> bool:
     return asks_store_fact and mentions_specific_store and not asks_proximity
 
 
+def _is_proximity_store_search(user_message: str) -> bool:
+    """Return True when user asks for nearby/closest stores."""
+    text = (user_message or "").strip().lower()
+    if not text:
+        return False
+    asks_store = bool(
+        re.search(
+            r"\b(store|stores|grocery|supermarket|market)\b",
+            text,
+        )
+    )
+    asks_proximity = bool(
+        re.search(
+            r"\b(closest|nearest|nearby|near me|around me|closer|distance|how far)\b",
+            text,
+        )
+    )
+    return asks_store and asks_proximity
+
+
+def _derive_store_keyword(user_message: str) -> str | None:
+    """Infer a focused keyword for general store searches from cuisine/specialty descriptors."""
+    text = (user_message or "").strip().lower()
+    if not text:
+        return None
+    cuisine_keywords = {
+        "korean": "korean grocery store",
+        "chinese": "chinese grocery store",
+        "japanese": "japanese grocery store",
+        "indian": "indian grocery store",
+        "mexican": "mexican grocery store",
+        "middle eastern": "middle eastern grocery store",
+        "halal": "halal grocery store",
+        "asian": "asian grocery store",
+    }
+    for token, keyword in cuisine_keywords.items():
+        if token in text:
+            return keyword
+
+    # Generic patterns for open-ended descriptors, e.g.:
+    # "closest brazilian grocery store", "I want to make ethiopian food"
+    explicit_match = re.search(
+        r"\b([a-z][a-z\s\-]{2,30})\s+(?:grocery\s+store|supermarket|market)\b",
+        text,
+    )
+    if explicit_match:
+        descriptor = re.sub(r"\s+", " ", explicit_match.group(1)).strip()
+        if descriptor and descriptor not in {"closest", "nearest", "nearby", "local"}:
+            return f"{descriptor} grocery store"
+
+    cuisine_match = re.search(
+        r"\b(?:make|cook|cooking)\s+([a-z][a-z\s\-]{2,30})\s+food\b",
+        text,
+    )
+    if cuisine_match:
+        descriptor = re.sub(r"\s+", " ", cuisine_match.group(1)).strip()
+        if descriptor:
+            return f"{descriptor} grocery store"
+    return None
+
+
+def _is_wic_item_coverage_question(user_message: str) -> bool:
+    """Return True for WIC eligibility questions about a food item/product."""
+    text = (user_message or "").strip().lower()
+    if not text:
+        return False
+
+    mentions_wic = bool(re.search(r"\bwic\b", text))
+    if not mentions_wic:
+        return False
+
+    asks_coverage = bool(
+        re.search(
+            r"\b(cover|covered|eligible|eligibility|approved|allowed|qualif|"
+            r"can i buy|can i get|does wic (cover|pay|include)|wic (cover|pay|include))\b",
+            text,
+        )
+    )
+    if not asks_coverage:
+        return False
+
+    # Keep store/location lookups on the store tool path.
+    asks_store_lookup = bool(
+        re.search(
+            r"\b(store|stores|nearest|nearby|near me|closest|address|hours|phone|"
+            r"open|close|location|map|directions)\b",
+            text,
+        )
+    )
+    return not asks_store_lookup
+
+
 def _classify_intent(user_message: str, session_id: str) -> str:
     """Classify user message into one of the four intents."""
     if _wants_wic_store_by_location(user_message):
@@ -458,7 +552,7 @@ class NutritionAgent:
         session = _user_session(user_id)
         profile_context = self._format_profile_context(self._get_profile(user_id))
 
-        if _is_exact_store_fact_question(user_text):
+        if _is_exact_store_fact_question(user_text) or _is_wic_item_coverage_question(user_text):
             full_query = f"[USER PROFILE]\n{profile_context}\n[QUESTION]\n{user_text}"
             response = _rag.query_rag(
                 full_query,
@@ -502,6 +596,15 @@ class NutritionAgent:
         tool = (decision.get("tool") or "none").strip().lower()
         params = decision.get("params") or {}
         reply = (decision.get("reply") or "").strip()
+
+        # Deterministic override for nearby ethnic/specialty grocery requests.
+        derived_keyword = _derive_store_keyword(user_text)
+        if _is_proximity_store_search(user_text) and derived_keyword:
+            tool = "search_general_stores"
+            params = dict(params)
+            params.setdefault("keyword", derived_keyword)
+            if "max_results" not in params and re.search(r"\b(closest|nearest)\b", (user_text or "").lower()):
+                params["max_results"] = 1
 
         if tool == "start_eligibility":
             _state.resources_mode_users.discard(user_id)
@@ -1062,6 +1165,110 @@ class NutritionAgent:
             return food_safety_reply
 
         return self._handle_new_text_intent(ctx)
+
+    def run_image(
+        self,
+        image_path: str,
+        user_id: str,
+        caption: str | None = None,
+        mime_type: str | None = None,
+    ) -> tuple[str, list[Button] | str]:
+        """Handle an image by uploading it into the user's session and prompting with context."""
+        _debug_log(f"run_image start user_id={user_id} image_path={image_path!r}")
+        disclaimer_gate = self._handle_disclaimer_gate_for_text(user_id)
+        if disclaimer_gate is not None:
+            return disclaimer_gate
+
+        session = _user_session(user_id)
+        profile = self._get_profile(user_id)
+        profile_context = self._format_profile_context(profile)
+        user_caption = (caption or "").strip() or "(no caption provided)"
+        try:
+            resolved_mime = mime_type or mimetypes.guess_type(image_path)[0]
+            if not resolved_mime:
+                return (
+                    "I couldn't read that image type. Please send a JPG, PNG, or HEIC image.",
+                    _make_buttons(WELCOME_BUTTONS),
+                )
+            if not resolved_mime.startswith("image/"):
+                return (
+                    "I can only analyze images right now. Please send a JPG, PNG, or HEIC image.",
+                    _make_buttons(WELCOME_BUTTONS),
+                )
+
+            upload_result = _ai.client.upload_media(
+                file_path=image_path,
+                session_id=session,
+                content_type=resolved_mime,
+            )
+            _debug_log(f"run_image upload_result user_id={user_id} result={upload_result!r}")
+            upload_error = upload_result.get("error")
+            if upload_error or not upload_result.get("ok"):
+                upload_payload = upload_result.get("upload") if isinstance(upload_result, dict) else None
+                upload_status = None
+                upload_init = None
+                if isinstance(upload_payload, dict):
+                    upload_status = upload_payload.get("status_code")
+                    upload_init = upload_payload.get("upload_init")
+                _debug_log(
+                    "run_image upload failure summary "
+                    f"user_id={user_id} "
+                    f"session={session} "
+                    f"image_path={image_path!r} "
+                    f"mime={resolved_mime!r} "
+                    f"error={upload_error!r} "
+                    f"status_code={upload_result.get('status_code')!r} "
+                    f"upload_status_code={upload_status!r} "
+                    f"upload_init={upload_init!r}"
+                )
+                _debug_log(
+                    f"run_image upload error user_id={user_id} "
+                    f"error={upload_error or upload_result}"
+                )
+                rate_limited = False
+                if upload_result.get("status_code") == 429 or upload_status == 429:
+                    rate_limited = True
+                if isinstance(upload_init, dict):
+                    init_status = upload_init.get("status_code")
+                    init_error = str(upload_init.get("error", "")).lower()
+                    if init_status == 429 or "429" in init_error or "limit exceeded" in init_error:
+                        rate_limited = True
+                if rate_limited:
+                    return (
+                        "Image service is busy right now. Please wait a few seconds and send the image again.",
+                        _make_buttons(WELCOME_BUTTONS),
+                    )
+                return (
+                    "I couldn't read that image right now. Please try sending it again.",
+                    _make_buttons(WELCOME_BUTTONS),
+                )
+
+            query = (
+                f"[USER PROFILE]\n{profile_context}\n"
+                f"[USER CAPTION]\n{user_caption}"
+            )
+            media_refs = [{"id": upload_result["id"], "type": upload_result["type"]}]
+            image_model = os.getenv("IMAGE_MODEL", "").strip() or None
+            image_lastk_raw = os.getenv("IMAGE_LASTK", "").strip()
+            image_lastk = int(image_lastk_raw) if image_lastk_raw.isdigit() else None
+            response = _ai.ask(
+                image_analysis_prompt,
+                query,
+                session,
+                media=media_refs,
+                model_override=image_model,
+                lastk_override=image_lastk,
+            )
+            _debug_log(f"run_image llm_response user_id={user_id} response={response!r}")
+            clean = re.sub(r"\[Source:[^\]]+\]", "", response).strip()
+            buttons = _generate_buttons(clean, session, fallback_buttons=WELCOME_BUTTONS)
+            return self._task_response(clean, buttons, session)
+        except Exception as exc:
+            _debug_log(f"run_image exception user_id={user_id} error={exc!r}")
+            return (
+                "I couldn't analyze that image right now. Please try again in a moment.",
+                _make_buttons(WELCOME_BUTTONS),
+            )
 
     def run_tool(
         self,
