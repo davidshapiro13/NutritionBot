@@ -8,7 +8,7 @@ benchmark = Benchmark()
 
 class Our_Model():
     def __init__(self):
-        self.name = 'gpt-5-mini'
+        self.name = 'gpt-4.1-mini'
         self.agent = NutritionAgent()
         self._reset_session()
 

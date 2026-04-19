@@ -2,7 +2,7 @@ import csv
 from llmproxy import LLMProxy
 from benchmark_prompts import system_prompt, invalid_json_prompt, judge_instructions
 import ast
-OUR_MODEL = 'gpt-5-mini'
+OUR_MODEL = 'gpt-4.1-mini'
 judge_models = ['us.anthropic.claude-3-haiku-20240307-v1:0', 'google.gemma-3-27b-it', 'us.meta.llama3-2-3b-instruct-v1:0']
 
 client = LLMProxy()
@@ -16,7 +16,7 @@ class Base_Model():
     def onboard(self):
         pass
 
-    def answer(self, questions):
+    def answer(self, questions, memory=None):
         for question in questions:
             response = client.generate(
                 model = self.name,
