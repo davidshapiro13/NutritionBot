@@ -358,6 +358,83 @@ def _is_wic_item_coverage_question(user_message: str) -> bool:
     return not asks_store_lookup
 
 
+_NON_MA_STATE_PATTERNS = (
+    r"\bconnecticut\b",
+    r"\bct\b",
+    r"\bnew york\b",
+    r"\bny\b",
+    r"\brhode island\b",
+    r"\bri\b",
+    r"\bnew hampshire\b",
+    r"\bnh\b",
+    r"\bvermont\b",
+    r"\bvt\b",
+    r"\bmaine\b",
+    r"\bme\b",
+    r"\bcalifornia\b",
+    r"\bca\b",
+    r"\btexas\b",
+    r"\btx\b",
+    r"\bflorida\b",
+    r"\bfl\b",
+)
+
+
+def _mentions_non_ma_location(user_message: str) -> bool:
+    """Return True if the message references a non-Massachusetts location/state."""
+    text = re.sub(r"\s+", " ", (user_message or "").strip().lower())
+    if not text:
+        return False
+    # Explicit MA mentions should not be blocked.
+    if re.search(r"\b(massachusetts|ma)\b", text):
+        return False
+    return any(re.search(pattern, text) for pattern in _NON_MA_STATE_PATTERNS)
+
+
+def _extract_massachusetts_city(user_message: str) -> str | None:
+    """Extract a Massachusetts city from user text like 'in Malden, MA'."""
+    text = (user_message or "").strip()
+    if not text:
+        return None
+    lowered = text.lower()
+
+    patterns = [
+        r"\b(?:in|at|near)\s+([a-z][a-z\s\-\']{1,40}?)\s*,\s*ma\b",
+        r"\b(?:in|at|near)\s+([a-z][a-z\s\-\']{1,40}?)\s+ma\b",
+        r"\b([a-z][a-z\s\-\']{1,40}?)\s*,\s*ma\b",
+    ]
+    for pattern in patterns:
+        match = re.search(pattern, lowered)
+        if not match:
+            continue
+        city = re.sub(r"\s+", " ", match.group(1)).strip(" ,.-")
+        if not city:
+            continue
+        # Avoid capturing non-city fragments.
+        if city in {"massachusetts", "ma"}:
+            continue
+        return city.title()
+    return None
+
+
+def _is_wic_store_list_request(user_message: str) -> bool:
+    """True when user asks for WIC stores (list/find/which) in a city."""
+    text = (user_message or "").strip().lower()
+    if "wic" not in text:
+        return False
+    asks_store = bool(re.search(r"\b(store|stores|retailer|retailers|shop|shops)\b", text))
+    asks_list = bool(re.search(r"\b(list|show|find|which|give me|name)\b", text))
+    return asks_store and asks_list
+
+
+def _is_city_pharmacy_and_grocery_request(user_message: str) -> bool:
+    """True when user asks for pharmacy + grocery recommendations in a city."""
+    text = (user_message or "").strip().lower()
+    mentions_pharmacy = bool(re.search(r"\b(pharmacy|pharmacies|drugstore|drug store)\b", text))
+    mentions_grocery = bool(re.search(r"\b(grocery|groceries|supermarket|market|store|stores)\b", text))
+    return mentions_pharmacy and mentions_grocery
+
+
 def _classify_intent(user_message: str, session_id: str) -> str:
     """Classify user message into one of the four intents."""
     if _wants_wic_store_by_location(user_message):
@@ -552,6 +629,18 @@ class NutritionAgent:
         session = _user_session(user_id)
         profile_context = self._format_profile_context(self._get_profile(user_id))
 
+        if _mentions_non_ma_location(user_text):
+            msg = (
+                "I can only help with food resources in Massachusetts. "
+                "If you want, I can help with Massachusetts WIC/SNAP stores and eligibility."
+            )
+            buttons = _generate_buttons(
+                msg,
+                session,
+                fallback_buttons=RESOURCES_FALLBACK_BUTTONS,
+            )
+            return msg, buttons
+
         if _is_exact_store_fact_question(user_text) or _is_wic_item_coverage_question(user_text):
             full_query = f"[USER PROFILE]\n{profile_context}\n[QUESTION]\n{user_text}"
             response = _rag.query_rag(
@@ -567,6 +656,31 @@ class NutritionAgent:
                 fallback_buttons=RESOURCES_FALLBACK_BUTTONS,
             )
             return clean, buttons
+
+        explicit_city = _extract_massachusetts_city(user_text)
+        if explicit_city and _is_wic_store_list_request(user_text):
+            tool_result = _run_resource_tool(
+                "search_wic_stores_by_city",
+                {"city": explicit_city, "max_results": 4},
+            )
+            buttons = _generate_buttons(
+                tool_result.strip(),
+                session,
+                fallback_buttons=RESOURCES_FALLBACK_BUTTONS,
+            )
+            return tool_result.strip(), buttons
+
+        if explicit_city and _is_city_pharmacy_and_grocery_request(user_text):
+            tool_result = _run_resource_tool(
+                "search_city_pharmacy_and_grocery",
+                {"city": explicit_city},
+            )
+            buttons = _generate_buttons(
+                tool_result.strip(),
+                session,
+                fallback_buttons=RESOURCES_FALLBACK_BUTTONS,
+            )
+            return tool_result.strip(), buttons
 
         if lat is None or lng is None:
             cached = _state.user_last_location.get(user_id)

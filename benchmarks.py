@@ -122,9 +122,9 @@ class Benchmark():
 
     def exam_score(self, exam_results):
         summed_score = sum(float(exam_result["score"]) for exam_result in exam_results)
-        return (summed_score / len(exam_results) * 10) / 100
+        return summed_score, len(exam_results), (summed_score / len(exam_results) * 10) / 100
 
-    def write_results(self, exam_results, overall_score, file_name):
+    def write_results(self, exam_results, summed_score, num_questions, overall_score, file_name):
         with open(file_name, "w") as file:
             for result in exam_results:
                 file.write(result["topic"] + ": " + result["question"] + "\n")
@@ -135,9 +135,11 @@ class Benchmark():
                     score = str(jurer.get("score", ""))
                     file.write(reason + " | Score: " + score + "\n\n")
 
+            file.write("Summed score: " + str(summed_score) + "%")
+            file.write("Num Questions: " + str(num_questions) + "%") 
             file.write("Overall score: " + str(overall_score) + "%")
 
-    def evaluate(self, model=Base_Model(), file_name="benchmark_results.txt"):
+    def evaluate(self, model=Base_Model(), file_name="base_benchmark_results.txt"):
         exam_results = []
         exam_problems = self.load_from_csv()
         for problem in exam_problems:
@@ -152,5 +154,5 @@ class Benchmark():
             print(decisions)
             result = self.aggregate(decisions)
             exam_results.append({"question": problem["questions"][-1], "topic": problem["topic"], "answer": answer, "score": result, "reasoning": decisions})
-        overall_score = self.exam_score(exam_results)
-        self.write_results(exam_results, overall_score, file_name)
+        summed_score, num_questions, overall_score = self.exam_score(exam_results)
+        self.write_results(exam_results, summed_score, num_questions, overall_score, file_name)

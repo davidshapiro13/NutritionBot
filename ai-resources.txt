@@ -16,3 +16,9 @@ It says" The closest Korean grocery store to 126 Powerhouse Blvd in Somerville, 
 
 in model_selection.py, suggest how to keep track of the time it takes to answer each LLM generated question so we can evalaute model speed
 
+if I write "List four WIC covered stores in Somerville, MA.", it shouldn't need my location... how do you recommend fixing that?
+
+so you think the user_last_location is why the whatsapp isn't asking for my location? It shouldnt need my location to tell me what stores are in Malden!
+
+This is weird. When I ask a question about Connecticut it answers even though my prompt says not to answer about other states.
+
