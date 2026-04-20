@@ -101,6 +101,33 @@ class Benchmark():
             del exam_problems[0]
             return exam_problems
 
+    def load_manual_from_csv(self, file_path="benchmark_exam_manual.csv"):
+        """
+        Load manual-eval rows where answer is provided in CSV.
+        Expected headers (case-insensitive): Topic, Question, Answer, Rubric, Tags(optional).
+        """
+        rows = []
+        with open(file_path, mode="r", errors="replace", newline="") as file:
+            reader = csv.DictReader(file)
+            for raw_row in reader:
+                row = {str(k).strip().lower(): (v or "").strip() for k, v in raw_row.items()}
+                topic = row.get("topic", "")
+                question = row.get("question", "")
+                answer = row.get("answer", "")
+                rubric = row.get("rubric", "")
+                tag = row.get("tags", row.get("tag", "N/A")) or "N/A"
+                if not (topic and question and answer and rubric):
+                    # Skip incomplete rows silently to keep CSV edits easy.
+                    continue
+                rows.append({
+                    "topic": topic,
+                    "question": question,
+                    "answer": answer,
+                    "rubric": rubric,
+                    "tag": tag,
+                })
+        return rows
+
     def LLM_as_Jury(self, questions, rubric, answer):
         decisions = []
         for model in judge_models:
@@ -154,5 +181,25 @@ class Benchmark():
             print(decisions)
             result = self.aggregate(decisions)
             exam_results.append({"question": problem["questions"][-1], "topic": problem["topic"], "answer": answer, "score": result, "reasoning": decisions})
+        summed_score, num_questions, overall_score = self.exam_score(exam_results)
+        self.write_results(exam_results, summed_score, num_questions, overall_score, file_name)
+
+    def evaluate_manual_csv(self, csv_file="benchmark_exam_manual.csv", file_name="manual_benchmark_results.txt"):
+        """
+        Evaluate pre-written answers from CSV using the same LLM jury pipeline.
+        """
+        exam_results = []
+        manual_rows = self.load_manual_from_csv(csv_file)
+        for row in manual_rows:
+            print(row["topic"])
+            decisions = self.LLM_as_Jury([row["question"]], row["rubric"], row["answer"])
+            result = self.aggregate(decisions)
+            exam_results.append({
+                "question": row["question"],
+                "topic": row["topic"],
+                "answer": row["answer"],
+                "score": result,
+                "reasoning": decisions,
+            })
         summed_score, num_questions, overall_score = self.exam_score(exam_results)
         self.write_results(exam_results, summed_score, num_questions, overall_score, file_name)
