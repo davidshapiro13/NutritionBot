@@ -30,6 +30,15 @@ from AI import AI
 from rag_pipeline import RAGPipeline
 import json
 from benchmark_locations import lookup_benchmark_coordinates as _lookup_benchmark_coordinates
+from multi_user import (
+    active_profile_label as _active_profile_label,
+    add_or_switch_profile as _add_or_switch_profile,
+    effective_user_id as _effective_user_id,
+    list_profiles as _list_profiles,
+    parse_profile_intent as _parse_profile_intent,
+    relationship_reference as _relationship_reference,
+    switch_profile_by_id as _switch_profile_by_id,
+)
 
 from prompts import (
     main_system_prompt,
@@ -104,6 +113,15 @@ FIRST_USE_DISCLAIMER = (
     "If you have severe symptoms or think it may be an emergency, seek urgent medical care. "
     "Please tap Agree to continue."
 )
+PROFILE_COMMAND_HELP = (
+    "This device can keep separate Nura profiles for different people.\n\n"
+    "You can say things like `This is Maria now`, `Maria here`, or `My daughter is using this`. "
+    "You can also ask `who am I` or `list users`."
+)
+HOUSEHOLD_CARE_BUTTONS = [
+    {"id": "hh_care_asking", "title": "I'm asking"},
+    {"id": "hh_care_using", "title": "They're using"},
+]
 
 _DISALLOWED_BUTTON_PATTERNS = (
     r"\bcall\b",
@@ -858,14 +876,23 @@ class NutritionAgent:
             nutrition_ob_state=_state.nutrition_ob_state,
         )
 
-    def _build_turn_context(self, user_message: str, user_id: str) -> TurnContext:
+    def _build_turn_context(
+        self,
+        user_message: str,
+        user_id: str,
+        device_user_id: str | None = None,
+    ) -> TurnContext:
         profile = self._get_profile(user_id)
+        profile_context = self._format_profile_context(profile)
+        label = _active_profile_label(device_user_id or user_id)
+        if label != "Me":
+            profile_context = f"active_profile: {label}\n{profile_context}"
         return TurnContext(
             user_id=user_id,
             user_message=user_message,
             session=_user_session(user_id),
             profile=profile,
-            profile_context=self._format_profile_context(profile),
+            profile_context=profile_context,
         )
 
     def _reset_navigation_state(self, user_id: str) -> None:
@@ -920,6 +947,270 @@ class NutritionAgent:
             FIRST_USE_DISCLAIMER,
             _make_buttons(DISCLAIMER_BUTTONS),
         )
+
+    def _resolve_active_user_id(self, device_user_id: str) -> str:
+        return _effective_user_id(device_user_id)
+
+    def _handle_profile_command(
+        self,
+        user_message: str,
+        device_user_id: str,
+    ) -> tuple[str, list[Button] | str] | None:
+        command = _parse_profile_intent(user_message)
+        if command is None:
+            return None
+
+        action, label = command
+        if action == "ask_name":
+            _state.household_profile_state[device_user_id] = {"stage": "name"}
+            return self._question_response(
+                "Sure. What should I call this person's Nura profile?"
+            )
+
+        if action == "current":
+            active_label = _active_profile_label(device_user_id)
+            return self._menu_response(
+                f"You're using {active_label}'s Nura profile on this device.",
+                self._resolve_active_user_id(device_user_id),
+            )
+
+        if action == "help":
+            profiles = _list_profiles(device_user_id)
+            names = ", ".join(
+                f"{'*' if item['active'] else ''}{item['label']}" for item in profiles
+            )
+            return self._question_response(f"{PROFILE_COMMAND_HELP}\n\nProfiles: {names}")
+
+        if action == "list":
+            profiles = _list_profiles(device_user_id)
+            lines = [
+                f"{'* ' if item['active'] else '- '}{item['label']}"
+                for item in profiles
+            ]
+            return self._question_response(
+                "Profiles on this device:\n" + "\n".join(lines)
+            )
+
+        if action == "switch" and label:
+            return self._switch_household_profile(device_user_id, label)
+
+        return self._question_response(PROFILE_COMMAND_HELP)
+
+    def _profile_picker_buttons(self, device_user_id: str) -> list[Button]:
+        profiles = _list_profiles(device_user_id)
+        buttons: list[Button] = []
+        choices: dict[str, str] = {}
+        ordered_profiles = sorted(profiles, key=lambda item: not bool(item["active"]))
+        for index, profile in enumerate(ordered_profiles[:2]):
+            button_id = f"hh_profile_{index}"
+            choices[button_id] = str(profile["id"])
+            title = str(profile["label"])[:20]
+            buttons.append(Button(id=button_id, title=title))
+        buttons.append(Button(id="hh_profile_new", title="Someone else"))
+        _state.household_profile_state[device_user_id] = {
+            "stage": "profile_picker",
+            "choices": choices,
+        }
+        return buttons[:3]
+
+    def _maybe_profile_picker(
+        self,
+        device_user_id: str,
+        user_message: str,
+    ) -> tuple[str, list[Button] | str] | None:
+        if not _is_greeting(user_message):
+            return None
+        profiles = _list_profiles(device_user_id)
+        if len(profiles) <= 1:
+            return None
+        active = _active_profile_label(device_user_id)
+        return self._question_response(
+            f"Who's using Nura right now? I'm currently set to {active}.",
+            self._profile_picker_buttons(device_user_id),
+        )
+
+    def _maybe_relationship_clarification(
+        self,
+        device_user_id: str,
+        user_message: str,
+    ) -> tuple[str, list[Button] | str] | None:
+        relation = _relationship_reference(user_message)
+        if not relation:
+            return None
+        _state.household_profile_state[device_user_id] = {
+            "stage": "relationship_clarify",
+            "relation": relation,
+            "original_message": user_message,
+        }
+        return self._question_response(
+            f"Are you asking for your {relation}, or is your {relation} using Nura right now?",
+            _make_buttons(HOUSEHOLD_CARE_BUTTONS),
+        )
+
+    def _save_household_profile_basics(
+        self,
+        user_id: str,
+        label: str,
+        *,
+        created: bool,
+    ) -> None:
+        if created:
+            _mem.save(user_id, f"name: {label}\nasking_for: self")
+
+    def _profile_has_age_group(self, user_id: str) -> bool:
+        return bool(_normalize_text(self._get_profile(user_id).get("age_group", "")))
+
+    def _switch_household_profile(
+        self,
+        device_user_id: str,
+        label: str,
+        *,
+        original_message: str | None = None,
+    ) -> tuple[str, list[Button] | str]:
+        old_user_id = self._resolve_active_user_id(device_user_id)
+        active_label, created = _add_or_switch_profile(device_user_id, label)
+        new_user_id = self._resolve_active_user_id(device_user_id)
+        self._reset_navigation_state(old_user_id)
+        self._reset_navigation_state(new_user_id)
+        self._save_household_profile_basics(new_user_id, active_label, created=created)
+
+        if created or not self._profile_has_age_group(new_user_id):
+            _state.household_profile_state[device_user_id] = {
+                "stage": "age_group",
+                "user_id": new_user_id,
+                "label": active_label,
+                "original_message": original_message,
+            }
+            return self._question_response(
+                f"Got it, I'll use {active_label}'s profile. What age range should I keep in mind?",
+                profile_buttons_for_target("age_group"),
+            )
+
+        _state.household_profile_state.pop(device_user_id, None)
+        if original_message:
+            return self.run(original_message, device_user_id, skip_household_router=True)
+        return self._menu_response(
+            f"Switched to {active_label}'s Nura profile.",
+            new_user_id,
+        )
+
+    def _age_group_from_profile_reply(self, value: str) -> str | None:
+        lower = _normalize_text(value).lower()
+        if re.search(r"\b(0\s*-\s*17|0 to 17|child|kid|teen|baby|infant|toddler)\b", lower):
+            return "child"
+        if re.search(r"\b(18\s*-\s*64|18 to 64|adult)\b", lower):
+            return "adult"
+        if re.search(r"\b(65\s*\+|65 and up|65 or older|older adult|elder|senior)\b", lower):
+            return "elder"
+        if re.fullmatch(r"\d{1,3}", lower):
+            age = int(lower)
+            if age < 18:
+                return "child"
+            if age < 65:
+                return "adult"
+            return "elder"
+        return None
+
+    def _handle_household_profile_setup_value(
+        self,
+        device_user_id: str,
+        value: str,
+        interaction_id: str | None = None,
+    ) -> tuple[str, list[Button] | str] | None:
+        pending = _state.household_profile_state.get(device_user_id)
+        if not pending:
+            return None
+
+        stage = pending.get("stage")
+        if stage == "profile_picker":
+            if interaction_id == "hh_profile_new":
+                _state.household_profile_state[device_user_id] = {"stage": "name"}
+                return self._question_response("What should I call this person's Nura profile?")
+
+            choices = pending.get("choices") or {}
+            profile_id = choices.get(interaction_id or "")
+            if profile_id:
+                old_user_id = self._resolve_active_user_id(device_user_id)
+                active_label = _switch_profile_by_id(device_user_id, profile_id)
+                new_user_id = self._resolve_active_user_id(device_user_id)
+                self._reset_navigation_state(old_user_id)
+                self._reset_navigation_state(new_user_id)
+                _state.household_profile_state.pop(device_user_id, None)
+                return self._menu_response(
+                    f"Switched to {active_label}'s Nura profile.",
+                    new_user_id,
+                )
+
+            label = _normalize_text(value).strip(" .,!?:;")
+            if label:
+                return self._switch_household_profile(device_user_id, label)
+            return self._question_response(
+                "Who's using Nura right now?",
+                self._profile_picker_buttons(device_user_id),
+            )
+
+        if stage == "relationship_clarify":
+            original_message = pending.get("original_message") or ""
+            relation = pending.get("relation") or "them"
+            if interaction_id == "hh_care_asking":
+                _state.household_profile_state.pop(device_user_id, None)
+                return self.run(original_message, device_user_id, skip_household_router=True)
+            if interaction_id == "hh_care_using":
+                _state.household_profile_state[device_user_id] = {
+                    "stage": "name",
+                    "original_message": original_message,
+                }
+                return self._question_response(
+                    f"What should I call your {relation}'s Nura profile?"
+                )
+            if _normalize_text(value).lower() in {"i'm asking", "im asking", "asking", "my profile"}:
+                _state.household_profile_state.pop(device_user_id, None)
+                return self.run(original_message, device_user_id, skip_household_router=True)
+            if re.search(r"\b(using|their profile|new profile)\b", _normalize_text(value).lower()):
+                _state.household_profile_state[device_user_id] = {
+                    "stage": "name",
+                    "original_message": original_message,
+                }
+                return self._question_response(
+                    f"What should I call your {relation}'s Nura profile?"
+                )
+            return self._question_response(
+                f"Are you asking for your {relation}, or is your {relation} using Nura right now?",
+                _make_buttons(HOUSEHOLD_CARE_BUTTONS),
+            )
+
+        if stage == "name":
+            original_message = pending.get("original_message")
+            label = _normalize_text(value).strip(" .,!?:;")
+            if not label:
+                return self._question_response("What should I call this profile?")
+            return self._switch_household_profile(
+                device_user_id,
+                label,
+                original_message=original_message,
+            )
+
+        if stage == "age_group":
+            profile_user_id = pending.get("user_id") or self._resolve_active_user_id(device_user_id)
+            label = pending.get("label") or _active_profile_label(device_user_id)
+            original_message = pending.get("original_message")
+            age_group = self._age_group_from_profile_reply(value)
+            if not age_group:
+                return self._question_response(
+                    "What age range should I keep in mind?",
+                    profile_buttons_for_target("age_group"),
+                )
+            _mem.save(profile_user_id, f"age_group: {age_group}")
+            _state.household_profile_state.pop(device_user_id, None)
+            self._reset_navigation_state(profile_user_id)
+            if original_message:
+                return self.run(original_message, device_user_id, skip_household_router=True)
+            return self._menu_response(
+                f"Thanks, {label}'s profile is ready. What would you like help with?",
+                profile_user_id,
+            )
+
+        return None
 
     def _has_disclaimer_consent(self, user_id: str) -> bool:
         return user_id in _state.accepted_disclaimer_users
@@ -1237,24 +1528,48 @@ class NutritionAgent:
             return self._task_response(response, buttons, session)
         return self.run(follow_up, user_id)
 
-    def run(self, user_message: str, user_id: str) -> tuple[str, list[Button] | str]:
+    def run(
+        self,
+        user_message: str,
+        user_id: str,
+        *,
+        skip_household_router: bool = False,
+    ) -> tuple[str, list[Button] | str]:
         """Handle a free-text message from the user. Injects user profile into context."""
         _debug_log(f"run start user_id={user_id} message={user_message!r}")
         disclaimer_gate = self._handle_disclaimer_gate_for_text(user_id)
         if disclaimer_gate is not None:
             _debug_log(f"run returning disclaimer gate for user_id={user_id}")
             return disclaimer_gate
-        ctx = self._build_turn_context(user_message, user_id)
+        if not skip_household_router:
+            setup_reply = self._handle_household_profile_setup_value(user_id, user_message)
+            if setup_reply is not None:
+                return setup_reply
+
+            profile_command_reply = self._handle_profile_command(user_message, user_id)
+            if profile_command_reply is not None:
+                return profile_command_reply
+
+            profile_picker_reply = self._maybe_profile_picker(user_id, user_message)
+            if profile_picker_reply is not None:
+                return profile_picker_reply
+
+            relationship_reply = self._maybe_relationship_clarification(user_id, user_message)
+            if relationship_reply is not None:
+                return relationship_reply
+
+        active_user_id = self._resolve_active_user_id(user_id)
+        ctx = self._build_turn_context(user_message, active_user_id, device_user_id=user_id)
 
         if ctx.user_message.strip().lower() in {"menu", "start", "help"}:
-            return self._menu_response(WELCOME_FALLBACK_MESSAGE, user_id)
+            return self._menu_response(WELCOME_FALLBACK_MESSAGE, ctx.user_id)
 
         eligibility_reply = self._handle_eligibility_turn(ctx)
         if eligibility_reply is not None:
             return eligibility_reply
 
         profile_reply = self._continue_profile_conversation(
-            user_id,
+            ctx.user_id,
             user_message,
             ctx.session,
         )
@@ -1262,7 +1577,7 @@ class NutritionAgent:
             return self._profile_flow_response(
                 profile_reply[0],
                 profile_reply[1],
-                user_id,
+                ctx.user_id,
                 ctx.session,
             )
 
@@ -1293,9 +1608,14 @@ class NutritionAgent:
         if disclaimer_gate is not None:
             return disclaimer_gate
 
+        device_user_id = user_id
+        user_id = self._resolve_active_user_id(device_user_id)
         session = _user_session(user_id)
         profile = self._get_profile(user_id)
         profile_context = self._format_profile_context(profile)
+        label = _active_profile_label(device_user_id)
+        if label != "Me":
+            profile_context = f"active_profile: {label}\n{profile_context}"
         user_caption = (caption or "").strip() or "(no caption provided)"
         try:
             resolved_mime = mime_type or mimetypes.guess_type(image_path)[0]
@@ -1398,9 +1718,23 @@ class NutritionAgent:
         if disclaimer_gate is not None:
             _debug_log(f"run_tool returning disclaimer gate for user_id={user_id}")
             return disclaimer_gate
+        device_user_id = user_id
+        setup_value = profile_button_value(interaction_id, interaction_title) or (interaction_title or "")
+        setup_reply = self._handle_household_profile_setup_value(
+            device_user_id,
+            setup_value,
+            interaction_id=interaction_id,
+        )
+        if setup_reply is not None:
+            return setup_reply
+
+        user_id = self._resolve_active_user_id(device_user_id)
         session = _user_session(user_id)
         profile = self._get_profile(user_id)
         profile_context = self._format_profile_context(profile)
+        label = _active_profile_label(device_user_id)
+        if label != "Me":
+            profile_context = f"active_profile: {label}\n{profile_context}"
         profile_button_text = profile_button_value(interaction_id, interaction_title)
         if profile_button_text and user_id in _state.nutrition_ob_state:
             profile_reply = self._continue_profile_conversation(
@@ -1590,6 +1924,7 @@ class NutritionAgent:
         if disclaimer_gate is not None:
             _debug_log(f"run_location returning disclaimer gate for user_id={user_id}")
             return disclaimer_gate
+        user_id = self._resolve_active_user_id(user_id)
         session = _user_session(user_id)
         _state.user_last_location[user_id] = (lat, lng)
 
