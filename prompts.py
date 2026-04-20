@@ -341,7 +341,7 @@ Style:
 WELCOME_FALLBACK_MESSAGE = (
     "👋 Hi! I'm Nura, your Massachusetts nutrition assistant. "
     "Use the buttons below for eating tips, food safety, or local resources — "
-    "or type any question."
+    "or type any question. If someone else is using this device, just tell me who it is."
 )
 
 FOOD_SAFETY_HUB_FALLBACK_MESSAGE = (
