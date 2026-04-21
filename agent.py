@@ -35,9 +35,13 @@ from multi_user import (
     add_or_switch_profile as _add_or_switch_profile,
     effective_user_id as _effective_user_id,
     list_profiles as _list_profiles,
-    parse_profile_intent as _parse_profile_intent,
-    relationship_reference as _relationship_reference,
     switch_profile_by_id as _switch_profile_by_id,
+)
+from profile_router import (
+    ProfileContradiction,
+    ProfileRoute,
+    route_profile_contradiction as _route_profile_contradiction,
+    route_profile_intent as _route_profile_intent,
 )
 
 from prompts import (
@@ -121,6 +125,10 @@ PROFILE_COMMAND_HELP = (
 HOUSEHOLD_CARE_BUTTONS = [
     {"id": "hh_care_asking", "title": "I'm asking"},
     {"id": "hh_care_using", "title": "They're using"},
+]
+HOUSEHOLD_CONTRADICTION_BUTTONS = [
+    {"id": "hh_contra_me", "title": "For me"},
+    {"id": "hh_contra_other", "title": "Someone else"},
 ]
 
 _DISALLOWED_BUTTON_PATTERNS = (
@@ -955,12 +963,17 @@ class NutritionAgent:
         self,
         user_message: str,
         device_user_id: str,
+        route: ProfileRoute | None = None,
     ) -> tuple[str, list[Button] | str] | None:
-        command = _parse_profile_intent(user_message)
-        if command is None:
+        route = route or self._profile_route(user_message, device_user_id)
+        if route.action == "none":
             return None
 
-        action, label = command
+        action = route.action
+        label = route.profile_name
+        if action == "relationship_clarify":
+            return None
+
         if action == "ask_name":
             _state.household_profile_state[device_user_id] = {"stage": "name"}
             return self._question_response(
@@ -995,6 +1008,15 @@ class NutritionAgent:
             return self._switch_household_profile(device_user_id, label)
 
         return self._question_response(PROFILE_COMMAND_HELP)
+
+    def _profile_route(self, user_message: str, device_user_id: str) -> ProfileRoute:
+        return _route_profile_intent(
+            text=user_message,
+            active_profile=_active_profile_label(device_user_id),
+            profiles=_list_profiles(device_user_id),
+            ai=_ai,
+            session_id=f"{_user_session(device_user_id)}_profile_router",
+        )
 
     def _profile_picker_buttons(self, device_user_id: str) -> list[Button]:
         profiles = _list_profiles(device_user_id)
@@ -1033,8 +1055,12 @@ class NutritionAgent:
         self,
         device_user_id: str,
         user_message: str,
+        route: ProfileRoute | None = None,
     ) -> tuple[str, list[Button] | str] | None:
-        relation = _relationship_reference(user_message)
+        route = route or self._profile_route(user_message, device_user_id)
+        if route.action != "relationship_clarify":
+            return None
+        relation = route.relationship
         if not relation:
             return None
         _state.household_profile_state[device_user_id] = {
@@ -1045,6 +1071,40 @@ class NutritionAgent:
         return self._question_response(
             f"Are you asking for your {relation}, or is your {relation} using Nura right now?",
             _make_buttons(HOUSEHOLD_CARE_BUTTONS),
+        )
+
+    def _profile_contradiction(
+        self,
+        user_message: str,
+        device_user_id: str,
+        user_id: str,
+    ) -> ProfileContradiction:
+        return _route_profile_contradiction(
+            text=user_message,
+            profile=self._get_profile(user_id),
+            active_profile=_active_profile_label(device_user_id),
+            ai=_ai,
+            session_id=f"{_user_session(device_user_id)}_profile_contradiction",
+        )
+
+    def _maybe_profile_contradiction_clarification(
+        self,
+        device_user_id: str,
+        user_message: str,
+        user_id: str,
+    ) -> tuple[str, list[Button] | str] | None:
+        check = self._profile_contradiction(user_message, device_user_id, user_id)
+        if not check.needs_clarification:
+            return None
+        label = _active_profile_label(device_user_id)
+        saved_fact = check.saved_fact or "something saved in this profile"
+        _state.household_profile_state[device_user_id] = {
+            "stage": "contradiction_clarify",
+            "original_message": user_message,
+        }
+        return self._question_response(
+            f"Quick check: I have {saved_fact} saved for {label}. Is this for {label}, or is someone else using Nura?",
+            _make_buttons(HOUSEHOLD_CONTRADICTION_BUTTONS),
         )
 
     def _save_household_profile_basics(
@@ -1177,6 +1237,26 @@ class NutritionAgent:
             return self._question_response(
                 f"Are you asking for your {relation}, or is your {relation} using Nura right now?",
                 _make_buttons(HOUSEHOLD_CARE_BUTTONS),
+            )
+
+        if stage == "contradiction_clarify":
+            original_message = pending.get("original_message") or ""
+            lower_value = _normalize_text(value).lower()
+            if interaction_id == "hh_contra_me" or lower_value in {"for me", "me", "myself", "still me"}:
+                _state.household_profile_state.pop(device_user_id, None)
+                return self.run(original_message, device_user_id, skip_household_router=True)
+            if interaction_id == "hh_contra_other" or re.search(
+                r"\b(someone else|different user|new user|another person)\b",
+                lower_value,
+            ):
+                _state.household_profile_state[device_user_id] = {
+                    "stage": "name",
+                    "original_message": original_message,
+                }
+                return self._question_response("What should I call this person's Nura profile?")
+            return self._question_response(
+                "Is this for the current profile, or is someone else using Nura?",
+                _make_buttons(HOUSEHOLD_CONTRADICTION_BUTTONS),
             )
 
         if stage == "name":
@@ -1546,7 +1626,13 @@ class NutritionAgent:
             if setup_reply is not None:
                 return setup_reply
 
-            profile_command_reply = self._handle_profile_command(user_message, user_id)
+            profile_route = self._profile_route(user_message, user_id)
+
+            profile_command_reply = self._handle_profile_command(
+                user_message,
+                user_id,
+                profile_route,
+            )
             if profile_command_reply is not None:
                 return profile_command_reply
 
@@ -1554,12 +1640,25 @@ class NutritionAgent:
             if profile_picker_reply is not None:
                 return profile_picker_reply
 
-            relationship_reply = self._maybe_relationship_clarification(user_id, user_message)
+            relationship_reply = self._maybe_relationship_clarification(
+                user_id,
+                user_message,
+                profile_route,
+            )
             if relationship_reply is not None:
                 return relationship_reply
 
         active_user_id = self._resolve_active_user_id(user_id)
         ctx = self._build_turn_context(user_message, active_user_id, device_user_id=user_id)
+
+        if not skip_household_router:
+            contradiction_reply = self._maybe_profile_contradiction_clarification(
+                user_id,
+                user_message,
+                ctx.user_id,
+            )
+            if contradiction_reply is not None:
+                return contradiction_reply
 
         if ctx.user_message.strip().lower() in {"menu", "start", "help"}:
             return self._menu_response(WELCOME_FALLBACK_MESSAGE, ctx.user_id)
