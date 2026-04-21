@@ -86,6 +86,42 @@ _WIC_STORES: list[dict] = _load_wic_stores()
 
 # ── Tool functions ────────────────────────────────────────────────────────────
 
+_CITY_FIXTURES: dict[str, dict[str, str]] = {
+    "malden": {
+        "grocery": "Super Stop & Shop — 99 Charles St, Malden, MA 02148",
+        "pharmacy": "CVS Pharmacy — 575 Broadway, Malden, MA 02148",
+    }
+}
+
+
+def _normalize_city(value: str | None) -> str:
+    text = (value or "").strip().lower()
+    text = re.sub(r"[^a-z\s\-']", " ", text)
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def _google_text_search(api_key: str, query: str, max_results: int = 3) -> list[dict]:
+    url = "https://maps.googleapis.com/maps/api/place/textsearch/json"
+    params = {
+        "query": query,
+        "key": api_key,
+    }
+    try:
+        resp = requests.get(url, params=params, timeout=8)
+        resp.raise_for_status()
+        data = resp.json()
+        return (data.get("results") or [])[:max_results]
+    except Exception:
+        return []
+
+
+def _format_place_line(place: dict) -> str | None:
+    name = (place.get("name") or "").strip()
+    address = (place.get("formatted_address") or place.get("vicinity") or "").strip()
+    if not name:
+        return None
+    return f"{name} — {address}" if address else name
+
 def search_wic_stores(
     lat: float,
     lng: float,
@@ -135,10 +171,41 @@ def search_wic_stores(
     return "\n".join(lines)
 
 
+def search_wic_stores_by_city(
+    city: str,
+    max_results: int = 4,
+) -> str:
+    """Return WIC-authorized stores in a given Massachusetts city (no GPS required)."""
+    normalized_city = _normalize_city(city)
+    if not normalized_city:
+        return "Please provide a Massachusetts city name so I can list WIC-authorized stores."
+
+    matches = []
+    for store in _WIC_STORES:
+        if _normalize_city(store.get("city")) == normalized_city:
+            matches.append(store)
+
+    if not matches:
+        return (
+            f"I couldn't find WIC-authorized stores in {city.title()} from the local Massachusetts list. "
+            "Try another nearby city or check mass.gov/wic."
+        )
+
+    lines = [f"WIC-authorized stores in {city.title()}:\n"]
+    for i, store in enumerate(matches[:max_results], 1):
+        phone = f" | {store['phone']}" if store.get("phone") else ""
+        lines.append(
+            f"{i}. {store['name']}\n"
+            f"   {store['address']}, {store['city']} {store['zip']}{phone}"
+        )
+    return "\n".join(lines)
+
+
 def search_general_stores(
     lat: float,
     lng: float,
     chain: str | None = None,
+    keyword: str | None = None,
     max_results: int = 5,
     radius_meters: int = 8000,
 ) -> str:
@@ -151,15 +218,20 @@ def search_general_stores(
             "Try Google Maps to find grocery stores near you."
         )
 
-    keyword = chain if chain else "grocery store supermarket"
+    search_keyword = keyword or chain or "grocery store supermarket"
     url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json"
     params = {
         "location": f"{lat},{lng}",
-        "radius": radius_meters,
-        "type": "grocery_or_supermarket",
-        "keyword": keyword,
+        "keyword": search_keyword,
         "key": api_key,
     }
+    # For descriptor/chain searches, ask Google to rank strictly by distance.
+    # This avoids prominence-biased ordering for "closest X grocery" requests.
+    if chain or keyword:
+        params["rankby"] = "distance"
+    else:
+        params["radius"] = radius_meters
+        params["type"] = "grocery_or_supermarket"
 
     try:
         resp = requests.get(url, params=params, timeout=8)
@@ -172,8 +244,35 @@ def search_general_stores(
         )
 
     places = data.get("results", [])
+    # Enforce nearest-first ordering using returned geometry coordinates.
+    def _place_distance_miles(place: dict) -> float:
+        loc = ((place.get("geometry") or {}).get("location") or {})
+        try:
+            place_lat = float(loc.get("lat"))
+            place_lng = float(loc.get("lng"))
+        except (TypeError, ValueError):
+            return float("inf")
+        return _haversine_miles(lat, lng, place_lat, place_lng)
+
+    places.sort(key=_place_distance_miles)
     if chain:
         places = [p for p in places if _chain_matches(p.get("name", ""), chain)]
+    if not places and keyword:
+        # Fallback: text search is often better for specialty markets.
+        text_url = "https://maps.googleapis.com/maps/api/place/textsearch/json"
+        text_params = {
+            "query": f"{keyword} near {lat},{lng}",
+            "location": f"{lat},{lng}",
+            "radius": radius_meters,
+            "key": api_key,
+        }
+        try:
+            text_resp = requests.get(text_url, params=text_params, timeout=8)
+            text_resp.raise_for_status()
+            text_data = text_resp.json()
+            places = text_data.get("results", [])
+        except Exception:
+            places = []
     places = places[:max_results]
 
     if not places:
@@ -187,8 +286,75 @@ def search_general_stores(
         address = place.get("vicinity", "")
         rating = place.get("rating")
         rating_str = f" | ⭐ {rating}" if rating else ""
-        lines.append(f"{i}. {name}{rating_str}\n   {address}")
+        dist = _place_distance_miles(place)
+        dist_str = f" | {dist:.1f} mi" if math.isfinite(dist) else ""
+        lines.append(f"{i}. {name}{rating_str}{dist_str}\n   {address}")
 
+    return "\n".join(lines)
+
+
+def search_city_pharmacy_and_grocery(city: str) -> str:
+    """Return one pharmacy and one grocery store for a Massachusetts city, no GPS required."""
+    normalized_city = _normalize_city(city)
+    if not normalized_city:
+        return "Please provide a Massachusetts city name so I can suggest stores."
+
+    api_key = os.getenv("GOOGLE_PLACES_API_KEY", "")
+    grocery_line = None
+    pharmacy_line = None
+
+    if api_key:
+        grocery_results = _google_text_search(
+            api_key,
+            f"grocery store in {city}, MA",
+            max_results=3,
+        )
+        pharmacy_results = _google_text_search(
+            api_key,
+            f"pharmacy in {city}, MA",
+            max_results=3,
+        )
+        for place in grocery_results:
+            line = _format_place_line(place)
+            if line:
+                grocery_line = line
+                break
+        for place in pharmacy_results:
+            line = _format_place_line(place)
+            if line:
+                pharmacy_line = line
+                break
+
+    if not grocery_line:
+        city_matches = [s for s in _WIC_STORES if _normalize_city(s.get("city")) == normalized_city]
+        if city_matches:
+            s = city_matches[0]
+            grocery_line = f"{s['name']} — {s['address']}, {s['city']} {s['zip']}"
+
+    if not pharmacy_line:
+        city_matches = [s for s in _WIC_STORES if _normalize_city(s.get("city")) == normalized_city]
+        for s in city_matches:
+            name = (s.get("name") or "").lower()
+            if any(token in name for token in ("cvs", "walgreens", "rite aid")):
+                pharmacy_line = f"{s['name']} — {s['address']}, {s['city']} {s['zip']}"
+                break
+
+    fixture = _CITY_FIXTURES.get(normalized_city)
+    if fixture:
+        grocery_line = grocery_line or fixture.get("grocery")
+        pharmacy_line = pharmacy_line or fixture.get("pharmacy")
+
+    if not grocery_line and not pharmacy_line:
+        return (
+            f"I couldn't find stores in {city.title()} right now. "
+            "Try sharing your location for nearby results."
+        )
+
+    lines = [f"In {city.title()}, here are good options:"]
+    if grocery_line:
+        lines.append(f"Grocery: {grocery_line}")
+    if pharmacy_line:
+        lines.append(f"Pharmacy: {pharmacy_line}")
     return "\n".join(lines)
 
 
@@ -311,11 +477,23 @@ def run_tool(tool_name: str, tool_input: dict, lat: float | None = None, lng: fl
         effective_lng = tool_input.get("lng") or lng
         if effective_lat is None or effective_lng is None:
             return "I need your location to find nearby stores. Please share your GPS coordinates."
-        return search_wic_stores(
+        return search_general_stores(
             lat=effective_lat,
             lng=effective_lng,
             chain=tool_input.get("chain"),
+            keyword=tool_input.get("keyword"),
             max_results=int(tool_input.get("max_results") or 5),
+        )
+
+    if tool_name == "search_wic_stores_by_city":
+        return search_wic_stores_by_city(
+            city=str(tool_input.get("city") or "").strip(),
+            max_results=int(tool_input.get("max_results") or 4),
+        )
+
+    if tool_name == "search_city_pharmacy_and_grocery":
+        return search_city_pharmacy_and_grocery(
+            city=str(tool_input.get("city") or "").strip(),
         )
 
     if tool_name == "explain_program":

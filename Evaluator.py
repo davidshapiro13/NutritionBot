@@ -8,7 +8,7 @@ benchmark = Benchmark()
 
 class Our_Model():
     def __init__(self):
-        self.name = 'gpt-5-mini'
+        self.name = 'gpt-4.1-mini'
         self.agent = NutritionAgent()
         self._reset_session()
 
@@ -54,4 +54,5 @@ class Our_Model():
 
 if __name__ == "__main__":
     agent = Our_Model()
-    benchmark.evaluate(agent, "4-11 Benchmark results.txt")
+    #benchmark.evaluate(agent, "4-19 Benchmark results.txt")
+    benchmark.evaluate()

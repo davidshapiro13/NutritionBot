@@ -1,0 +1,6 @@
+Topic,Question,Rubric,Tags
+LOCATION,"I live at 126 Powerhouse Blvd in Somerville, MA. What is the closest major grocery store to me?","The answer should suggest the Stop and Shop at 105 Alewife Brook Pkwy, Somerville, MA 02144 as that is closest option.",
+LOCATION,"Which store is closer to where I live at 126 Powerhouse Blvd in Somerville, MA? The Whole Foods at 2151 Mystic Valley Pkwy Medford, MA 02155 or the one at 808 Massachusetts Ave Arlington, MA 02476?",The answer should say the Whole Foods at 2151 Mystic Valley Pkwy is closer.,
+LOCATION,"I want to make Korean food. What is the closest Korean grocery store to me? I live at 126 Powerhouse Blvd in Somerville, MA.",The answer should suggest H-Mart in Davis Square.,
+PHOTO,Is this covered by WIC [photo of Country Kitchen Wheat bread],"The answer should say that yes, Country Kitchen wheat bread is covered by WIC.",
+PHOTO,Is this covered by WIC [Newman’s Own Lemonade],"The answer should say no, it is not covered by WIC or at least not according to the bot’s knowledge. Saying it is covered by WIC should receive a low score.",

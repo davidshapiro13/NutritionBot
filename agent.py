@@ -25,10 +25,24 @@ Usage (from Nutrition_Bot.py):
 """
 
 import os
+import mimetypes
 from AI import AI
 from rag_pipeline import RAGPipeline
 import json
 from benchmark_locations import lookup_benchmark_coordinates as _lookup_benchmark_coordinates
+from multi_user import (
+    active_profile_label as _active_profile_label,
+    add_or_switch_profile as _add_or_switch_profile,
+    effective_user_id as _effective_user_id,
+    list_profiles as _list_profiles,
+    switch_profile_by_id as _switch_profile_by_id,
+)
+from profile_router import (
+    ProfileContradiction,
+    ProfileRoute,
+    route_profile_contradiction as _route_profile_contradiction,
+    route_profile_intent as _route_profile_intent,
+)
 
 from prompts import (
     main_system_prompt,
@@ -45,6 +59,7 @@ from prompts import (
     rag_router_prompt,
     kb_retrieval_router_prompt,
     thanks_tailor_prompt,
+    image_analysis_prompt,
     RESOURCES_FALLBACK_BUTTONS,
     resources_tool_selector_prompt,
     resources_synthesizer_prompt,
@@ -102,6 +117,19 @@ FIRST_USE_DISCLAIMER = (
     "If you have severe symptoms or think it may be an emergency, seek urgent medical care. "
     "Please tap Agree to continue."
 )
+PROFILE_COMMAND_HELP = (
+    "This device can keep separate Nura profiles for different people.\n\n"
+    "You can say things like `This is Maria now`, `Maria here`, or `My daughter is using this`. "
+    "You can also ask `who am I` or `list users`."
+)
+HOUSEHOLD_CARE_BUTTONS = [
+    {"id": "hh_care_asking", "title": "I'm asking"},
+    {"id": "hh_care_using", "title": "They're using"},
+]
+HOUSEHOLD_CONTRADICTION_BUTTONS = [
+    {"id": "hh_contra_me", "title": "For me"},
+    {"id": "hh_contra_other", "title": "Someone else"},
+]
 
 _DISALLOWED_BUTTON_PATTERNS = (
     r"\bcall\b",
@@ -212,6 +240,9 @@ def _should_retrieve_public_kb(user_message: str, session_id: str, lane: str) ->
         if len(text.split()) <= 4:
             return False
     if lane == "nutrition":
+        # Simple meal-idea questions should go straight to answer generation.
+        if "?" in text and len(text.split()) <= 8 and re.search(r"\b(breakfast|lunch|dinner|snack|meal)\b", text):
+            return False
         if re.search(
             r"\b(calorie|protein|fiber|sodium|cholesterol|vitamin|mineral|serving|portion|diet|meal plan|food safety|pregnan|diabetes|allerg|gluten|vegan|vegetarian)\b",
             text,
@@ -261,6 +292,175 @@ def _is_exact_store_fact_question(user_message: str) -> bool:
     return asks_store_fact and mentions_specific_store and not asks_proximity
 
 
+def _is_proximity_store_search(user_message: str) -> bool:
+    """Return True when user asks for nearby/closest stores."""
+    text = (user_message or "").strip().lower()
+    if not text:
+        return False
+    asks_store = bool(
+        re.search(
+            r"\b(store|stores|grocery|supermarket|market)\b",
+            text,
+        )
+    )
+    asks_proximity = bool(
+        re.search(
+            r"\b(closest|nearest|nearby|near me|around me|closer|distance|how far)\b",
+            text,
+        )
+    )
+    return asks_store and asks_proximity
+
+
+def _derive_store_keyword(user_message: str) -> str | None:
+    """Infer a focused keyword for general store searches from cuisine/specialty descriptors."""
+    text = (user_message or "").strip().lower()
+    if not text:
+        return None
+    cuisine_keywords = {
+        "korean": "korean grocery store",
+        "chinese": "chinese grocery store",
+        "japanese": "japanese grocery store",
+        "indian": "indian grocery store",
+        "mexican": "mexican grocery store",
+        "middle eastern": "middle eastern grocery store",
+        "halal": "halal grocery store",
+        "asian": "asian grocery store",
+    }
+    for token, keyword in cuisine_keywords.items():
+        if token in text:
+            return keyword
+
+    # Generic patterns for open-ended descriptors, e.g.:
+    # "closest brazilian grocery store", "I want to make ethiopian food"
+    explicit_match = re.search(
+        r"\b([a-z][a-z\s\-]{2,30})\s+(?:grocery\s+store|supermarket|market)\b",
+        text,
+    )
+    if explicit_match:
+        descriptor = re.sub(r"\s+", " ", explicit_match.group(1)).strip()
+        if descriptor and descriptor not in {"closest", "nearest", "nearby", "local"}:
+            return f"{descriptor} grocery store"
+
+    cuisine_match = re.search(
+        r"\b(?:make|cook|cooking)\s+([a-z][a-z\s\-]{2,30})\s+food\b",
+        text,
+    )
+    if cuisine_match:
+        descriptor = re.sub(r"\s+", " ", cuisine_match.group(1)).strip()
+        if descriptor:
+            return f"{descriptor} grocery store"
+    return None
+
+
+def _is_wic_item_coverage_question(user_message: str) -> bool:
+    """Return True for WIC eligibility questions about a food item/product."""
+    text = (user_message or "").strip().lower()
+    if not text:
+        return False
+
+    mentions_wic = bool(re.search(r"\bwic\b", text))
+    if not mentions_wic:
+        return False
+
+    asks_coverage = bool(
+        re.search(
+            r"\b(cover|covered|eligible|eligibility|approved|allowed|qualif|"
+            r"can i buy|can i get|does wic (cover|pay|include)|wic (cover|pay|include))\b",
+            text,
+        )
+    )
+    if not asks_coverage:
+        return False
+
+    # Keep store/location lookups on the store tool path.
+    asks_store_lookup = bool(
+        re.search(
+            r"\b(store|stores|nearest|nearby|near me|closest|address|hours|phone|"
+            r"open|close|location|map|directions)\b",
+            text,
+        )
+    )
+    return not asks_store_lookup
+
+
+_NON_MA_STATE_PATTERNS = (
+    r"\bconnecticut\b",
+    r"\bct\b",
+    r"\bnew york\b",
+    r"\bny\b",
+    r"\brhode island\b",
+    r"\bri\b",
+    r"\bnew hampshire\b",
+    r"\bnh\b",
+    r"\bvermont\b",
+    r"\bvt\b",
+    r"\bmaine\b",
+    r"\bme\b",
+    r"\bcalifornia\b",
+    r"\bca\b",
+    r"\btexas\b",
+    r"\btx\b",
+    r"\bflorida\b",
+    r"\bfl\b",
+)
+
+
+def _mentions_non_ma_location(user_message: str) -> bool:
+    """Return True if the message references a non-Massachusetts location/state."""
+    text = re.sub(r"\s+", " ", (user_message or "").strip().lower())
+    if not text:
+        return False
+    # Explicit MA mentions should not be blocked.
+    if re.search(r"\b(massachusetts|ma)\b", text):
+        return False
+    return any(re.search(pattern, text) for pattern in _NON_MA_STATE_PATTERNS)
+
+
+def _extract_massachusetts_city(user_message: str) -> str | None:
+    """Extract a Massachusetts city from user text like 'in Malden, MA'."""
+    text = (user_message or "").strip()
+    if not text:
+        return None
+    lowered = text.lower()
+
+    patterns = [
+        r"\b(?:in|at|near)\s+([a-z][a-z\s\-\']{1,40}?)\s*,\s*ma\b",
+        r"\b(?:in|at|near)\s+([a-z][a-z\s\-\']{1,40}?)\s+ma\b",
+        r"\b([a-z][a-z\s\-\']{1,40}?)\s*,\s*ma\b",
+    ]
+    for pattern in patterns:
+        match = re.search(pattern, lowered)
+        if not match:
+            continue
+        city = re.sub(r"\s+", " ", match.group(1)).strip(" ,.-")
+        if not city:
+            continue
+        # Avoid capturing non-city fragments.
+        if city in {"massachusetts", "ma"}:
+            continue
+        return city.title()
+    return None
+
+
+def _is_wic_store_list_request(user_message: str) -> bool:
+    """True when user asks for WIC stores (list/find/which) in a city."""
+    text = (user_message or "").strip().lower()
+    if "wic" not in text:
+        return False
+    asks_store = bool(re.search(r"\b(store|stores|retailer|retailers|shop|shops)\b", text))
+    asks_list = bool(re.search(r"\b(list|show|find|which|give me|name)\b", text))
+    return asks_store and asks_list
+
+
+def _is_city_pharmacy_and_grocery_request(user_message: str) -> bool:
+    """True when user asks for pharmacy + grocery recommendations in a city."""
+    text = (user_message or "").strip().lower()
+    mentions_pharmacy = bool(re.search(r"\b(pharmacy|pharmacies|drugstore|drug store)\b", text))
+    mentions_grocery = bool(re.search(r"\b(grocery|groceries|supermarket|market|store|stores)\b", text))
+    return mentions_pharmacy and mentions_grocery
+
+
 def _classify_intent(user_message: str, session_id: str) -> str:
     """Classify user message into one of the four intents."""
     if _wants_wic_store_by_location(user_message):
@@ -295,6 +495,27 @@ def _classify_intent(user_message: str, session_id: str) -> str:
         intent = "out_of_scope"
     valid = {"food_safety", "nutrition_advice", "find resources", "out_of_scope"}
     return intent if intent in valid else "nutrition_advice"
+
+
+def _should_extract_profile_from_message(user_message: str) -> bool:
+    """Only run memory extraction when a message likely contains durable profile facts."""
+    text = _normalize_text(user_message)
+    if not text:
+        return False
+    lower = text.lower()
+    profile_signals = (
+        r"\b(i am|i'm|for me|myself|my child|my kid|my son|my daughter|"
+        r"my mom|my mother|my dad|my father|my parent|my spouse|"
+        r"allerg|diabet|pregnan|gluten|vegan|vegetarian|halal|kosher|"
+        r"medication|blood pressure|hypertension|goal|prefer|preferences|"
+        r"dislike|don't like|budget|wic|snap)\b"
+    )
+    if re.search(profile_signals, lower):
+        return True
+    # Plain questions are rarely profile facts; skip the extra LLM extraction call.
+    if "?" in text:
+        return False
+    return len(text.split()) <= 12
 
 
 def _append_button_intro(response: str, buttons: list[Button], session_id: str) -> str:
@@ -434,7 +655,19 @@ class NutritionAgent:
         session = _user_session(user_id)
         profile_context = self._format_profile_context(self._get_profile(user_id))
 
-        if _is_exact_store_fact_question(user_text):
+        if _mentions_non_ma_location(user_text):
+            msg = (
+                "I can only help with food resources in Massachusetts. "
+                "If you want, I can help with Massachusetts WIC/SNAP stores and eligibility."
+            )
+            buttons = _generate_buttons(
+                msg,
+                session,
+                fallback_buttons=RESOURCES_FALLBACK_BUTTONS,
+            )
+            return msg, buttons
+
+        if _is_exact_store_fact_question(user_text) or _is_wic_item_coverage_question(user_text):
             full_query = f"[USER PROFILE]\n{profile_context}\n[QUESTION]\n{user_text}"
             response = _rag.query_rag(
                 full_query,
@@ -449,6 +682,31 @@ class NutritionAgent:
                 fallback_buttons=RESOURCES_FALLBACK_BUTTONS,
             )
             return clean, buttons
+
+        explicit_city = _extract_massachusetts_city(user_text)
+        if explicit_city and _is_wic_store_list_request(user_text):
+            tool_result = _run_resource_tool(
+                "search_wic_stores_by_city",
+                {"city": explicit_city, "max_results": 4},
+            )
+            buttons = _generate_buttons(
+                tool_result.strip(),
+                session,
+                fallback_buttons=RESOURCES_FALLBACK_BUTTONS,
+            )
+            return tool_result.strip(), buttons
+
+        if explicit_city and _is_city_pharmacy_and_grocery_request(user_text):
+            tool_result = _run_resource_tool(
+                "search_city_pharmacy_and_grocery",
+                {"city": explicit_city},
+            )
+            buttons = _generate_buttons(
+                tool_result.strip(),
+                session,
+                fallback_buttons=RESOURCES_FALLBACK_BUTTONS,
+            )
+            return tool_result.strip(), buttons
 
         if lat is None or lng is None:
             cached = _state.user_last_location.get(user_id)
@@ -478,6 +736,15 @@ class NutritionAgent:
         tool = (decision.get("tool") or "none").strip().lower()
         params = decision.get("params") or {}
         reply = (decision.get("reply") or "").strip()
+
+        # Deterministic override for nearby ethnic/specialty grocery requests.
+        derived_keyword = _derive_store_keyword(user_text)
+        if _is_proximity_store_search(user_text) and derived_keyword:
+            tool = "search_general_stores"
+            params = dict(params)
+            params.setdefault("keyword", derived_keyword)
+            if "max_results" not in params and re.search(r"\b(closest|nearest)\b", (user_text or "").lower()):
+                params["max_results"] = 1
 
         if tool == "start_eligibility":
             _state.resources_mode_users.discard(user_id)
@@ -520,6 +787,8 @@ class NutritionAgent:
 
     def _remember_user_message(self, user_id: str, user_message: str) -> dict:
         """Save structured facts from raw user text and return the refreshed profile."""
+        if not _should_extract_profile_from_message(user_message):
+            return self._get_profile(user_id)
         return save_and_reload_profile(
             user_id,
             user_message,
@@ -615,14 +884,23 @@ class NutritionAgent:
             nutrition_ob_state=_state.nutrition_ob_state,
         )
 
-    def _build_turn_context(self, user_message: str, user_id: str) -> TurnContext:
+    def _build_turn_context(
+        self,
+        user_message: str,
+        user_id: str,
+        device_user_id: str | None = None,
+    ) -> TurnContext:
         profile = self._get_profile(user_id)
+        profile_context = self._format_profile_context(profile)
+        label = _active_profile_label(device_user_id or user_id)
+        if label != "Me":
+            profile_context = f"active_profile: {label}\n{profile_context}"
         return TurnContext(
             user_id=user_id,
             user_message=user_message,
             session=_user_session(user_id),
             profile=profile,
-            profile_context=self._format_profile_context(profile),
+            profile_context=profile_context,
         )
 
     def _reset_navigation_state(self, user_id: str) -> None:
@@ -677,6 +955,342 @@ class NutritionAgent:
             FIRST_USE_DISCLAIMER,
             _make_buttons(DISCLAIMER_BUTTONS),
         )
+
+    def _resolve_active_user_id(self, device_user_id: str) -> str:
+        return _effective_user_id(device_user_id)
+
+    def _handle_profile_command(
+        self,
+        user_message: str,
+        device_user_id: str,
+        route: ProfileRoute | None = None,
+    ) -> tuple[str, list[Button] | str] | None:
+        route = route or self._profile_route(user_message, device_user_id)
+        if route.action == "none":
+            return None
+
+        action = route.action
+        label = route.profile_name
+        if action == "relationship_clarify":
+            return None
+
+        if action == "ask_name":
+            _state.household_profile_state[device_user_id] = {"stage": "name"}
+            return self._question_response(
+                "Sure. What should I call this person's Nura profile?"
+            )
+
+        if action == "current":
+            active_label = _active_profile_label(device_user_id)
+            return self._menu_response(
+                f"You're using {active_label}'s Nura profile on this device.",
+                self._resolve_active_user_id(device_user_id),
+            )
+
+        if action == "help":
+            profiles = _list_profiles(device_user_id)
+            names = ", ".join(
+                f"{'*' if item['active'] else ''}{item['label']}" for item in profiles
+            )
+            return self._question_response(f"{PROFILE_COMMAND_HELP}\n\nProfiles: {names}")
+
+        if action == "list":
+            profiles = _list_profiles(device_user_id)
+            lines = [
+                f"{'* ' if item['active'] else '- '}{item['label']}"
+                for item in profiles
+            ]
+            return self._question_response(
+                "Profiles on this device:\n" + "\n".join(lines)
+            )
+
+        if action == "switch" and label:
+            return self._switch_household_profile(device_user_id, label)
+
+        return self._question_response(PROFILE_COMMAND_HELP)
+
+    def _profile_route(self, user_message: str, device_user_id: str) -> ProfileRoute:
+        return _route_profile_intent(
+            text=user_message,
+            active_profile=_active_profile_label(device_user_id),
+            profiles=_list_profiles(device_user_id),
+            ai=_ai,
+            session_id=f"{_user_session(device_user_id)}_profile_router",
+        )
+
+    def _profile_picker_buttons(self, device_user_id: str) -> list[Button]:
+        profiles = _list_profiles(device_user_id)
+        buttons: list[Button] = []
+        choices: dict[str, str] = {}
+        ordered_profiles = sorted(profiles, key=lambda item: not bool(item["active"]))
+        for index, profile in enumerate(ordered_profiles[:2]):
+            button_id = f"hh_profile_{index}"
+            choices[button_id] = str(profile["id"])
+            title = str(profile["label"])[:20]
+            buttons.append(Button(id=button_id, title=title))
+        buttons.append(Button(id="hh_profile_new", title="Someone else"))
+        _state.household_profile_state[device_user_id] = {
+            "stage": "profile_picker",
+            "choices": choices,
+        }
+        return buttons[:3]
+
+    def _maybe_profile_picker(
+        self,
+        device_user_id: str,
+        user_message: str,
+    ) -> tuple[str, list[Button] | str] | None:
+        if not _is_greeting(user_message):
+            return None
+        profiles = _list_profiles(device_user_id)
+        if len(profiles) <= 1:
+            return None
+        active = _active_profile_label(device_user_id)
+        return self._question_response(
+            f"Who's using Nura right now? I'm currently set to {active}.",
+            self._profile_picker_buttons(device_user_id),
+        )
+
+    def _maybe_relationship_clarification(
+        self,
+        device_user_id: str,
+        user_message: str,
+        route: ProfileRoute | None = None,
+    ) -> tuple[str, list[Button] | str] | None:
+        route = route or self._profile_route(user_message, device_user_id)
+        if route.action != "relationship_clarify":
+            return None
+        relation = route.relationship
+        if not relation:
+            return None
+        _state.household_profile_state[device_user_id] = {
+            "stage": "relationship_clarify",
+            "relation": relation,
+            "original_message": user_message,
+        }
+        return self._question_response(
+            f"Are you asking for your {relation}, or is your {relation} using Nura right now?",
+            _make_buttons(HOUSEHOLD_CARE_BUTTONS),
+        )
+
+    def _profile_contradiction(
+        self,
+        user_message: str,
+        device_user_id: str,
+        user_id: str,
+    ) -> ProfileContradiction:
+        return _route_profile_contradiction(
+            text=user_message,
+            profile=self._get_profile(user_id),
+            active_profile=_active_profile_label(device_user_id),
+            ai=_ai,
+            session_id=f"{_user_session(device_user_id)}_profile_contradiction",
+        )
+
+    def _maybe_profile_contradiction_clarification(
+        self,
+        device_user_id: str,
+        user_message: str,
+        user_id: str,
+    ) -> tuple[str, list[Button] | str] | None:
+        check = self._profile_contradiction(user_message, device_user_id, user_id)
+        if not check.needs_clarification:
+            return None
+        label = _active_profile_label(device_user_id)
+        saved_fact = check.saved_fact or "something saved in this profile"
+        _state.household_profile_state[device_user_id] = {
+            "stage": "contradiction_clarify",
+            "original_message": user_message,
+        }
+        return self._question_response(
+            f"Quick check: I have {saved_fact} saved for {label}. Is this for {label}, or is someone else using Nura?",
+            _make_buttons(HOUSEHOLD_CONTRADICTION_BUTTONS),
+        )
+
+    def _save_household_profile_basics(
+        self,
+        user_id: str,
+        label: str,
+        *,
+        created: bool,
+    ) -> None:
+        if created:
+            _mem.save(user_id, f"name: {label}\nasking_for: self")
+
+    def _profile_has_age_group(self, user_id: str) -> bool:
+        return bool(_normalize_text(self._get_profile(user_id).get("age_group", "")))
+
+    def _switch_household_profile(
+        self,
+        device_user_id: str,
+        label: str,
+        *,
+        original_message: str | None = None,
+    ) -> tuple[str, list[Button] | str]:
+        old_user_id = self._resolve_active_user_id(device_user_id)
+        active_label, created = _add_or_switch_profile(device_user_id, label)
+        new_user_id = self._resolve_active_user_id(device_user_id)
+        self._reset_navigation_state(old_user_id)
+        self._reset_navigation_state(new_user_id)
+        self._save_household_profile_basics(new_user_id, active_label, created=created)
+
+        if created or not self._profile_has_age_group(new_user_id):
+            _state.household_profile_state[device_user_id] = {
+                "stage": "age_group",
+                "user_id": new_user_id,
+                "label": active_label,
+                "original_message": original_message,
+            }
+            return self._question_response(
+                f"Got it, I'll use {active_label}'s profile. What age range should I keep in mind?",
+                profile_buttons_for_target("age_group"),
+            )
+
+        _state.household_profile_state.pop(device_user_id, None)
+        if original_message:
+            return self.run(original_message, device_user_id, skip_household_router=True)
+        return self._menu_response(
+            f"Switched to {active_label}'s Nura profile.",
+            new_user_id,
+        )
+
+    def _age_group_from_profile_reply(self, value: str) -> str | None:
+        lower = _normalize_text(value).lower()
+        if re.search(r"\b(0\s*-\s*17|0 to 17|child|kid|teen|baby|infant|toddler)\b", lower):
+            return "child"
+        if re.search(r"\b(18\s*-\s*64|18 to 64|adult)\b", lower):
+            return "adult"
+        if re.search(r"\b(65\s*\+|65 and up|65 or older|older adult|elder|senior)\b", lower):
+            return "elder"
+        if re.fullmatch(r"\d{1,3}", lower):
+            age = int(lower)
+            if age < 18:
+                return "child"
+            if age < 65:
+                return "adult"
+            return "elder"
+        return None
+
+    def _handle_household_profile_setup_value(
+        self,
+        device_user_id: str,
+        value: str,
+        interaction_id: str | None = None,
+    ) -> tuple[str, list[Button] | str] | None:
+        pending = _state.household_profile_state.get(device_user_id)
+        if not pending:
+            return None
+
+        stage = pending.get("stage")
+        if stage == "profile_picker":
+            if interaction_id == "hh_profile_new":
+                _state.household_profile_state[device_user_id] = {"stage": "name"}
+                return self._question_response("What should I call this person's Nura profile?")
+
+            choices = pending.get("choices") or {}
+            profile_id = choices.get(interaction_id or "")
+            if profile_id:
+                old_user_id = self._resolve_active_user_id(device_user_id)
+                active_label = _switch_profile_by_id(device_user_id, profile_id)
+                new_user_id = self._resolve_active_user_id(device_user_id)
+                self._reset_navigation_state(old_user_id)
+                self._reset_navigation_state(new_user_id)
+                _state.household_profile_state.pop(device_user_id, None)
+                return self._menu_response(
+                    f"Switched to {active_label}'s Nura profile.",
+                    new_user_id,
+                )
+
+            label = _normalize_text(value).strip(" .,!?:;")
+            if label:
+                return self._switch_household_profile(device_user_id, label)
+            return self._question_response(
+                "Who's using Nura right now?",
+                self._profile_picker_buttons(device_user_id),
+            )
+
+        if stage == "relationship_clarify":
+            original_message = pending.get("original_message") or ""
+            relation = pending.get("relation") or "them"
+            if interaction_id == "hh_care_asking":
+                _state.household_profile_state.pop(device_user_id, None)
+                return self.run(original_message, device_user_id, skip_household_router=True)
+            if interaction_id == "hh_care_using":
+                _state.household_profile_state[device_user_id] = {
+                    "stage": "name",
+                    "original_message": original_message,
+                }
+                return self._question_response(
+                    f"What should I call your {relation}'s Nura profile?"
+                )
+            if _normalize_text(value).lower() in {"i'm asking", "im asking", "asking", "my profile"}:
+                _state.household_profile_state.pop(device_user_id, None)
+                return self.run(original_message, device_user_id, skip_household_router=True)
+            if re.search(r"\b(using|their profile|new profile)\b", _normalize_text(value).lower()):
+                _state.household_profile_state[device_user_id] = {
+                    "stage": "name",
+                    "original_message": original_message,
+                }
+                return self._question_response(
+                    f"What should I call your {relation}'s Nura profile?"
+                )
+            return self._question_response(
+                f"Are you asking for your {relation}, or is your {relation} using Nura right now?",
+                _make_buttons(HOUSEHOLD_CARE_BUTTONS),
+            )
+
+        if stage == "contradiction_clarify":
+            original_message = pending.get("original_message") or ""
+            lower_value = _normalize_text(value).lower()
+            if interaction_id == "hh_contra_me" or lower_value in {"for me", "me", "myself", "still me"}:
+                _state.household_profile_state.pop(device_user_id, None)
+                return self.run(original_message, device_user_id, skip_household_router=True)
+            if interaction_id == "hh_contra_other" or re.search(
+                r"\b(someone else|different user|new user|another person)\b",
+                lower_value,
+            ):
+                _state.household_profile_state[device_user_id] = {
+                    "stage": "name",
+                    "original_message": original_message,
+                }
+                return self._question_response("What should I call this person's Nura profile?")
+            return self._question_response(
+                "Is this for the current profile, or is someone else using Nura?",
+                _make_buttons(HOUSEHOLD_CONTRADICTION_BUTTONS),
+            )
+
+        if stage == "name":
+            original_message = pending.get("original_message")
+            label = _normalize_text(value).strip(" .,!?:;")
+            if not label:
+                return self._question_response("What should I call this profile?")
+            return self._switch_household_profile(
+                device_user_id,
+                label,
+                original_message=original_message,
+            )
+
+        if stage == "age_group":
+            profile_user_id = pending.get("user_id") or self._resolve_active_user_id(device_user_id)
+            label = pending.get("label") or _active_profile_label(device_user_id)
+            original_message = pending.get("original_message")
+            age_group = self._age_group_from_profile_reply(value)
+            if not age_group:
+                return self._question_response(
+                    "What age range should I keep in mind?",
+                    profile_buttons_for_target("age_group"),
+                )
+            _mem.save(profile_user_id, f"age_group: {age_group}")
+            _state.household_profile_state.pop(device_user_id, None)
+            self._reset_navigation_state(profile_user_id)
+            if original_message:
+                return self.run(original_message, device_user_id, skip_household_router=True)
+            return self._menu_response(
+                f"Thanks, {label}'s profile is ready. What would you like help with?",
+                profile_user_id,
+            )
+
+        return None
 
     def _has_disclaimer_consent(self, user_id: str) -> bool:
         return user_id in _state.accepted_disclaimer_users
@@ -831,6 +1445,9 @@ class NutritionAgent:
         ctx: TurnContext,
     ) -> tuple[str, list[Button] | str]:
         intent = _classify_intent(ctx.user_message, ctx.session)
+        _debug_log(
+            f"new_text_intent user_id={ctx.user_id} intent={intent} message={ctx.user_message!r}"
+        )
 
         if intent == "find resources":
             _state.resources_mode_users.add(ctx.user_id)
@@ -991,24 +1608,67 @@ class NutritionAgent:
             return self._task_response(response, buttons, session)
         return self.run(follow_up, user_id)
 
-    def run(self, user_message: str, user_id: str) -> tuple[str, list[Button] | str]:
+    def run(
+        self,
+        user_message: str,
+        user_id: str,
+        *,
+        skip_household_router: bool = False,
+    ) -> tuple[str, list[Button] | str]:
         """Handle a free-text message from the user. Injects user profile into context."""
         _debug_log(f"run start user_id={user_id} message={user_message!r}")
         disclaimer_gate = self._handle_disclaimer_gate_for_text(user_id)
         if disclaimer_gate is not None:
             _debug_log(f"run returning disclaimer gate for user_id={user_id}")
             return disclaimer_gate
-        ctx = self._build_turn_context(user_message, user_id)
+        if not skip_household_router:
+            setup_reply = self._handle_household_profile_setup_value(user_id, user_message)
+            if setup_reply is not None:
+                return setup_reply
+
+            profile_route = self._profile_route(user_message, user_id)
+
+            profile_command_reply = self._handle_profile_command(
+                user_message,
+                user_id,
+                profile_route,
+            )
+            if profile_command_reply is not None:
+                return profile_command_reply
+
+            profile_picker_reply = self._maybe_profile_picker(user_id, user_message)
+            if profile_picker_reply is not None:
+                return profile_picker_reply
+
+            relationship_reply = self._maybe_relationship_clarification(
+                user_id,
+                user_message,
+                profile_route,
+            )
+            if relationship_reply is not None:
+                return relationship_reply
+
+        active_user_id = self._resolve_active_user_id(user_id)
+        ctx = self._build_turn_context(user_message, active_user_id, device_user_id=user_id)
+
+        if not skip_household_router:
+            contradiction_reply = self._maybe_profile_contradiction_clarification(
+                user_id,
+                user_message,
+                ctx.user_id,
+            )
+            if contradiction_reply is not None:
+                return contradiction_reply
 
         if ctx.user_message.strip().lower() in {"menu", "start", "help"}:
-            return self._menu_response(WELCOME_FALLBACK_MESSAGE, user_id)
+            return self._menu_response(WELCOME_FALLBACK_MESSAGE, ctx.user_id)
 
         eligibility_reply = self._handle_eligibility_turn(ctx)
         if eligibility_reply is not None:
             return eligibility_reply
 
         profile_reply = self._continue_profile_conversation(
-            user_id,
+            ctx.user_id,
             user_message,
             ctx.session,
         )
@@ -1016,7 +1676,7 @@ class NutritionAgent:
             return self._profile_flow_response(
                 profile_reply[0],
                 profile_reply[1],
-                user_id,
+                ctx.user_id,
                 ctx.session,
             )
 
@@ -1034,6 +1694,115 @@ class NutritionAgent:
 
         return self._handle_new_text_intent(ctx)
 
+    def run_image(
+        self,
+        image_path: str,
+        user_id: str,
+        caption: str | None = None,
+        mime_type: str | None = None,
+    ) -> tuple[str, list[Button] | str]:
+        """Handle an image by uploading it into the user's session and prompting with context."""
+        _debug_log(f"run_image start user_id={user_id} image_path={image_path!r}")
+        disclaimer_gate = self._handle_disclaimer_gate_for_text(user_id)
+        if disclaimer_gate is not None:
+            return disclaimer_gate
+
+        device_user_id = user_id
+        user_id = self._resolve_active_user_id(device_user_id)
+        session = _user_session(user_id)
+        profile = self._get_profile(user_id)
+        profile_context = self._format_profile_context(profile)
+        label = _active_profile_label(device_user_id)
+        if label != "Me":
+            profile_context = f"active_profile: {label}\n{profile_context}"
+        user_caption = (caption or "").strip() or "(no caption provided)"
+        try:
+            resolved_mime = mime_type or mimetypes.guess_type(image_path)[0]
+            if not resolved_mime:
+                return (
+                    "I couldn't read that image type. Please send a JPG, PNG, or HEIC image.",
+                    _make_buttons(WELCOME_BUTTONS),
+                )
+            if not resolved_mime.startswith("image/"):
+                return (
+                    "I can only analyze images right now. Please send a JPG, PNG, or HEIC image.",
+                    _make_buttons(WELCOME_BUTTONS),
+                )
+
+            upload_result = _ai.client.upload_media(
+                file_path=image_path,
+                session_id=session,
+                content_type=resolved_mime,
+            )
+            _debug_log(f"run_image upload_result user_id={user_id} result={upload_result!r}")
+            upload_error = upload_result.get("error")
+            if upload_error or not upload_result.get("ok"):
+                upload_payload = upload_result.get("upload") if isinstance(upload_result, dict) else None
+                upload_status = None
+                upload_init = None
+                if isinstance(upload_payload, dict):
+                    upload_status = upload_payload.get("status_code")
+                    upload_init = upload_payload.get("upload_init")
+                _debug_log(
+                    "run_image upload failure summary "
+                    f"user_id={user_id} "
+                    f"session={session} "
+                    f"image_path={image_path!r} "
+                    f"mime={resolved_mime!r} "
+                    f"error={upload_error!r} "
+                    f"status_code={upload_result.get('status_code')!r} "
+                    f"upload_status_code={upload_status!r} "
+                    f"upload_init={upload_init!r}"
+                )
+                _debug_log(
+                    f"run_image upload error user_id={user_id} "
+                    f"error={upload_error or upload_result}"
+                )
+                rate_limited = False
+                if upload_result.get("status_code") == 429 or upload_status == 429:
+                    rate_limited = True
+                if isinstance(upload_init, dict):
+                    init_status = upload_init.get("status_code")
+                    init_error = str(upload_init.get("error", "")).lower()
+                    if init_status == 429 or "429" in init_error or "limit exceeded" in init_error:
+                        rate_limited = True
+                if rate_limited:
+                    return (
+                        "Image service is busy right now. Please wait a few seconds and send the image again.",
+                        _make_buttons(WELCOME_BUTTONS),
+                    )
+                return (
+                    "I couldn't read that image right now. Please try sending it again.",
+                    _make_buttons(WELCOME_BUTTONS),
+                )
+
+            query = (
+                f"[USER PROFILE]\n{profile_context}\n"
+                f"[USER CAPTION]\n{user_caption}"
+            )
+            media_refs = [{"id": upload_result["id"], "type": upload_result["type"]}]
+            image_model = os.getenv("IMAGE_MODEL", "").strip() or None
+            image_lastk_raw = os.getenv("IMAGE_LASTK", "").strip()
+            image_lastk = int(image_lastk_raw) if image_lastk_raw.isdigit() else None
+            response = _ai.ask(
+                image_analysis_prompt,
+                query,
+                session,
+                media=media_refs,
+                model_override=image_model,
+                lastk_override=image_lastk,
+            )
+            _debug_log(f"run_image llm_response user_id={user_id} response={response!r}")
+            clean = re.sub(r"\[Source:[^\]]+\]", "", response).strip()
+            buttons = _generate_buttons(clean, session, fallback_buttons=WELCOME_BUTTONS)
+            return self._task_response(clean, buttons, session)
+        except Exception as exc:
+            _debug_log(f"run_image exception user_id={user_id} error={exc!r}")
+            return (
+                "I couldn't analyze that image right now. Please try again in a moment.",
+                _make_buttons(WELCOME_BUTTONS),
+            )
+
     def run_tool(
         self,
         interaction_id: str,
@@ -1048,9 +1817,23 @@ class NutritionAgent:
         if disclaimer_gate is not None:
             _debug_log(f"run_tool returning disclaimer gate for user_id={user_id}")
             return disclaimer_gate
+        device_user_id = user_id
+        setup_value = profile_button_value(interaction_id, interaction_title) or (interaction_title or "")
+        setup_reply = self._handle_household_profile_setup_value(
+            device_user_id,
+            setup_value,
+            interaction_id=interaction_id,
+        )
+        if setup_reply is not None:
+            return setup_reply
+
+        user_id = self._resolve_active_user_id(device_user_id)
         session = _user_session(user_id)
         profile = self._get_profile(user_id)
         profile_context = self._format_profile_context(profile)
+        label = _active_profile_label(device_user_id)
+        if label != "Me":
+            profile_context = f"active_profile: {label}\n{profile_context}"
         profile_button_text = profile_button_value(interaction_id, interaction_title)
         if profile_button_text and user_id in _state.nutrition_ob_state:
             profile_reply = self._continue_profile_conversation(
@@ -1240,6 +2023,7 @@ class NutritionAgent:
         if disclaimer_gate is not None:
             _debug_log(f"run_location returning disclaimer gate for user_id={user_id}")
             return disclaimer_gate
+        user_id = self._resolve_active_user_id(user_id)
         session = _user_session(user_id)
         _state.user_last_location[user_id] = (lat, lng)
 
