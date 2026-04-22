@@ -26,6 +26,8 @@ Usage (from Nutrition_Bot.py):
 
 import os
 import mimetypes
+import zipfile
+from pathlib import Path
 from AI import AI
 from rag_pipeline import RAGPipeline
 import json
@@ -60,6 +62,8 @@ from prompts import (
     kb_retrieval_router_prompt,
     thanks_tailor_prompt,
     image_analysis_prompt,
+    image_product_extractor_prompt,
+    wic_verifier_prompt,
     RESOURCES_FALLBACK_BUTTONS,
     resources_tool_selector_prompt,
     resources_synthesizer_prompt,
@@ -384,6 +388,111 @@ def _is_wic_item_coverage_question(user_message: str) -> bool:
     return not asks_store_lookup
 
 
+def _is_wic_image_coverage_question(user_caption: str) -> bool:
+    text = (user_caption or "").strip().lower()
+    if not text:
+        return False
+    mentions_wic = "wic" in text
+    asks_coverage = bool(
+        re.search(r"\b(cover|covered|eligible|approved|can i buy|is this|does this)\b", text)
+    )
+    return mentions_wic and asks_coverage
+
+
+def _extract_json_object(raw: str) -> dict | None:
+    text = (raw or "").strip().strip("`").strip()
+    if not text:
+        return None
+    start = text.find("{")
+    if start < 0:
+        return None
+    depth = 0
+    for i in range(start, len(text)):
+        if text[i] == "{":
+            depth += 1
+        elif text[i] == "}":
+            depth -= 1
+            if depth == 0:
+                chunk = text[start : i + 1]
+                try:
+                    parsed = json.loads(chunk)
+                    return parsed if isinstance(parsed, dict) else None
+                except Exception:
+                    try:
+                        parsed = ast.literal_eval(chunk)
+                        return parsed if isinstance(parsed, dict) else None
+                    except Exception:
+                        return None
+    return None
+
+
+_FOOD_GUIDE_DOCX = Path(__file__).parent / "rag_data" / "food-guide.docx"
+_FOOD_GUIDE_TEXT_CACHE: str | None = None
+
+
+def _normalize_match_text(value: str) -> str:
+    text = (value or "").lower()
+    text = text.replace("’", "'")
+    text = re.sub(r"[^a-z0-9\s']", " ", text)
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def _extract_wic_item_hint(user_text: str) -> str:
+    text = (user_text or "").strip()
+    patterns = [
+        r"(?i)\bis\s+(.+?)\s+covered\s+by\s+wic\b",
+        r"(?i)\bis\s+(.+?)\s+wic[-\s]*approved\b",
+        r"(?i)\bdoes\s+wic\s+cover\s+(.+?)\b",
+        r"(?i)\bcan\s+i\s+buy\s+(.+?)\s+with\s+wic\b",
+    ]
+    for pattern in patterns:
+        m = re.search(pattern, text)
+        if m:
+            return re.sub(r"\s+", " ", m.group(1)).strip(" .?!,")
+    return text
+
+
+def _food_guide_contains_item(item_hint: str) -> bool:
+    global _FOOD_GUIDE_TEXT_CACHE
+    normalized_item = _normalize_match_text(item_hint)
+    if not normalized_item or normalized_item in {"it", "this", "that"}:
+        return False
+    if _FOOD_GUIDE_TEXT_CACHE is None:
+        try:
+            with zipfile.ZipFile(_FOOD_GUIDE_DOCX) as zf:
+                xml = zf.read("word/document.xml").decode("utf-8", errors="ignore")
+            xml = xml.replace("</w:p>", "\n")
+            raw_text = re.sub(r"<[^>]+>", " ", xml)
+            _FOOD_GUIDE_TEXT_CACHE = _normalize_match_text(raw_text)
+        except Exception:
+            _FOOD_GUIDE_TEXT_CACHE = ""
+    return normalized_item in (_FOOD_GUIDE_TEXT_CACHE or "")
+
+
+def _sanitize_wic_reason(reason: str) -> str:
+    """Remove internal KB phrasing from user-facing verifier reasons."""
+    text = re.sub(r"\s+", " ", (reason or "").strip())
+    if not text:
+        return ""
+    text = re.sub(r"(?i)\bkb\b", "the Massachusetts WIC guide", text)
+    text = re.sub(r"(?i)\bknowledge base\b", "the Massachusetts WIC guide", text)
+    text = re.sub(r"(?i)\bprovided\b", "", text)
+    text = re.sub(r"\s+", " ", text).strip(" .")
+    return text
+
+
+def _looks_like_upstream_model_error(raw: str) -> bool:
+    text = (raw or "").strip().lower()
+    if not text:
+        return True
+    return (
+        "an error was encountered" in text
+        or "internal server error" in text
+        or "model error" in text
+        or text == "error"
+    )
+
+
 _NON_MA_STATE_PATTERNS = (
     r"\bconnecticut\b",
     r"\bct\b",
@@ -667,7 +776,7 @@ class NutritionAgent:
             )
             return msg, buttons
 
-        if _is_exact_store_fact_question(user_text) or _is_wic_item_coverage_question(user_text):
+        if _is_exact_store_fact_question(user_text):
             full_query = f"[USER PROFILE]\n{profile_context}\n[QUESTION]\n{user_text}"
             response = _rag.query_rag(
                 full_query,
@@ -682,6 +791,57 @@ class NutritionAgent:
                 fallback_buttons=RESOURCES_FALLBACK_BUTTONS,
             )
             return clean, buttons
+
+        if _is_wic_item_coverage_question(user_text):
+            verify_question = f"[USER PROFILE]\n{profile_context}\n[QUESTION]\n{user_text}"
+            kb_context, has_relevant, _ = _rag.get_context(verify_question, user_id=user_id)
+            item_hint = _extract_wic_item_hint(user_text)
+            if not has_relevant or not (kb_context or "").strip():
+                if _food_guide_contains_item(item_hint):
+                    reply = (
+                        "Yes, based on the Massachusetts WIC food guide, that item appears on the approved list."
+                    )
+                else:
+                    reply = (
+                        "I couldn't verify that item from the Massachusetts WIC references I have. "
+                        "Please share the exact brand and product name."
+                    )
+            else:
+                verify_query = (
+                    f"[QUESTION]\n{user_text}\n\n"
+                    f"[KB CONTEXT]\n{kb_context}"
+                )
+                verify_raw = _ai.ask(
+                    wic_verifier_prompt,
+                    verify_query,
+                    session + "_wic_text_verify",
+                    lastk_override=0,
+                ).strip()
+                upper = verify_raw.upper()
+                if upper.startswith("YES:"):
+                    reason = _sanitize_wic_reason(verify_raw.split(":", 1)[1] if ":" in verify_raw else "")
+                    reply = f"Yes, based on Massachusetts WIC guidance. {reason}".strip()
+                elif upper.startswith("NO:"):
+                    reason = _sanitize_wic_reason(verify_raw.split(":", 1)[1] if ":" in verify_raw else "")
+                    reply = f"No, based on Massachusetts WIC guidance. {reason}".strip()
+                else:
+                    if _food_guide_contains_item(item_hint):
+                        reply = (
+                            "Yes, based on the Massachusetts WIC food guide, that item appears on the approved list."
+                        )
+                    else:
+                        reason = _sanitize_wic_reason(verify_raw.split(":", 1)[1] if ":" in verify_raw else "")
+                        reply = (
+                            "I can't confirm that item as WIC-approved from the Massachusetts references. "
+                            + reason
+                        ).strip()
+
+            buttons = _generate_buttons(
+                reply,
+                session,
+                fallback_buttons=RESOURCES_FALLBACK_BUTTONS,
+            )
+            return reply, buttons
 
         explicit_city = _extract_massachusetts_city(user_text)
         if explicit_city and _is_wic_store_list_request(user_text):
@@ -1784,6 +1944,72 @@ class NutritionAgent:
             image_model = os.getenv("IMAGE_MODEL", "").strip() or None
             image_lastk_raw = os.getenv("IMAGE_LASTK", "").strip()
             image_lastk = int(image_lastk_raw) if image_lastk_raw.isdigit() else None
+
+            # WIC photo flow: extract product identity, then run the normal text resources pipeline.
+            if _is_wic_image_coverage_question(user_caption):
+                candidate_models = []
+                if image_model:
+                    candidate_models.append(image_model)
+                for fallback_model in ("4o-mini", "gpt-4.1-mini"):
+                    if fallback_model not in candidate_models:
+                        candidate_models.append(fallback_model)
+
+                extracted: dict = {}
+                extract_raw = ""
+                extract_model_used = ""
+                for candidate_model in candidate_models:
+                    extract_model_used = candidate_model
+                    extract_raw = _ai.ask(
+                        image_product_extractor_prompt,
+                        query,
+                        session,
+                        media=media_refs,
+                        model_override=candidate_model,
+                        lastk_override=0,
+                    )
+                    if _looks_like_upstream_model_error(extract_raw):
+                        _debug_log(
+                            f"run_image wic_extract upstream error user_id={user_id} "
+                            f"model={candidate_model!r} raw={str(extract_raw)[:300]!r}"
+                        )
+                        continue
+                    extracted = _extract_json_object(extract_raw) or {}
+                    if extracted:
+                        break
+
+                product_name = str(extracted.get("product_name") or "").strip()
+                brand = str(extracted.get("brand") or "").strip()
+                food_type = str(extracted.get("food_type") or "").strip()
+                item_text_core = " ".join([brand, product_name]).strip()
+                item_text = item_text_core or " ".join([brand, product_name, food_type]).strip() or "unknown item"
+                _debug_log(
+                    f"run_image wic_extract user_id={user_id} item_text={item_text!r} "
+                    f"brand={brand!r} product_name={product_name!r} food_type={food_type!r} "
+                    f"model={extract_model_used!r}"
+                )
+                if item_text == "unknown item":
+                    _debug_log(
+                        f"run_image wic_extract raw user_id={user_id} raw={str(extract_raw)[:500]!r}"
+                    )
+                if _looks_like_upstream_model_error(extract_raw):
+                    reply = (
+                        "The image service had a temporary error while reading this label. "
+                        "Please try sending the image again in a few seconds."
+                    )
+                    buttons = _generate_buttons(reply, session, fallback_buttons=WELCOME_BUTTONS)
+                    return self._task_response(reply, buttons, session)
+                if item_text == "unknown item":
+                    reply = (
+                        "I couldn't read the product name clearly from the image. "
+                        "Please send a clearer photo of the front label and size."
+                    )
+                    buttons = _generate_buttons(reply, session, fallback_buttons=WELCOME_BUTTONS)
+                    return self._task_response(reply, buttons, session)
+
+                synthetic_text = f"Is {item_text} covered by WIC in Massachusetts?"
+                reply, buttons = self._resources_turn(synthetic_text, user_id)
+                return self._task_response(reply, buttons, session)
+
             response = _ai.ask(
                 image_analysis_prompt,
                 query,
