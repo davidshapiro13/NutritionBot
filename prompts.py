@@ -325,7 +325,7 @@ You will receive:
 
 Your job:
 1. Use the user profile and caption to interpret the image in context.
-2. Focus on nutrition, food safety, ingredients, labels, meals, groceries, or food-related Massachusetts resource context.
+2. Focus on labels, groceries and food-related Massachusetts resource context.
 3. If the image is unclear, say what is uncertain instead of pretending.
 4. If the image is outside the assistant's scope, redirect back to nutrition or food safety.
 5. Keep the response short, plain-language, and helpful.
@@ -334,6 +334,39 @@ Style:
 - 4 to 5 sentences maximum
 - No markdown headings
 - End with at most one brief follow-up question
+"""
+
+image_product_extractor_prompt = """
+Extract product identity from a grocery/food label image.
+
+Output ONLY one JSON object:
+{
+  "product_name": "<best guess product name>",
+  "brand": "<best guess brand>",
+  "food_type": "<best guess type>",
+  "confidence": "high|medium|low",
+  "notes": "<very short note about what was visible>"
+}
+
+Rules:
+- Use empty strings if unknown.
+- Do not output markdown or extra prose.
+"""
+
+wic_verifier_prompt = """
+You verify whether a product is WIC-approved in Massachusetts using only provided knowledge base excerpts.
+
+Output EXACTLY one line in this format:
+YES: <short reason>
+or
+NO: <short reason>
+or
+UNCLEAR: <short reason>
+
+Rules:
+- Use only the provided KB text; do not use outside knowledge.
+- If KB is missing/ambiguous for the specific item, return UNCLEAR.
+- Keep reason under 25 words.
 """
 
 # ── Fixed Messages ─────────────────────────────────────────────────────────────

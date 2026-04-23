@@ -22,3 +22,13 @@ so you think the user_last_location is why the whatsapp isn't asking for my loca
 
 This is weird. When I ask a question about Connecticut it answers even though my prompt says not to answer about other states.
 
+The image identification is not giving clear yes or no answers
+
+Get rid of the forced yes no. DO the extract and determinisitc check
+
+with: "Is country kitchen 100% whole wheat bread covered by WIC?", we are getting no even tho it is covered - what could be going on?
+
+Ok - if I put it in text it works but not with photo even though it extracted needed info - explain the photo -> classification pipeline
+
+I don't want it referring to KB in the answers
+
