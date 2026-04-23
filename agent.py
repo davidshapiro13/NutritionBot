@@ -109,7 +109,7 @@ import re
 # ── Shared instances (loaded once at startup) ─────────────────────────────────
 _ai  = AI()
 _rag = RAGPipeline()
-_rag.build_public_index()
+# _rag.build_public_index()  # Control experiment: RAG disabled — skip index build at startup
 _mem = UserMemory(embed_model=None)
 BLANK_PROFILE = "(no profile info)"
 DISCLAIMER_BUTTONS = [
@@ -209,6 +209,7 @@ def _debug_log(message: str) -> None:
 
 def _should_use_rag_food_safety(user_text: str, session_id: str) -> bool:
     """LLM routes whether this food-safety turn should use RAG (default yes if unclear)."""
+    return False  # Control experiment: RAG disabled
     text = (user_text or "").strip().lower()
     if not text:
         return False
@@ -232,6 +233,7 @@ def _should_use_rag_food_safety(user_text: str, session_id: str) -> bool:
 
 def _should_retrieve_public_kb(user_message: str, session_id: str, lane: str) -> bool:
     """LLM routes nutrition/resources KB retrieval (default yes if unclear)."""
+    return False  # Control experiment: RAG disabled
     text = (user_message or "").strip().lower()
     if not text or text in {"thanks", "thank you", "ok", "okay", "yes", "no"}:
         return False
@@ -978,7 +980,7 @@ class NutritionAgent:
             )
             return deterministic_store_reply, buttons
 
-        if _is_exact_store_fact_question(user_text):
+        if False and _is_exact_store_fact_question(user_text):  # Control experiment: RAG disabled
             full_query = f"[USER PROFILE]\n{profile_context}\n[QUESTION]\n{user_text}"
             response = _rag.query_rag(
                 full_query,
@@ -999,7 +1001,7 @@ class NutritionAgent:
                 f"wic_text_verify_path user_id={user_id} active=True question={user_text!r}"
             )
             verify_question = f"[USER PROFILE]\n{profile_context}\n[QUESTION]\n{user_text}"
-            kb_context, has_relevant, _ = _rag.get_context(verify_question, user_id=user_id)
+            kb_context, has_relevant, _ = "", False, []  # Control experiment: RAG disabled
             item_hint = _extract_wic_item_hint(user_text)
             _debug_log(
                 f"wic_text_verify_context user_id={user_id} has_relevant={has_relevant} item_hint={item_hint!r}"

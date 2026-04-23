@@ -29,8 +29,8 @@ def run_resources_turn(
     profile_context = get_profile_context(user_id)
     summary = resources_conversation_summary.get(user_id, "(none)")
     retrieval_q = (user_text or "").strip() or "Massachusetts WIC SNAP food assistance resources"
-    kb_block = ""
-    if should_retrieve_public_kb(retrieval_q, session, "resources"):
+    kb_block = ""  # Control experiment: RAG disabled; kb_block stays empty
+    if False and should_retrieve_public_kb(retrieval_q, session, "resources"):  # Control experiment: RAG disabled
         try:
             ctx, _has_rel, _src = rag.get_context(retrieval_q, user_id=user_id)
             if ctx and str(ctx).strip():
