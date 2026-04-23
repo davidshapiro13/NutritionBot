@@ -74,6 +74,10 @@ async def handle_event(event: BaseEvent):
             image_path: Path | None = None
             t0 = time.monotonic()
             try:
+                print(
+                    "[DEBUG] image event caption "
+                    f"user_id={event.user_id} caption={getattr(event, 'caption', None)!r}"
+                )
                 t_dl = time.monotonic()
                 media_bytes = download_media(event.media_uri)
                 t_dl_done = time.monotonic()

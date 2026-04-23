@@ -27,6 +27,8 @@ Usage (from Nutrition_Bot.py):
 import os
 import mimetypes
 import zipfile
+import csv
+from difflib import SequenceMatcher
 from pathlib import Path
 from AI import AI
 from rag_pipeline import RAGPipeline
@@ -286,6 +288,16 @@ def _is_exact_store_fact_question(user_message: str) -> bool:
         )
     ) or bool(re.search(r"\b\d{1,6}\s+.+\b(street|st|avenue|ave|boulevard|blvd|road|rd|drive|dr|lane|ln|parkway|pkwy)\b", text))
 
+    # Handle city + store-name + WIC style questions even for stores not in the hardcoded chain list.
+    mentions_store_like_phrase = bool(
+        re.search(r"\b([a-z0-9&'’.\-]+\s+){0,5}(store|market|shop|co-?op|pharmacy|drugstore)\b", text)
+    )
+    mentions_city_phrase = bool(
+        re.search(r"\bin\s+[a-z][a-z\s'\-]{1,40}(,\s*ma|\s+ma)?\b", text)
+        or re.search(r"\b[a-z][a-z\s'\-]{1,40},\s*ma\b", text)
+    )
+    mentions_specific_store = mentions_specific_store or (mentions_store_like_phrase and mentions_city_phrase)
+
     asks_proximity = bool(
         re.search(
             r"\b(closest|nearest|nearby|near me|around me|closer|distance|how far|from my house|from where i live)\b",
@@ -380,11 +392,22 @@ def _is_wic_item_coverage_question(user_message: str) -> bool:
     # Keep store/location lookups on the store tool path.
     asks_store_lookup = bool(
         re.search(
-            r"\b(store|stores|nearest|nearby|near me|closest|address|hours|phone|"
+            r"\b(store|stores|market|supermarket|shop|co-?op|pharmacy|drugstore|"
+            r"nearest|nearby|near me|closest|address|hours|phone|"
             r"open|close|location|map|directions)\b",
             text,
         )
     )
+    mentions_place_pattern = bool(
+        re.search(
+            r"\b(at|in)\s+[a-z0-9][a-z0-9\s&'.,-]{2,}\b",
+            text,
+        )
+    )
+    # "in Massachusetts" is common in item-coverage wording; do not treat it as store lookup.
+    if "in massachusetts" in text:
+        mentions_place_pattern = False
+    asks_store_lookup = asks_store_lookup or mentions_place_pattern
     return not asks_store_lookup
 
 
@@ -428,6 +451,9 @@ def _extract_json_object(raw: str) -> dict | None:
 
 _FOOD_GUIDE_DOCX = Path(__file__).parent / "rag_data" / "food-guide.docx"
 _FOOD_GUIDE_TEXT_CACHE: str | None = None
+_FOOD_GUIDE_LINES_CACHE: list[str] | None = None
+_WIC_STORES_CSV = Path(__file__).parent / "rag_data" / "ma_wic_approved_stores.csv"
+_WIC_STORE_ROWS_CACHE: list[dict] | None = None
 
 
 def _normalize_match_text(value: str) -> str:
@@ -452,21 +478,54 @@ def _extract_wic_item_hint(user_text: str) -> str:
     return text
 
 
+def _item_match_tokens(item_hint: str) -> list[str]:
+    text = _normalize_match_text(item_hint)
+    stop = {
+        "is", "this", "that", "covered", "cover", "by", "wic", "in", "massachusetts",
+        "can", "i", "buy", "with", "the", "a", "an", "and", "or", "of", "for",
+    }
+    tokens = [t for t in text.split() if t and t not in stop]
+    return tokens
+
+
+def _load_food_guide_caches() -> None:
+    global _FOOD_GUIDE_TEXT_CACHE, _FOOD_GUIDE_LINES_CACHE
+    if _FOOD_GUIDE_TEXT_CACHE is not None and _FOOD_GUIDE_LINES_CACHE is not None:
+        return
+    try:
+        with zipfile.ZipFile(_FOOD_GUIDE_DOCX) as zf:
+            xml = zf.read("word/document.xml").decode("utf-8", errors="ignore")
+        xml = xml.replace("</w:p>", "\n")
+        raw_text = re.sub(r"<[^>]+>", " ", xml)
+        _FOOD_GUIDE_TEXT_CACHE = _normalize_match_text(raw_text)
+        raw_lines = [line.strip() for line in raw_text.splitlines() if line.strip()]
+        _FOOD_GUIDE_LINES_CACHE = [_normalize_match_text(line) for line in raw_lines]
+    except Exception:
+        _FOOD_GUIDE_TEXT_CACHE = ""
+        _FOOD_GUIDE_LINES_CACHE = []
+
+
 def _food_guide_contains_item(item_hint: str) -> bool:
-    global _FOOD_GUIDE_TEXT_CACHE
+    global _FOOD_GUIDE_TEXT_CACHE, _FOOD_GUIDE_LINES_CACHE
     normalized_item = _normalize_match_text(item_hint)
     if not normalized_item or normalized_item in {"it", "this", "that"}:
         return False
-    if _FOOD_GUIDE_TEXT_CACHE is None:
-        try:
-            with zipfile.ZipFile(_FOOD_GUIDE_DOCX) as zf:
-                xml = zf.read("word/document.xml").decode("utf-8", errors="ignore")
-            xml = xml.replace("</w:p>", "\n")
-            raw_text = re.sub(r"<[^>]+>", " ", xml)
-            _FOOD_GUIDE_TEXT_CACHE = _normalize_match_text(raw_text)
-        except Exception:
-            _FOOD_GUIDE_TEXT_CACHE = ""
-    return normalized_item in (_FOOD_GUIDE_TEXT_CACHE or "")
+    _load_food_guide_caches()
+    food_text = _FOOD_GUIDE_TEXT_CACHE or ""
+    if normalized_item in food_text:
+        return True
+
+    tokens = _item_match_tokens(item_hint)
+    if len(tokens) < 2:
+        return False
+
+    required_hits = len(tokens) if len(tokens) <= 3 else max(3, len(tokens) - 1)
+    lines = _FOOD_GUIDE_LINES_CACHE or []
+    for line in lines:
+        hits = sum(1 for token in tokens if token in line)
+        if hits >= required_hits:
+            return True
+    return False
 
 
 def _sanitize_wic_reason(reason: str) -> str:
@@ -479,6 +538,137 @@ def _sanitize_wic_reason(reason: str) -> str:
     text = re.sub(r"(?i)\bprovided\b", "", text)
     text = re.sub(r"\s+", " ", text).strip(" .")
     return text
+
+
+def _is_profile_attribute_query(user_message: str) -> bool:
+    """
+    True when user asks what facts are saved about them (name, age, allergies, etc.),
+    which should go through normal response flow instead of shared-profile routing.
+    """
+    text = re.sub(r"\s+", " ", (user_message or "").strip().lower())
+    if not text:
+        return False
+    asks_about_self = bool(
+        re.search(
+            r"\b(what (do you know|is my|are my)|tell me (about me|what you know)|"
+            r"my (name|gender|age|age_group|allerg|condition|profile))\b",
+            text,
+        )
+    )
+    mentions_profile_fields = bool(
+        re.search(
+            r"\b(name|gender|age|age_group|allerg|health condition|conditions|preferences|profile)\b",
+            text,
+        )
+    )
+    return asks_about_self and mentions_profile_fields
+
+
+def _normalize_store_text(value: str) -> str:
+    text = (value or "").lower().replace("&", " and ").replace("’", "'")
+    text = re.sub(r"[^a-z0-9\s']", " ", text)
+    text = re.sub(r"\b(co[\s\-]?op)\b", "coop", text)
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def _load_wic_store_rows() -> list[dict]:
+    global _WIC_STORE_ROWS_CACHE
+    if _WIC_STORE_ROWS_CACHE is not None:
+        return _WIC_STORE_ROWS_CACHE
+    rows: list[dict] = []
+    try:
+        with _WIC_STORES_CSV.open(encoding="utf-8", newline="") as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                rows.append({
+                    "store": (row.get("store") or "").strip(),
+                    "city": (row.get("city") or "").strip(),
+                    "address": (row.get("address") or "").strip(),
+                    "zip": (row.get("zip") or "").strip(),
+                })
+    except Exception:
+        rows = []
+    _WIC_STORE_ROWS_CACHE = rows
+    return rows
+
+
+def _extract_store_wic_query_parts(user_text: str) -> tuple[str | None, str | None]:
+    text = (user_text or "").strip()
+    if not re.search(r"(?i)\bwic\b", text):
+        return None, None
+    if not re.search(r"(?i)\b(covered by wic|cover wic|accept wic|take wic)\b", text):
+        return None, None
+
+    store_name = None
+    city = None
+
+    m = re.search(
+        r"(?i)\b(?:is|does)\s+(?:the\s+)?(.+?)\s+in\s+([a-z][a-z\s'\-]{1,40}?)(?:,\s*ma|\s+ma)?\s+(?:covered|cover|accept|take)\b",
+        text,
+    )
+    if m:
+        store_name = m.group(1).strip(" .?,!")
+        city = m.group(2).strip(" .?,!")
+    else:
+        m2 = re.search(
+            r"(?i)\b(?:is|does)\s+(?:the\s+)?(.+?)\s+(?:at\s+\d|covered|cover|accept|take)\b",
+            text,
+        )
+        if m2:
+            store_name = m2.group(1).strip(" .?,!")
+        city_m = re.search(r"(?i)\bin\s+([a-z][a-z\s'\-]{1,40})(?:,\s*ma|\s+ma)\b", text)
+        if city_m:
+            city = city_m.group(1).strip(" .?,!")
+
+    if store_name:
+        store_name = re.sub(r"(?i)^the\s+", "", store_name).strip()
+    return store_name or None, city or None
+
+
+def _deterministic_store_wic_reply(user_text: str) -> str | None:
+    store_name, city = _extract_store_wic_query_parts(user_text)
+    if not store_name:
+        return None
+
+    rows = _load_wic_store_rows()
+    if not rows:
+        return None
+
+    normalized_query = _normalize_store_text(store_name)
+    normalized_city = _normalize_store_text(city or "")
+
+    candidates = rows
+    if normalized_city:
+        by_city = [r for r in rows if _normalize_store_text(r.get("city", "")) == normalized_city]
+        if by_city:
+            candidates = by_city
+
+    best_row = None
+    best_score = 0.0
+    for row in candidates:
+        store = row.get("store", "")
+        normalized_store = _normalize_store_text(store)
+        if not normalized_store:
+            continue
+        score = SequenceMatcher(None, normalized_query, normalized_store).ratio()
+        if normalized_query and normalized_query in normalized_store:
+            score = max(score, 0.95)
+        if score > best_score:
+            best_score = score
+            best_row = row
+
+    if best_row and best_score >= 0.72:
+        return (
+            f"Yes, {best_row['store']} appears in the Massachusetts WIC-authorized store list"
+            f"{' for ' + best_row['city'] if best_row.get('city') else ''}."
+        )
+
+    if normalized_city:
+        return (
+            f"No, {store_name} is not listed as a Massachusetts WIC-authorized store"
+            f"{' in ' + city if city else ''}."
+        )
+    return None
 
 
 def _looks_like_upstream_model_error(raw: str) -> bool:
@@ -776,6 +966,18 @@ class NutritionAgent:
             )
             return msg, buttons
 
+        deterministic_store_reply = _deterministic_store_wic_reply(user_text)
+        if deterministic_store_reply is not None:
+            _debug_log(
+                f"wic_store_deterministic_path user_id={user_id} active=True question={user_text!r}"
+            )
+            buttons = _generate_buttons(
+                deterministic_store_reply,
+                session,
+                fallback_buttons=RESOURCES_FALLBACK_BUTTONS,
+            )
+            return deterministic_store_reply, buttons
+
         if _is_exact_store_fact_question(user_text):
             full_query = f"[USER PROFILE]\n{profile_context}\n[QUESTION]\n{user_text}"
             response = _rag.query_rag(
@@ -793,15 +995,27 @@ class NutritionAgent:
             return clean, buttons
 
         if _is_wic_item_coverage_question(user_text):
+            _debug_log(
+                f"wic_text_verify_path user_id={user_id} active=True question={user_text!r}"
+            )
             verify_question = f"[USER PROFILE]\n{profile_context}\n[QUESTION]\n{user_text}"
             kb_context, has_relevant, _ = _rag.get_context(verify_question, user_id=user_id)
             item_hint = _extract_wic_item_hint(user_text)
+            _debug_log(
+                f"wic_text_verify_context user_id={user_id} has_relevant={has_relevant} item_hint={item_hint!r}"
+            )
             if not has_relevant or not (kb_context or "").strip():
                 if _food_guide_contains_item(item_hint):
+                    _debug_log(
+                        f"wic_text_verify_fallback user_id={user_id} matched_food_guide=True"
+                    )
                     reply = (
                         "Yes, based on the Massachusetts WIC food guide, that item appears on the approved list."
                     )
                 else:
+                    _debug_log(
+                        f"wic_text_verify_fallback user_id={user_id} matched_food_guide=False"
+                    )
                     reply = (
                         "I couldn't verify that item from the Massachusetts WIC references I have. "
                         "Please share the exact brand and product name."
@@ -817,6 +1031,9 @@ class NutritionAgent:
                     session + "_wic_text_verify",
                     lastk_override=0,
                 ).strip()
+                _debug_log(
+                    f"wic_text_verify_raw user_id={user_id} raw={verify_raw!r}"
+                )
                 upper = verify_raw.upper()
                 if upper.startswith("YES:"):
                     reason = _sanitize_wic_reason(verify_raw.split(":", 1)[1] if ":" in verify_raw else "")
@@ -1125,6 +1342,8 @@ class NutritionAgent:
         device_user_id: str,
         route: ProfileRoute | None = None,
     ) -> tuple[str, list[Button] | str] | None:
+        if _is_profile_attribute_query(user_message):
+            return None
         route = route or self._profile_route(user_message, device_user_id)
         if route.action == "none":
             return None
@@ -1876,6 +2095,11 @@ class NutritionAgent:
         if label != "Me":
             profile_context = f"active_profile: {label}\n{profile_context}"
         user_caption = (caption or "").strip() or "(no caption provided)"
+        wic_image_query = _is_wic_image_coverage_question(user_caption)
+        _debug_log(
+            f"run_image caption_parse user_id={user_id} caption={user_caption!r} "
+            f"is_wic_image_query={wic_image_query}"
+        )
         try:
             resolved_mime = mime_type or mimetypes.guess_type(image_path)[0]
             if not resolved_mime:
@@ -1946,7 +2170,7 @@ class NutritionAgent:
             image_lastk = int(image_lastk_raw) if image_lastk_raw.isdigit() else None
 
             # WIC photo flow: extract product identity, then run the normal text resources pipeline.
-            if _is_wic_image_coverage_question(user_caption):
+            if wic_image_query:
                 candidate_models = []
                 if image_model:
                     candidate_models.append(image_model)
