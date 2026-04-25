@@ -35,10 +35,12 @@ from rag_pipeline import RAGPipeline
 import json
 from benchmark_locations import lookup_benchmark_coordinates as _lookup_benchmark_coordinates
 from multi_user import (
+    GENERIC_PROFILE_LABELS,
     active_profile_label as _active_profile_label,
     add_or_switch_profile as _add_or_switch_profile,
     effective_user_id as _effective_user_id,
     list_profiles as _list_profiles,
+    rename_active_profile as _rename_active_profile,
     switch_profile_by_id as _switch_profile_by_id,
 )
 from profile_router import (
@@ -137,6 +139,8 @@ HOUSEHOLD_CONTRADICTION_BUTTONS = [
     {"id": "hh_contra_other", "title": "Someone else"},
 ]
 
+HOUSEHOLD_NAME_PROMPT = "What should I call this person's Nura profile?"
+
 _DISALLOWED_BUTTON_PATTERNS = (
     r"\bcall\b",
     r"\blocation\b",
@@ -205,6 +209,11 @@ def _generate_buttons(
 
 def _debug_log(message: str) -> None:
     print(f"[DEBUG] {message}")
+
+
+def _is_generic_profile_label(label: str | None) -> bool:
+    normalized = re.sub(r"\s+", " ", label or "").strip(" .,!?:;").lower()
+    return normalized in GENERIC_PROFILE_LABELS
 
 
 def _should_use_rag_food_safety(user_text: str, session_id: str) -> bool:
@@ -1375,7 +1384,7 @@ class NutritionAgent:
         if action == "ask_name":
             _state.household_profile_state[device_user_id] = {"stage": "name"}
             return self._question_response(
-                "Sure. What should I call this person's Nura profile?"
+                f"Sure. {HOUSEHOLD_NAME_PROMPT}"
             )
 
         if action == "current":
@@ -1403,6 +1412,9 @@ class NutritionAgent:
             )
 
         if action == "switch" and label:
+            if _is_generic_profile_label(label):
+                _state.household_profile_state[device_user_id] = {"stage": "name"}
+                return self._question_response(HOUSEHOLD_NAME_PROMPT)
             return self._switch_household_profile(device_user_id, label)
 
         return self._question_response(PROFILE_COMMAND_HELP)
@@ -1447,6 +1459,35 @@ class NutritionAgent:
         return self._question_response(
             f"Who's using Nura right now? I'm currently set to {active}.",
             self._profile_picker_buttons(device_user_id),
+        )
+
+    def _maybe_start_named_household_profile_from_onboarding(
+        self,
+        device_user_id: str,
+        value: str,
+        interaction_id: str | None = None,
+    ) -> tuple[str, list[Button] | str] | None:
+        active_user_id = self._resolve_active_user_id(device_user_id)
+        profile_state = _state.nutrition_ob_state.get(active_user_id) or {}
+        if profile_state.get("target") != "asking_for":
+            return None
+        if interaction_id != "profile_asking_other" and not _is_generic_profile_label(value):
+            return None
+        _state.nutrition_ob_state.pop(active_user_id, None)
+        _state.household_profile_state[device_user_id] = {"stage": "name"}
+        return self._question_response(HOUSEHOLD_NAME_PROMPT)
+
+    def _maybe_request_name_for_generic_active_profile(
+        self,
+        device_user_id: str,
+    ) -> tuple[str, list[Button] | str] | None:
+        if device_user_id in _state.household_profile_state:
+            return None
+        if not _is_generic_profile_label(_active_profile_label(device_user_id)):
+            return None
+        _state.household_profile_state[device_user_id] = {"stage": "rename_active_name"}
+        return self._question_response(
+            "What name should I use for this Nura profile so you can switch back to it later?"
         )
 
     def _maybe_relationship_clarification(
@@ -1584,7 +1625,7 @@ class NutritionAgent:
         if stage == "profile_picker":
             if interaction_id == "hh_profile_new":
                 _state.household_profile_state[device_user_id] = {"stage": "name"}
-                return self._question_response("What should I call this person's Nura profile?")
+                return self._question_response(HOUSEHOLD_NAME_PROMPT)
 
             choices = pending.get("choices") or {}
             profile_id = choices.get(interaction_id or "")
@@ -1595,6 +1636,11 @@ class NutritionAgent:
                 self._reset_navigation_state(old_user_id)
                 self._reset_navigation_state(new_user_id)
                 _state.household_profile_state.pop(device_user_id, None)
+                if _is_generic_profile_label(active_label):
+                    _state.household_profile_state[device_user_id] = {"stage": "rename_active_name"}
+                    return self._question_response(
+                        "What name should I use for this Nura profile so you can switch back to it later?"
+                    )
                 return self._menu_response(
                     f"Switched to {_profile_possessive(active_label)} Nura profile.",
                     new_user_id,
@@ -1652,7 +1698,7 @@ class NutritionAgent:
                     "stage": "name",
                     "original_message": original_message,
                 }
-                return self._question_response("What should I call this person's Nura profile?")
+                return self._question_response(HOUSEHOLD_NAME_PROMPT)
             return self._question_response(
                 "Is this for the current profile, or is someone else using Nura?",
                 _make_buttons(HOUSEHOLD_CONTRADICTION_BUTTONS),
@@ -1661,12 +1707,28 @@ class NutritionAgent:
         if stage == "name":
             original_message = pending.get("original_message")
             label = _normalize_text(value).strip(" .,!?:;")
-            if not label:
+            if not label or _is_generic_profile_label(label):
                 return self._question_response("What should I call this profile?")
             return self._switch_household_profile(
                 device_user_id,
                 label,
                 original_message=original_message,
+            )
+
+        if stage == "rename_active_name":
+            label = _normalize_text(value).strip(" .,!?:;")
+            if not label or _is_generic_profile_label(label):
+                return self._question_response("What name should I use for this Nura profile?")
+            renamed = _rename_active_profile(device_user_id, label)
+            if not renamed:
+                return self._question_response("What name should I use for this Nura profile?")
+            active_label, profile_user_id = renamed
+            _mem.save(profile_user_id, f"name: {active_label}\nasking_for: self")
+            _state.household_profile_state.pop(device_user_id, None)
+            self._reset_navigation_state(profile_user_id)
+            return self._menu_response(
+                f"Thanks, I renamed this profile to {active_label}.",
+                profile_user_id,
             )
 
         if stage == "age_group":
@@ -2025,6 +2087,13 @@ class NutritionAgent:
             if setup_reply is not None:
                 return setup_reply
 
+            named_profile_reply = self._maybe_start_named_household_profile_from_onboarding(
+                user_id,
+                user_message,
+            )
+            if named_profile_reply is not None:
+                return named_profile_reply
+
             profile_route = self._profile_route(user_message, user_id)
 
             profile_command_reply = self._handle_profile_command(
@@ -2034,6 +2103,10 @@ class NutritionAgent:
             )
             if profile_command_reply is not None:
                 return profile_command_reply
+
+            generic_profile_reply = self._maybe_request_name_for_generic_active_profile(user_id)
+            if generic_profile_reply is not None:
+                return generic_profile_reply
 
             profile_picker_reply = self._maybe_profile_picker(user_id, user_message)
             if profile_picker_reply is not None:
@@ -2296,6 +2369,16 @@ class NutritionAgent:
         )
         if setup_reply is not None:
             return setup_reply
+        generic_profile_reply = self._maybe_request_name_for_generic_active_profile(device_user_id)
+        if generic_profile_reply is not None:
+            return generic_profile_reply
+        named_profile_reply = self._maybe_start_named_household_profile_from_onboarding(
+            device_user_id,
+            setup_value,
+            interaction_id=interaction_id,
+        )
+        if named_profile_reply is not None:
+            return named_profile_reply
 
         user_id = self._resolve_active_user_id(device_user_id)
         session = _user_session(user_id)
