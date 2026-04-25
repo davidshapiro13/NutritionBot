@@ -422,6 +422,25 @@ def _is_wic_image_coverage_question(user_caption: str) -> bool:
     return mentions_wic and asks_coverage
 
 
+def _is_default_profile_label(label: str | None) -> bool:
+    return _normalize_text(label or "").lower() in {"", "me", "myself", "default"}
+
+
+def _profile_subject(label: str | None) -> str:
+    if _is_default_profile_label(label):
+        return "you"
+    return _normalize_text(label or "this person")
+
+
+def _profile_possessive(label: str | None) -> str:
+    clean = _normalize_text(label or "")
+    if _is_default_profile_label(clean):
+        return "your"
+    if clean.endswith(("s", "S")):
+        return f"{clean}'"
+    return f"{clean}'s"
+
+
 def _extract_json_object(raw: str) -> dict | None:
     text = (raw or "").strip().strip("`").strip()
     if not text:
@@ -1362,7 +1381,7 @@ class NutritionAgent:
         if action == "current":
             active_label = _active_profile_label(device_user_id)
             return self._menu_response(
-                f"You're using {active_label}'s Nura profile on this device.",
+                f"You're using {_profile_possessive(active_label)} Nura profile on this device.",
                 self._resolve_active_user_id(device_user_id),
             )
 
@@ -1476,13 +1495,14 @@ class NutritionAgent:
         if not check.needs_clarification:
             return None
         label = _active_profile_label(device_user_id)
+        subject = _profile_subject(label)
         saved_fact = check.saved_fact or "something saved in this profile"
         _state.household_profile_state[device_user_id] = {
             "stage": "contradiction_clarify",
             "original_message": user_message,
         }
         return self._question_response(
-            f"Quick check: I have {saved_fact} saved for {label}. Is this for {label}, or is someone else using Nura?",
+            f"Quick check: I have {saved_fact} saved for {subject}. Is this for {subject}, or is someone else using Nura?",
             _make_buttons(HOUSEHOLD_CONTRADICTION_BUTTONS),
         )
 
@@ -1521,7 +1541,7 @@ class NutritionAgent:
                 "original_message": original_message,
             }
             return self._question_response(
-                f"Got it, I'll use {active_label}'s profile. What age range should I keep in mind?",
+                f"Got it, I'll use {_profile_possessive(active_label)} profile. What age range should I keep in mind?",
                 profile_buttons_for_target("age_group"),
             )
 
@@ -1529,7 +1549,7 @@ class NutritionAgent:
         if original_message:
             return self.run(original_message, device_user_id, skip_household_router=True)
         return self._menu_response(
-            f"Switched to {active_label}'s Nura profile.",
+            f"Switched to {_profile_possessive(active_label)} Nura profile.",
             new_user_id,
         )
 
@@ -1576,7 +1596,7 @@ class NutritionAgent:
                 self._reset_navigation_state(new_user_id)
                 _state.household_profile_state.pop(device_user_id, None)
                 return self._menu_response(
-                    f"Switched to {active_label}'s Nura profile.",
+                    f"Switched to {_profile_possessive(active_label)} Nura profile.",
                     new_user_id,
                 )
 
@@ -1665,7 +1685,7 @@ class NutritionAgent:
             if original_message:
                 return self.run(original_message, device_user_id, skip_household_router=True)
             return self._menu_response(
-                f"Thanks, {label}'s profile is ready. What would you like help with?",
+                f"Thanks, {_profile_possessive(label)} profile is ready. What would you like help with?",
                 profile_user_id,
             )
 
@@ -2285,6 +2305,8 @@ class NutritionAgent:
         if label != "Me":
             profile_context = f"active_profile: {label}\n{profile_context}"
         profile_button_text = profile_button_value(interaction_id, interaction_title)
+        if not profile_button_text and user_id in _state.nutrition_ob_state:
+            profile_button_text = interaction_title or ""
         if profile_button_text and user_id in _state.nutrition_ob_state:
             profile_reply = self._continue_profile_conversation(
                 user_id,
