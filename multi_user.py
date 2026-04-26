@@ -16,6 +16,19 @@ from pathlib import Path
 PROFILE_DIR = Path(__file__).parent / "user_profiles"
 DEFAULT_PROFILE_ID = "default"
 DEFAULT_PROFILE_LABEL = "Me"
+GENERIC_PROFILE_LABELS = {
+    "a different person",
+    "a different user",
+    "a new person",
+    "a new user",
+    "another person",
+    "different person",
+    "different user",
+    "new person",
+    "new user",
+    "other person",
+    "someone else",
+}
 
 
 def _profile_file(device_user_id: str) -> Path:
@@ -103,6 +116,31 @@ def switch_profile_by_id(device_user_id: str, profile_id: str) -> str | None:
     return profiles[profile_id].get("label") or DEFAULT_PROFILE_LABEL
 
 
+def rename_active_profile(device_user_id: str, label: str) -> tuple[str, str] | None:
+    """Rename the active non-default profile and return (label, user_key)."""
+    cleaned = re.sub(r"\s+", " ", label or "").strip()
+    if (
+        not cleaned
+        or cleaned.lower() in {"me", "myself", "main", "default"}
+        or cleaned.lower() in GENERIC_PROFILE_LABELS
+    ):
+        return None
+
+    data = _ensure_default(device_user_id, _load(device_user_id))
+    active_id = data.get("active_profile_id") or DEFAULT_PROFILE_ID
+    if active_id == DEFAULT_PROFILE_ID:
+        return None
+
+    profiles = data["profiles"]
+    active = profiles.get(active_id)
+    if not active:
+        return None
+
+    active["label"] = cleaned
+    _save(device_user_id, data)
+    return cleaned, active.get("user_key") or f"{device_user_id}__{active_id}"
+
+
 def add_or_switch_profile(device_user_id: str, label: str) -> tuple[str, bool]:
     """Create profile if needed, make it active, and return (label, created)."""
     cleaned = re.sub(r"\s+", " ", label or "").strip()
@@ -116,6 +154,8 @@ def add_or_switch_profile(device_user_id: str, label: str) -> tuple[str, bool]:
         data["active_profile_id"] = DEFAULT_PROFILE_ID
         _save(device_user_id, data)
         return profiles[DEFAULT_PROFILE_ID].get("label", DEFAULT_PROFILE_LABEL), False
+    if cleaned.lower() in GENERIC_PROFILE_LABELS:
+        cleaned = DEFAULT_PROFILE_LABEL
 
     for profile_id, profile in profiles.items():
         if (profile.get("label") or "").strip().lower() == cleaned.lower():
@@ -227,6 +267,8 @@ def parse_profile_intent(text: str) -> tuple[str, str | None] | None:
         r"(?:is )?(?:using|on|here|talking)\b",
         lower,
     ):
+        return "ask_name", None
+    if re.search(r"\b(?:i am|i'm|im)\s+(?:a\s+)?(?:different|new|another)\s+user\b", lower):
         return "ask_name", None
 
     patterns = [
