@@ -3,7 +3,7 @@ from llmproxy import LLMProxy
 from benchmark_prompts import system_prompt, invalid_json_prompt, judge_instructions
 import ast
 OUR_MODEL = 'gpt-4.1-mini'
-judge_models = ['us.anthropic.claude-3-haiku-20240307-v1:0', 'google.gemma-3-27b-it', 'us.meta.llama3-2-3b-instruct-v1:0']
+judge_models = ['us.anthropic.claude-3-haiku-20240307-v1:0', 'google.gemma-3-27b-it', 'us.meta.llama3-2-90b-instruct-v1:0']
 
 client = LLMProxy()
 
@@ -110,7 +110,14 @@ class Benchmark():
         with open(file_path, mode="r", errors="replace", newline="") as file:
             reader = csv.DictReader(file)
             for raw_row in reader:
-                row = {str(k).strip().lower(): (v or "").strip() for k, v in raw_row.items()}
+                row = {}
+                for k, v in raw_row.items():
+                    key = str(k).strip().lower()
+                    if isinstance(v, list):
+                        value = " ".join(str(item) for item in v if item is not None).strip()
+                    else:
+                        value = str(v or "").strip()
+                    row[key] = value
                 topic = row.get("topic", "")
                 question = row.get("question", "")
                 answer = row.get("answer", "")
@@ -198,6 +205,35 @@ class Benchmark():
                 "question": row["question"],
                 "topic": row["topic"],
                 "answer": row["answer"],
+                "score": result,
+                "reasoning": decisions,
+            })
+        summed_score, num_questions, overall_score = self.exam_score(exam_results)
+        self.write_results(exam_results, summed_score, num_questions, overall_score, file_name)
+
+    def evaluate_from_manual_questions_with_model(
+        self,
+        model=Base_Model(),
+        csv_file="benchmark_exam_manual.csv",
+        file_name="base_on_manual_results.txt",
+    ):
+        """
+        Use questions/rubrics from manual CSV, generate answers with model,
+        then score with the same LLM jury pipeline.
+        """
+        exam_results = []
+        manual_rows = self.load_manual_from_csv(csv_file)
+        for row in manual_rows:
+            print(row["topic"])
+            question = row["question"]
+            rubric = row["rubric"]
+            answer = model.answer([question])
+            decisions = self.LLM_as_Jury([question], rubric, answer)
+            result = self.aggregate(decisions)
+            exam_results.append({
+                "question": question,
+                "topic": row["topic"],
+                "answer": answer,
                 "score": result,
                 "reasoning": decisions,
             })

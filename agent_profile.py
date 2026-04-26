@@ -8,6 +8,12 @@ AGE_GROUP_BUTTONS = [
     Button(id="profile_age_65_plus", title="65+"),
 ]
 
+ASKING_FOR_BUTTONS = [
+    Button(id="profile_asking_self", title="For me"),
+    Button(id="profile_asking_child", title="For my child"),
+    Button(id="profile_asking_other", title="Someone else"),
+]
+
 
 def _remove_button_invite(text: str) -> str:
     """Strip menu/button CTA when we immediately ask an onboarding question."""
@@ -24,6 +30,8 @@ def _remove_button_invite(text: str) -> str:
 
 
 def profile_buttons_for_target(target: str) -> list[Button]:
+    if target == "asking_for":
+        return ASKING_FOR_BUTTONS.copy()
     if target == "age_group":
         return AGE_GROUP_BUTTONS.copy()
     return []
@@ -31,6 +39,9 @@ def profile_buttons_for_target(target: str) -> list[Button]:
 
 def profile_button_value(interaction_id: str, interaction_title: str | None = None) -> str | None:
     mapping = {
+        "profile_asking_self": "For me",
+        "profile_asking_child": "For my child",
+        "profile_asking_other": "Someone else",
         "profile_age_0_17": "0-17",
         "profile_age_18_64": "18-64",
         "profile_age_65_plus": "65+",
@@ -39,6 +50,9 @@ def profile_button_value(interaction_id: str, interaction_title: str | None = No
         return mapping[interaction_id]
     title = (interaction_title or "").strip().lower()
     reverse_titles = {
+        "for me": "For me",
+        "for my child": "For my child",
+        "someone else": "Someone else",
         "0-17": "0-17",
         "18-64": "18-64",
         "65+": "65+",
@@ -152,6 +166,10 @@ def continue_profile_conversation(
     answer_saved_profile_task_fn,
     nutrition_ob_state: dict[str, dict],
 ) -> tuple[str, list[Button]] | None:
+    def _clean_short_answer(message: str) -> str:
+        cleaned = re.sub(r"^[^\w]+", "", message or "").strip(" .,!?:;")
+        return re.sub(r"\s+", " ", cleaned)
+
     def _resolve_asking_for_value(message: str) -> str | None:
         lower = message.strip().lower()
         if re.search(r"\b(for me|myself|self|me)\b", lower):
@@ -200,6 +218,12 @@ def continue_profile_conversation(
             profile = dict(profile)
             profile["age_group"] = age_group_value
             save_profile_value(user_id, "age_group", age_group_value)
+    if target == "main_goal" and not profile.get("main_goal"):
+        main_goal = _clean_short_answer(user_message)
+        if main_goal:
+            profile = dict(profile)
+            profile["main_goal"] = main_goal
+            save_profile_value(user_id, "main_goal", main_goal)
     next_target = choose_profile_target(profile)
     if next_target:
         next_state = dict(state)

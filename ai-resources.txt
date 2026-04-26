@@ -32,3 +32,13 @@ Ok - if I put it in text it works but not with photo even though it extracted ne
 
 I don't want it referring to KB in the answers
 
+The RAG search seems very brittle with the food guide.  I ask "Is Clear Value Crisp Rice covered by WIC?" but because it doesn't exactly match the order of text in the docx, it failed
+
+
+why does "Is the Assabet Co-op Market in Acton covered by WIC" ask for location but "Does the Stop and Shop at 105 Alewife Brook Pkwy, Somerville, MA 02144 cover WIC?" doesnt?
+
+ want to also run on the base model the questions, generater answer and jury - what do you suggest
+
+ We got yes for this buit its not in the RAG: Is the Assabet Co-op Market in Acton covered by WIC
+
+ Can it do the deterministic and if it fails, it goes to the current pipeline

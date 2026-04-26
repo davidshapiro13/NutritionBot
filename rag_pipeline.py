@@ -348,16 +348,6 @@ class RAGPipeline:
             mem_src = memory_source_message if memory_source_message is not None else question
             self.memory.auto_extract_and_save(user_id, mem_src)
 
-        unique_web = list(dict.fromkeys(web_source_labels))
-        source_parts: list[str] = []
-        if kb_sources:
-            labels = [_kb_source_display_label(f) for f in kb_sources]
-            source_parts.append("; ".join(labels))
-        if unique_web:
-            source_parts.append("; ".join(unique_web))
-        if source_parts:
-            answer = f"{answer.rstrip()}\n\nSources: {' | '.join(source_parts)}"
-
         return answer
 
 
