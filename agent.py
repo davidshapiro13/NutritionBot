@@ -157,6 +157,17 @@ _DISALLOWED_BUTTON_PATTERNS = (
 )
 
 
+def _dynamic_button_id(title: str) -> str:
+    slug = re.sub(r"[^a-z0-9]+", "_", (title or "").lower()).strip("_")
+    return f"dyn_{slug or 'follow_up'}"[:64]
+
+
+def _button_text_from_id(interaction_id: str) -> str:
+    text = re.sub(r"^dyn_", "", interaction_id or "")
+    text = re.sub(r"[_-]+", " ", text).strip()
+    return text or interaction_id
+
+
 def _generate_buttons(
     response: str,
     session_id: str,
@@ -197,10 +208,9 @@ def _generate_buttons(
             else:
                 info = item
             title = str(info.get("title", ""))
-            bid   = str(info.get("id", "btn"))
             if not _is_allowed_button_title(title):
                 continue
-            buttons.append(Button(id=bid, title=title))
+            buttons.append(Button(id=_dynamic_button_id(title), title=title))
         return buttons[:3] if buttons else _make_buttons(fb)
     except Exception:
         print("Error")
@@ -899,7 +909,7 @@ def _resource_suggested_buttons(items: list | None) -> list[Button]:
         else:
             title = ""
         if title:
-            out.append(Button(id=f"resources_dyn_{i}", title=title))
+            out.append(Button(id=f"resources_{_dynamic_button_id(title)}", title=title))
     return out
 
 
@@ -2429,7 +2439,9 @@ class NutritionAgent:
             )
 
         elif interaction_id.startswith("resources_dyn_"):
-            label = (interaction_title or "").strip() or interaction_id
+            label = (interaction_title or "").strip() or _button_text_from_id(
+                re.sub(r"^resources_", "", interaction_id)
+            )
             return self._handle_resources_prompt(label, user_id, session)
 
         elif interaction_id == "wic_info":
@@ -2478,7 +2490,9 @@ class NutritionAgent:
             return text, btns
 
         elif interaction_id.startswith("resources_dyn_"):
-            label = (interaction_title or "").strip() or interaction_id
+            label = (interaction_title or "").strip() or _button_text_from_id(
+                re.sub(r"^resources_", "", interaction_id)
+            )
             text, btns = self._resources_turn(label, user_id)
             if btns != "request_location":
                 text = _append_button_intro(text, btns if isinstance(btns, list) else [], session)
@@ -2556,7 +2570,7 @@ class NutritionAgent:
             response = clean
 
         else:
-            follow_up = interaction_title or interaction_id
+            follow_up = (interaction_title or "").strip() or _button_text_from_id(interaction_id)
             return self._handle_unknown_tool_follow_up(
                 follow_up,
                 user_id,
