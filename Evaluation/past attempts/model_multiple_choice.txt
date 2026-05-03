@@ -8,19 +8,19 @@ QUESTION:
 
 
 MODEL: gpt-4.1-mini
-TIME_MS: 10392
+TIME_MS: 2821
 Provided: b | Correct: b
 
 MODEL: us.anthropic.claude-3-haiku-20240307-v1:0
-TIME_MS: 1122
+TIME_MS: 1470
 Provided: b | Correct: b
 
 MODEL: google.gemma-3-27b-it
-TIME_MS: 767
+TIME_MS: 568
 Provided: b | Correct: b
 
-MODEL: us.meta.llama3-2-90b-instruct-v1:0
-TIME_MS: 838
+MODEL: us.meta.llama3-2-3b-instruct-v1:0
+TIME_MS: 819
 Provided: b | Correct: b
 
 QUESTION: 
@@ -34,19 +34,19 @@ QUESTION:
 
 
 MODEL: gpt-4.1-mini
-TIME_MS: 1007
+TIME_MS: 1222
 Provided: e | Correct: e
 
 MODEL: us.anthropic.claude-3-haiku-20240307-v1:0
-TIME_MS: 1485
+TIME_MS: 1237
 Provided: e | Correct: e
 
 MODEL: google.gemma-3-27b-it
-TIME_MS: 1121
+TIME_MS: 542
 Provided: e | Correct: e
 
-MODEL: us.meta.llama3-2-90b-instruct-v1:0
-TIME_MS: 819
+MODEL: us.meta.llama3-2-3b-instruct-v1:0
+TIME_MS: 649
 Provided: e | Correct: e
 
 QUESTION: 
@@ -60,19 +60,20 @@ QUESTION:
 
 
 MODEL: gpt-4.1-mini
-TIME_MS: 1229
+TIME_MS: 1071
 Provided: c | Correct: c
 
 MODEL: us.anthropic.claude-3-haiku-20240307-v1:0
-TIME_MS: 1167
+TIME_MS: 1038
 Provided: e | Correct: c
 
 MODEL: google.gemma-3-27b-it
-TIME_MS: 609
-Provided: c | Correct: c
+TIME_MS: 838
+Provided: c
+ | Correct: c
 
-MODEL: us.meta.llama3-2-90b-instruct-v1:0
-TIME_MS: 972
+MODEL: us.meta.llama3-2-3b-instruct-v1:0
+TIME_MS: 769
 Provided: c | Correct: c
 
 QUESTION: 
@@ -86,20 +87,20 @@ QUESTION:
 
 
 MODEL: gpt-4.1-mini
-TIME_MS: 1447
+TIME_MS: 1568
 Provided: b | Correct: b
 
 MODEL: us.anthropic.claude-3-haiku-20240307-v1:0
-TIME_MS: 916
+TIME_MS: 1503
 Provided: b | Correct: b
 
 MODEL: google.gemma-3-27b-it
-TIME_MS: 913
+TIME_MS: 556
 Provided: b | Correct: b
 
-MODEL: us.meta.llama3-2-90b-instruct-v1:0
-TIME_MS: 832
-Provided: b | Correct: b
+MODEL: us.meta.llama3-2-3b-instruct-v1:0
+TIME_MS: 1084
+Provided: f | Correct: b
 
 QUESTION: 
     I have an allergy to gelatin. What foods should I check the ingredients of?
@@ -113,18 +114,18 @@ QUESTION:
 
 
 MODEL: gpt-4.1-mini
-TIME_MS: 1263
+TIME_MS: 1423
 Provided: f | Correct: f
 
 MODEL: us.anthropic.claude-3-haiku-20240307-v1:0
-TIME_MS: 2057
+TIME_MS: 1953
 Provided: f | Correct: f
 
 MODEL: google.gemma-3-27b-it
-TIME_MS: 568
+TIME_MS: 715
 Provided: f | Correct: f
 
-MODEL: us.meta.llama3-2-90b-instruct-v1:0
-TIME_MS: 763
-Provided: f | Correct: f
+MODEL: us.meta.llama3-2-3b-instruct-v1:0
+TIME_MS: 1829
+Provided: e | Correct: f
 
