@@ -1,8 +1,8 @@
 QUESTION: I live in Somerville, MA. What is a cheap and healthy meal I can make for dinner? Why is it healthy?
 
 MODEL: gpt-4.1-mini
-TIME_MS: 6298
-Hi! Living in Somerville, you have great access to fresh produce and affordable ingredients at local markets and stores. A cheap and healthy dinner you can try is a **vegetable stir-fry with brown rice**. Here’s why it’s a great choice and how to make it:
+TIME_MS: 3709
+Hi! Living in Somerville, you have great access to fresh produce and affordable ingredients at local markets and stores. A cheap and healthy dinner idea is a **vegetable stir-fry with brown rice**. Here’s why it’s a great choice and how to make it:
 
 ### Why it’s healthy:
 - **Vegetables** provide essential vitamins, minerals, and fiber, which support digestion and overall health.
@@ -11,150 +11,155 @@ Hi! Living in Somerville, you have great access to fresh produce and affordable 
 - You can add a lean protein like tofu, chicken breast, or beans to make it balanced and satisfying.
 
 ### Simple recipe:
-**Ingredients:**
-- 1 cup brown rice
-- 2 cups mixed vegetables (e.g., bell peppers, broccoli, carrots, snap peas)
-- 1/2 cup tofu cubes or cooked chicken breast (optional)
-- 1-2 tablespoons olive or canola oil
-- 2 cloves garlic, minced
-- 1 tablespoon low-sodium soy sauce or tamari
-- Salt and pepper to taste
+1. Cook 1 cup of brown rice according to package instructions.
+2. In a large pan or wok, heat 1 tablespoon of olive oil.
+3. Add chopped garlic and onions, sauté for 1-2 minutes.
+4. Add a mix of affordable, seasonal vegetables like bell peppers, broccoli, carrots, and snap peas.
+5. Stir-fry until vegetables are tender but still crisp (about 5-7 minutes).
+6. Add a protein source: cubed tofu, cooked chicken, or canned beans.
+7. Season with low-sodium soy sauce, a splash of lemon juice, and a pinch of black pepper.
+8. Serve the stir-fry over the brown rice.
 
-**Instructions:**
-1. Cook the brown rice according to package instructions.
-2. While the rice cooks, heat oil in a large pan or wok over medium heat.
-3. Add garlic and sauté for 1 minute until fragrant.
-4. Add vegetables and stir-fry for 5-7 minutes until tender-crisp.
-5. If using, add tofu or chicken and cook until heated through.
-6. Stir in soy sauce, salt, and pepper.
-7. Serve the stir-fry over the cooked brown rice.
+### Cost-saving tips:
+- Buy vegetables in season or from local farmers’ markets in Somerville.
+- Use frozen vegetables if fresh ones are too expensive—they’re just as nutritious.
+- Brown rice and beans are budget-friendly pantry staples.
 
-This meal is budget-friendly because brown rice and seasonal vegetables are affordable staples, and you can customize it based on what’s on sale or in season at your local markets. Plus, it’s quick to prepare and packed with nutrients to keep you energized and healthy. Enjoy!
+This meal is nutritious, filling, and easy to customize based on what you have on hand. Plus, it’s quick to prepare, making it perfect for a healthy weeknight dinner!
 MODEL: us.anthropic.claude-3-haiku-20240307-v1:0
-TIME_MS: 4845
+TIME_MS: 5448
 Hello there! As a nutritionist based in Boston, I'm happy to provide you with a healthy and affordable dinner option that you can easily make at home in Somerville.
 
-One great meal I would recommend is a vegetable stir-fry with brown rice. This dish is not only delicious, but it's also incredibly nutritious and budget-friendly.
+One great meal I would recommend is a vegetable stir-fry with brown rice. This dish is both nutritious and budget-friendly.
 
-Here's why a vegetable stir-fry with brown rice is a healthy choice:
+Here's why it's a healthy choice:
 
-1. Vegetables: Stir-fries are an excellent way to pack in a variety of nutrient-dense vegetables. You can use a mix of fresh, seasonal veggies like broccoli, bell peppers, carrots, snow peas, and onions. Vegetables are rich in vitamins, minerals, fiber, and antioxidants, which are essential for maintaining overall health.
+1. Vegetables: Stir-fries are an excellent way to pack in a variety of nutrient-dense vegetables. Vegetables like broccoli, bell peppers, carrots, and onions are rich in vitamins, minerals, and fiber, which are essential for overall health. Consuming a wide range of vegetables can help you meet your daily recommended intake of fruits and veggies.
 
-2. Brown Rice: Instead of using white rice, opt for whole-grain brown rice. Brown rice is a complex carbohydrate that provides sustained energy, as well as fiber, B vitamins, and minerals like magnesium and selenium. It's a healthier alternative to refined grains.
+2. Whole Grains: Opting for brown rice instead of white rice provides more fiber, B vitamins, and minerals. Fiber is important for digestive health and can help you feel fuller for longer, which may support weight management.
 
-3. Lean Protein: You can add a lean protein source to your stir-fry, such as tofu, chicken, or shrimp, to make it a more well-rounded and satisfying meal. Lean proteins are important for building and repairing tissues, as well as maintaining muscle mass.
+3. Lean Protein: You can add a lean protein source, such as tofu, chicken, or shrimp, to the stir-fry to make it a complete and balanced meal. Protein helps build and repair tissues in the body, and it can also contribute to feelings of satiety.
 
-4. Affordability: Vegetables, brown rice, and basic protein sources like tofu or chicken are all relatively inexpensive ingredients, making this a budget-friendly dinner option. You can find these items at your local grocery stores or even the Somerville Farmers' Market, which can help you save even more.
+4. Healthy Fats: Use a small amount of a heart-healthy oil, like olive or avocado oil, to stir-fry the vegetables. These unsaturated fats can help lower cholesterol levels and reduce the risk of heart disease.
 
-The beauty of a vegetable stir-fry with brown rice is that it's highly customizable. You can experiment with different vegetable combinations, adjust the spices and seasonings to your liking, and even add a touch of healthy fats like sesame oil or peanut oil for extra flavor.
+The great thing about a vegetable stir-fry is that it's highly customizable. You can use whatever vegetables are in season and affordable in your local Somerville area. Additionally, you can adjust the portion sizes to fit your caloric needs and budget.
 
-I hope this suggestion helps you create a delicious, nutritious, and affordable dinner in Somerville. Let me know if you have any other questions!
+I hope this gives you a tasty and nutritious dinner option to try out. Let me know if you have any other questions!
 MODEL: google.gemma-3-27b-it
-TIME_MS: 14416
+TIME_MS: 13381
 ## Hello from Boston Nutrition! Let's get you a healthy & affordable dinner going!
 
-Hi there! It's great to hear from a fellow Greater Boston resident (Somerville is fantastic!). You're asking a *really* important question – healthy eating doesn't have to break the bank.  Here's a meal idea that's both cheap, easy to make, and packed with goodness, perfect for a weeknight:
+Hi there! It's great to hear from a fellow Greater Boston resident (Somerville is fantastic!). You're asking a *really* important question – healthy eating doesn't have to break the bank. Here's a meal idea that's both cheap, easy to make, and packed with goodness, perfect for a weeknight:
 
 **Lentil Soup!**
 
-Seriously, lentil soup is a nutritional powerhouse and incredibly budget-friendly. You can easily make a big pot for under $15, and have leftovers for lunch the next day!
+**Here's a basic recipe (easily adaptable - see notes at the end):**
 
-**Here's a simple recipe (easily adaptable!):**
-
-* **Ingredients (approximate cost based on local grocery store prices - prices can vary!):**
-    * 1 cup Brown or Green Lentils (dried) - ~$1.50
-    * 1 tbsp Olive Oil - pantry staple, minimal cost
-    * 1 Onion, chopped - ~$0.75
-    * 2 Carrots, chopped - ~$0.50
-    * 2 Celery Stalks, chopped - ~$0.50
-    * 4 cloves Garlic, minced - ~$0.25
-    * 6-8 cups Vegetable Broth (or water + bouillon cube) - ~$2.00 - $3.00
-    * 1 (14.5oz) can Diced Tomatoes - ~$1.00
-    * 1 tsp Dried Thyme (or Italian Seasoning) - pantry staple, minimal cost
-    * 1/2 tsp Smoked Paprika (optional, adds great flavor!) - pantry staple, minimal cost
-    * Salt & Pepper to taste
-    * A squeeze of Lemon Juice (optional, brightens the flavor) - ~$0.25
-    * *Optional additions for extra nutrition/flavor:* A handful of spinach or kale (~$1.50), a small sweet potato diced (~$0.75)
+* **Ingredients (approximate cost: $8-12, makes 4-6 servings):**
+    * 1 cup brown or green lentils (dried) - ~$1.50 - $2.00
+    * 1 tbsp olive oil - pantry staple, minimal cost
+    * 1 onion, chopped - ~$0.75
+    * 2 carrots, chopped - ~$0.50
+    * 2 celery stalks, chopped - ~$0.50
+    * 2-3 cloves garlic, minced - ~$0.25
+    * 6-8 cups vegetable broth (bouillon cubes are *very* affordable!) - ~$2.00 - $3.00
+    * 1 (14.5oz) can diced tomatoes, undrained - ~$1.00
+    * 1 tsp dried thyme or Italian seasoning - pantry staple, minimal cost
+    * Salt & pepper to taste
+    * *Optional:* A squeeze of lemon juice at the end (brightens the flavor!) - ~$0.50
 
 * **Instructions:**
     1. Rinse the lentils in a strainer.
-    2. Heat olive oil in a large pot over medium heat. Add onion, carrots, and celery and cook until softened (about 5-7 minutes).
+    2. Heat olive oil in a large pot or Dutch oven over medium heat. Add onion, carrots, and celery and cook until softened, about 5-7 minutes.
     3. Add garlic and cook for another minute until fragrant.
-    4. Add lentils, vegetable broth, diced tomatoes, thyme, smoked paprika (if using), salt, and pepper.
-    5. Bring to a boil, then reduce heat and simmer for 20-30 minutes, or until lentils are tender.
-    6. Stir in spinach/kale during the last 5 minutes if using.
-    7.  Finish with a squeeze of lemon juice (optional).
+    4. Add lentils, vegetable broth, diced tomatoes, and thyme/Italian seasoning. Bring to a boil, then reduce heat and simmer for 20-30 minutes, or until lentils are tender.
+    5. Season with salt and pepper to taste.  Add a squeeze of lemon juice if desired.
+
+
 
 **Why is this healthy? Let's break it down:**
 
-* **Lentils are a nutritional superstar:** They're packed with **plant-based protein** (essential for building and repairing tissues), **fiber** (keeps you feeling full and aids digestion – important for gut health!), **iron** (helps carry oxygen throughout your body), and **folate** (important for cell growth and function).  They're also a complex carbohydrate, meaning they provide sustained energy.
-* **Vegetables provide vital vitamins & minerals:** Carrots are rich in **Vitamin A** (good for vision and immune function), celery provides **Vitamin K** (important for blood clotting), and tomatoes are a good source of **Vitamin C** (an antioxidant).  Adding spinach or kale boosts the **Vitamin K, Vitamin A, and folate** content even further.
-* **Olive Oil provides healthy fats:**  Olive oil is a source of **monounsaturated fats**, which are beneficial for heart health.
-* **Low in Saturated Fat & Cholesterol:** This meal is naturally low in saturated fat and cholesterol, contributing to a heart-healthy diet.
-* **Fiber-Rich:** The high fiber content helps regulate blood sugar levels and promotes a feeling of fullness, which can aid in weight management.
+* **Lentils are Nutritional Powerhouses:** They are an *amazing* source of plant-based protein (crucial for muscle building and repair), fiber (keeps you full and aids digestion), iron (important for energy levels, especially for those who don't eat a lot of red meat), and folate (important for cell growth).  They're also low in fat.
+* **Vegetables = Vitamins & Minerals:** Carrots, celery, and onions provide essential vitamins (like Vitamin A from carrots) and minerals. They also contribute to your daily fiber intake.
+* **Broth Hydration & Flavor:** Vegetable broth provides hydration and adds flavor without a lot of added sodium (check the label and choose a low-sodium option if you're watching your salt intake).
+* **Tomatoes = Antioxidants:** Diced tomatoes are a good source of Vitamin C and lycopene, an antioxidant linked to reduced risk of certain diseases.
+* **Olive Oil = Healthy Fats:** A small amount of olive oil provides healthy monounsaturated fats, which are good for your heart.
+
+**Why is it *cheap*?**
+
+* **Lentils are incredibly affordable:**  Dried lentils are one of the most cost-effective sources of protein and fiber you can find.
+* **Vegetables are often on sale:**  Carrots, celery, and onions are generally inexpensive, especially when in season.
+* **Broth can be made from scraps (or bouillon is great!):** You can save vegetable scraps (onion skins, carrot tops, celery ends) to make your own broth, or bouillon cubes are a very budget-friendly option.
+* **It makes leftovers!** This recipe makes a good amount, so you'll have lunch for the next day (or even freeze some for later!).
 
 
 
-**Where to shop in Somerville to keep costs down:**
+**Adaptations & Tips for Somerville Shopping:**
 
-* **Trader Joe's:** Great for lentils, canned tomatoes, and spices.
-* **Clover Food Lab (various locations):** While not a full grocery store, they often have affordable seasonal produce.
-* **Star Market/Shaw's:**  Look for sales and store brands.
-* **Farmers Markets (seasonal):**  Can be a good source of affordable, local produce.
-
-
-
-**Important Note:**  I'm a nutritionist, but this isn't personalized medical advice. If you have specific dietary needs or health concerns, please consult with a registered dietitian or your doctor. 
-
-I hope you enjoy this meal!  Let me know if you'd like more ideas or have any other questions.  
+* **Somerville has great options!** Check out places like Star Market, Whole Foods (can be pricier, but sometimes good sales), and especially the farmers markets (Union Square Farmers Market is excellent in season!) for affordable produce.
+* **Spice it up:** Add a pinch of red pepper flakes for a little heat.
+* **Add greens:** Stir in a handful of spinach or kale during the last few minutes of cooking.
+* **Make it heartier:** Add a diced potato or sweet potato along with the other vegetables.
+* **Bulk Buying:** If you eat lentils often, buying them in bulk can save you even more money.
 
 
 
-**Disclaimer:** *I am an AI chatbot and cannot provide medical or dietary advice. This information is for general knowledge and informational purposes only, and does not constitute medical advice. It is essential to consult with a qualified healthcare professional for any health concerns or before making any decisions related to your health or treatment.*
-MODEL: us.meta.llama3-2-3b-instruct-v1:0
-TIME_MS: 11532
-Somerville, MA - a vibrant and foodie-friendly city. I'd be happy to help you with a delicious, affordable, and healthy dinner option.
+I hope this gives you a great starting point for a healthy and affordable dinner!  If you have any other questions about nutrition or want more personalized advice, feel free to ask.  
 
-One of my favorite cheap and healthy meal ideas is a simple yet satisfying Black Bean and Sweet Potato Tacos. Here's a recipe you can try:
+
+
+**Disclaimer:** *I am a nutritionist providing general information. This is not a substitute for personalized medical or dietary advice. If you have specific health concerns, please consult with a registered dietitian or your healthcare provider.*
+
+
+
+
+MODEL: us.meta.llama3-2-90b-instruct-v1:0
+TIME_MS: 9547
+As a nutritionist in Boston, I'm happy to share a delicious, affordable, and nutritious dinner idea that's perfect for a Somerville resident like you.
+
+One of my favorite cheap and healthy meal options is a classic Black Bean and Sweet Potato Tacos recipe. Here's why:
+
+**Cost:** This meal is budget-friendly, with most ingredients costing under $5. You can find sweet potatoes and black beans at a reasonable price at local grocery stores like Market Basket or Aldi.
+
+**Health Benefits:**
+
+1. **Sweet Potatoes:** Rich in vitamin A (beta-carotene), vitamin C, and fiber, sweet potatoes are an excellent source of antioxidants and complex carbohydrates. They're also low on the glycemic index, making them a great choice for blood sugar control.
+2. **Black Beans:** These legumes are packed with protein, fiber, and folate, making them an excellent plant-based protein source. Black beans are also rich in minerals like potassium, magnesium, and iron.
+3. **Tacos:** Using whole wheat or whole grain tacos shells (or even making your own with whole wheat tortillas) provides additional fiber and B vitamins.
+
+**Recipe:**
 
 Ingredients:
 
-* 1 medium sweet potato, peeled and diced
+* 2 medium sweet potatoes, peeled and diced
 * 1 can black beans, drained and rinsed
+* 1 onion, diced
 * 1 tablespoon olive oil
-* 1 small onion, diced
-* 1 clove garlic, minced
 * 1 teaspoon cumin
 * 1/2 teaspoon chili powder
-* Salt and pepper, to taste
-* 4 corn tortillas
+* Salt and pepper to taste
+* 4-6 whole wheat tacos shells
 * Optional toppings: diced tomatoes, shredded lettuce, diced avocado, salsa, shredded cheese
 
 Instructions:
 
 1. Preheat your oven to 400°F (200°C).
-2. Toss the sweet potato with 1/2 tablespoon olive oil, salt, and pepper on a baking sheet. Roast for about 20-25 minutes, or until tender.
-3. In a large skillet, heat the remaining 1/2 tablespoon olive oil over medium heat. Add the onion and cook until softened, about 3-4 minutes. Add the garlic, cumin, and chili powder, and cook for another minute.
-4. Add the black beans to the skillet and stir to combine with the onion mixture. Cook for about 2-3 minutes, or until heated through.
-5. Warm the tortillas by wrapping them in a damp paper towel and microwaving for 20-30 seconds.
-6. Assemble the tacos by spooning the black bean mixture onto a tortilla, followed by roasted sweet potato, and any desired toppings.
+2. Toss the sweet potatoes with olive oil, cumin, and chili powder on a baking sheet. Roast for 20-25 minutes or until tender.
+3. In a pan, sauté the onion and black beans with a pinch of salt and pepper until the onion is translucent.
+4. Warm the tacos shells according to package instructions.
+5. Assemble the tacos by spooning the black bean mixture onto a shell, followed by roasted sweet potatoes, and your desired toppings.
 
-Why is this meal healthy?
+**Nutritional Breakdown (approximate):**
 
-* Sweet potatoes are rich in vitamin A, fiber, and antioxidants, making them an excellent source of nutrition.
-* Black beans are high in protein, fiber, and folate, making them a great plant-based protein source.
-* The cumin and chili powder add a boost of antioxidants and anti-inflammatory compounds.
-* The whole grain corn tortillas provide fiber and B vitamins.
-* The toppings offer a range of vitamins and minerals, including vitamin C from the tomatoes and vitamin E from the avocado.
+Per serving (2 tacos):
 
-This meal is not only delicious but also budget-friendly, with estimated costs:
+* Calories: 400
+* Protein: 15g
+* Fat: 10g
+* Saturated Fat: 1.5g
+* Carbohydrates: 60g
+* Fiber: 10g
+* Sugar: 10g
+* Sodium: 200mg
 
-* Sweet potatoes: $0.50
-* Black beans: $1.00
-* Onion, garlic, cumin, chili powder: $1.00
-* Corn tortillas: $1.50
-* Optional toppings: $1.00-$2.00
-
-Total estimated cost: $4.00-$6.50
-
-This meal should cost you around $1.50-$2.50 per serving, making it an affordable and nutritious option for dinner. Enjoy!
+This recipe is not only delicious, but it's also packed with nutrients, fiber, and protein, making it an excellent choice for a healthy and affordable dinner in Somerville. Enjoy!

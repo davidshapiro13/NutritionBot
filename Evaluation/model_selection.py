@@ -59,8 +59,8 @@ class Model():
         return self.name
 
 client = LLMProxy()
-models = [Model('gpt-4.1-mini'), Model('us.anthropic.claude-3-haiku-20240307-v1:0'), Model('google.gemma-3-27b-it'), Model('us.meta.llama3-2-3b-instruct-v1:0')]
-judge_models = [Model('gpt-4.1-mini'), Model('us.anthropic.claude-3-haiku-20240307-v1:0'), Model('google.gemma-3-27b-it'), Model('us.meta.llama3-2-3b-instruct-v1:0')]
+models = [Model('gpt-4.1-mini'), Model('us.anthropic.claude-3-haiku-20240307-v1:0'), Model('google.gemma-3-27b-it'), Model('us.meta.llama3-2-90b-instruct-v1:0')]
+judge_models = [Model('gpt-4.1-mini'), Model('us.anthropic.claude-3-haiku-20240307-v1:0'), Model('google.gemma-3-27b-it'), Model('us.meta.llama3-2-90b-instruct-v1:0')]
 
 multiple_choice_instructions = (
             """You are an expert nutritionist located in Boston, MA. This is a multiple choice question. Only answer with a, b, c, d, e, f (depending on number of options in question).
@@ -153,7 +153,7 @@ def _timing_summary(times_ms):
 def write_overall_results(models, multi_scores=None, open_summary=None):
     output_dir = Path("model_selection_results")
     output_dir.mkdir(parents=True, exist_ok=True)
-    output_path = output_dir / "overall_results.txt"
+    output_path = output_dir / "overall_results2.txt"
     with output_path.open("w", encoding="utf-8") as f:
         f.write("Model Speed Summary (milliseconds)\n\n")
         for model in models:
